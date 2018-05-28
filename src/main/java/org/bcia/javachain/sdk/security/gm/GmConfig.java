@@ -40,7 +40,7 @@ import static java.lang.String.format;
 
 public class GmConfig {
     private static final Log logger = LogFactory.getLog(GmConfig.class);
-
+    //DEFAULT_CONFIG
     private static final String DEFAULT_CONFIG = "config_gm.properties";
     public static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.hyperledger.fabric.sdk.configuration";
     /**
