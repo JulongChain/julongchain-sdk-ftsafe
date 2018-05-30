@@ -22,7 +22,7 @@ option java_outer_classname = "FabricProposal";
 
 package protos;
 
-import "peer/chaincode.proto";
+import "peer/smartcontract.proto";
 import "peer/proposal_response.proto";
 
 /*
@@ -77,7 +77,7 @@ SignedTransaction
          \_ Payload (1)                          (the payload for this action)
 */
 
-// This structure is necessary to sign the proposal which contains the header
+// This struclture is necessary to sign the proposal which contains the header
 // and the payload. Without this structure, we would have to concatenate the
 // header and the payload to verify the signature, which could be expensive
 // with large payload
