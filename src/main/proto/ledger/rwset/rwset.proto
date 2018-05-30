@@ -16,7 +16,7 @@ limitations under the License.
 
 syntax = "proto3";
 
-option go_package = "github.com/bcia/javachain/protos/ledger/rwset";
+option go_package = "github.com/hyperledger/fabric/protos/ledger/rwset";
 option java_package = "org.bcia.javachain.protos.ledger.rwset";
 
 package rwset;
@@ -54,8 +54,8 @@ message TxPvtReadWriteSet {
 
 // NsPvtReadWriteSet encapsulates the private read-write set for a chaincode
 message NsPvtReadWriteSet {
-    string namespace = 1;
-    repeated CollectionPvtReadWriteSet collection_pvt_rwset = 2;
+   string namespace = 1;
+   repeated CollectionPvtReadWriteSet collection_pvt_rwset = 2;
 }
 
 // CollectionPvtReadWriteSet encapsulates the private read-write set for a collection
