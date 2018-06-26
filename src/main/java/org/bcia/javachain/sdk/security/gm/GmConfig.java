@@ -32,7 +32,7 @@ import static java.lang.String.format;
  * Config allows for a global config of the toolkit. Central location for all
  * toolkit configuration defaults. Has a local config file that can override any
  * property defaults. Config file can be relocated via a system property
- * "org.hyperledger.fabric.sdk.configuration". Any property can be overridden
+ * "org.bcia.javachain.sdk.configuration". Any property can be overridden
  * with environment variable and then overridden
  * with a java system property. Property hierarchy goes System property
  * overrides environment variable which overrides config file for default values specified here.
@@ -42,42 +42,42 @@ public class GmConfig {
     private static final Log logger = LogFactory.getLog(GmConfig.class);
     //DEFAULT_CONFIG
     private static final String DEFAULT_CONFIG = "config_gm.properties";
-    public static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.hyperledger.fabric.sdk.configuration";
+    public static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdk.configuration";
     /**
      * Timeout settings
      **/
-    public static final String PROPOSAL_WAIT_TIME = "org.hyperledger.fabric.sdk.proposal.wait.time";
-    public static final String CHANNEL_CONFIG_WAIT_TIME = "org.hyperledger.fabric.sdk.channelconfig.wait_time";
-    public static final String TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME = "org.hyperledger.fabric.sdk.client.transaction_cleanup_up_timeout_wait_time";
-    public static final String ORDERER_RETRY_WAIT_TIME = "org.hyperledger.fabric.sdk.orderer_retry.wait_time";
-    public static final String ORDERER_WAIT_TIME = "org.hyperledger.fabric.sdk.orderer.ordererWaitTimeMilliSecs";
-    public static final String PEER_EVENT_REGISTRATION_WAIT_TIME = "org.hyperledger.fabric.sdk.peer.eventRegistration.wait_time";
-    public static final String PEER_EVENT_RETRY_WAIT_TIME = "org.hyperledger.fabric.sdk.peer.retry_wait_time";
-    public static final String EVENTHUB_CONNECTION_WAIT_TIME = "org.hyperledger.fabric.sdk.eventhub_connection.wait_time";
-    public static final String GENESISBLOCK_WAIT_TIME = "org.hyperledger.fabric.sdk.channel.genesisblock_wait_time";
+    public static final String PROPOSAL_WAIT_TIME = "org.bcia.javachain.sdk.proposal.wait.time";
+    public static final String CHANNEL_CONFIG_WAIT_TIME = "org.bcia.javachain.sdk.channelconfig.wait_time";
+    public static final String TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME = "org.bcia.javachain.sdk.client.transaction_cleanup_up_timeout_wait_time";
+    public static final String ORDERER_RETRY_WAIT_TIME = "org.bcia.javachain.sdk.orderer_retry.wait_time";
+    public static final String ORDERER_WAIT_TIME = "org.bcia.javachain.sdk.orderer.ordererWaitTimeMilliSecs";
+    public static final String PEER_EVENT_REGISTRATION_WAIT_TIME = "org.bcia.javachain.sdk.peer.eventRegistration.wait_time";
+    public static final String PEER_EVENT_RETRY_WAIT_TIME = "org.bcia.javachain.sdk.peer.retry_wait_time";
+    public static final String EVENTHUB_CONNECTION_WAIT_TIME = "org.bcia.javachain.sdk.eventhub_connection.wait_time";
+    public static final String GENESISBLOCK_WAIT_TIME = "org.bcia.javachain.sdk.channel.genesisblock_wait_time";
     /**
      * Crypto configuration settings
      **/
-    public static final String DEFAULT_CRYPTO_SUITE_FACTORY = "org.hyperledger.fabric.sdk.crypto.default_crypto_suite_factory";
-    public static final String SECURITY_LEVEL = "org.hyperledger.fabric.sdk.security_level";
-    public static final String SECURITY_PROVIDER_CLASS_NAME = "org.hyperledger.fabric.sdk.security_provider_class_name";
-    public static final String SECURITY_CURVE_MAPPING = "org.hyperledger.fabric.sdk.security_curve_mapping";
-    public static final String HASH_ALGORITHM = "org.hyperledger.fabric.sdk.hash_algorithm";
-    public static final String ASYMMETRIC_KEY_TYPE = "org.hyperledger.fabric.sdk.crypto.asymmetric_key_type";
-    public static final String CERTIFICATE_FORMAT = "org.hyperledger.fabric.sdk.crypto.certificate_format";
-    public static final String SIGNATURE_ALGORITHM = "org.hyperledger.fabric.sdk.crypto.default_signature_algorithm";
+    public static final String DEFAULT_CRYPTO_SUITE_FACTORY = "org.bcia.javachain.sdk.crypto.default_crypto_suite_factory";
+    public static final String SECURITY_LEVEL = "org.bcia.javachain.sdk.security_level";
+    public static final String SECURITY_PROVIDER_CLASS_NAME = "org.bcia.javachain.sdk.security_provider_class_name";
+    public static final String SECURITY_CURVE_MAPPING = "org.bcia.javachain.sdk.security_curve_mapping";
+    public static final String HASH_ALGORITHM = "org.bcia.javachain.sdk.hash_algorithm";
+    public static final String ASYMMETRIC_KEY_TYPE = "org.bcia.javachain.sdk.crypto.asymmetric_key_type";
+    public static final String CERTIFICATE_FORMAT = "org.bcia.javachain.sdk.crypto.certificate_format";
+    public static final String SIGNATURE_ALGORITHM = "org.bcia.javachain.sdk.crypto.default_signature_algorithm";
     /**
      * Logging settings
      **/
-    public static final String MAX_LOG_STRING_LENGTH = "org.hyperledger.fabric.sdk.log.stringlengthmax";
-    public static final String EXTRALOGLEVEL = "org.hyperledger.fabric.sdk.log.extraloglevel";  // ORG_HYPERLEDGER_FABRIC_SDK_LOG_EXTRALOGLEVEL
-    public static final String LOGGERLEVEL = "org.hyperledger.fabric.sdk.loglevel";  // ORG_HYPERLEDGER_FABRIC_SDK_LOGLEVEL=TRACE,DEBUG
-    public static final String DIAGNOTISTIC_FILE_DIRECTORY = "org.hyperledger.fabric.sdk.diagnosticFileDir"; //ORG_HYPERLEDGER_FABRIC_SDK_DIAGNOSTICFILEDIR
+    public static final String MAX_LOG_STRING_LENGTH = "org.bcia.javachain.sdk.log.stringlengthmax";
+    public static final String EXTRALOGLEVEL = "org.bcia.javachain.sdk.log.extraloglevel";  // ORG_HYPERLEDGER_FABRIC_SDK_LOG_EXTRALOGLEVEL
+    public static final String LOGGERLEVEL = "org.bcia.javachain.sdk.loglevel";  // ORG_HYPERLEDGER_FABRIC_SDK_LOGLEVEL=TRACE,DEBUG
+    public static final String DIAGNOTISTIC_FILE_DIRECTORY = "org.bcia.javachain.sdk.diagnosticFileDir"; //ORG_HYPERLEDGER_FABRIC_SDK_DIAGNOSTICFILEDIR
 
     /**
      * Miscellaneous settings
      **/
-    public static final String PROPOSAL_CONSISTENCY_VALIDATION = "org.hyperledger.fabric.sdk.proposal.consistency_validation";
+    public static final String PROPOSAL_CONSISTENCY_VALIDATION = "org.bcia.javachain.sdk.proposal.consistency_validation";
 
     private static GmConfig config;
     private static final Properties sdkProperties = new Properties();
@@ -121,7 +121,7 @@ public class GmConfig {
             /**
              * Crypto configuration settingsl
              **/
-            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.hyperledger.fabric.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
+            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
             defaultProperty(SECURITY_LEVEL, "256");
             defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
             defaultProperty(SECURITY_CURVE_MAPPING, "256=sm2p256v1");
@@ -178,7 +178,7 @@ public class GmConfig {
                 }
 
                 if (null != setTo) {
-                    org.apache.log4j.Logger.getLogger("org.hyperledger.fabric").setLevel(setTo);
+                    org.apache.log4j.Logger.getLogger("org.bcia.javachain").setLevel(setTo);
                 }
 
             }
