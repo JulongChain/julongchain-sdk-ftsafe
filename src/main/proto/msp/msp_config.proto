@@ -6,8 +6,9 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-option go_package = "github.com/bcia/javachain/protos/msp";
+option go_package = "github.com/hyperledger/fabric/protos/msp";
 option java_package = "org.bcia.javachain.protos.msp";
+option java_outer_classname = "MspConfigPackage";
 
 package msp;
 
@@ -102,6 +103,25 @@ message FabricCryptoConfig {
     // Allowed values are "SHA256", "SHA384" and "SHA3_256", "SHA3_384".
     string identity_identifier_hash_function = 2;
 
+    string symmetrickey = 3;
+
+    string sign = 4;
+
+    string hash = 5;
+
+    string asymmetric = 6;
+
+    FileKeyStore filekeystore = 7;
+
+}
+message FileKeyStore {
+    string public_key_path = 1;
+
+    string private_key_path = 2;
+
+    string public_key_value=3;
+
+    string private_key_value=4;
 }
 
 // IdemixMSPConfig collects all the configuration information for
@@ -192,4 +212,6 @@ message FabricNodeOUs {
     // OU Identifier of the peers
     FabricOUIdentifier peerOUIdentifier = 3;
 
+    // OU Identifier of the orderers
+    FabricOUIdentifier ordererOUIdentifier = 4;
 }
