@@ -24,6 +24,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
 import org.bcia.javachain.protos.common.Common.Payload;
 
+
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class PayloadDeserializer {
     private final ByteString byteString;
     private WeakReference<Payload> payload;
@@ -66,8 +73,8 @@ class PayloadDeserializer {
 ////            this.txEnvelope = txEnvelope;
 //        Payload payload = getPayload();
 ////            Header plh = payload.getHeader();
-//        //  ChannelHeader channelHeader = ChannelHeader.parseFrom(plh.getChannelHeader());
-//        String txID = getHeader().getChannelHeader().getTxId();
+//        //  GroupHeader channelHeader = GroupHeader.parseFrom(plh.getGroupHeader());
+//        String txID = getHeader().getGroupHeader().getTxId();
 //
 //// NEW....................
 //
@@ -90,14 +97,14 @@ class PayloadDeserializer {
 ////        }
 ////
 ////        Transaction tx = Transaction.parseFrom(payload.getData());
-////        List<FabricTransaction.TransactionAction> al = tx.getActionsList();
+////        List<TransactionPackage.TransactionAction> al = tx.getActionsList();
 ////        for (TransactionAction ta : al) {
 ////
-////            //         FabricTransaction.ChaincodeActionPayload tap = ta.getHeader();
+////            //         TransactionPackage.SmartContractActionPayload tap = ta.getHeader();
 ////
-////            ChaincodeActionPayload tap = ChaincodeActionPayload.parseFrom(ta.getPayload());//<<<
-////            FabricProposal.ChaincodeProposalPayload ccpp = FabricProposal.ChaincodeProposalPayload.parseFrom(tap.getChaincodeProposalPayload());
-////            Chaincode.ChaincodeInput cinput = Chaincode.ChaincodeInput.parseFrom(ccpp.getInput());
+////            SmartContractActionPayload tap = SmartContractActionPayload.parseFrom(ta.getPayload());//<<<
+////            ProposalPackage.SmartContractProposalPayload ccpp = ProposalPackage.SmartContractProposalPayload.parseFrom(tap.getSmartContractProposalPayload());
+////            SmartContract.SmartContractInput cinput = SmartContract.SmartContractInput.parseFrom(ccpp.getInput());
 ////
 ////            for (ByteString x : cinput.getArgsList()) {
 ////
@@ -105,13 +112,13 @@ class PayloadDeserializer {
 ////
 ////            }
 ////
-////            ChaincodeEndorsedAction cae = tap.getAction();
+////            SmartContractEndorsedAction cae = tap.getAction();
 ////
-////            // FabricProposalResponse.ProposalResponsePayload cpr = FabricProposalResponse.ProposalResponsePayload.parseFrom(cae.getProposalResponsePayload());
-////            FabricProposalResponse.ProposalResponsePayload cpr = FabricProposalResponse.ProposalResponsePayload.parseFrom(cae.getProposalResponsePayload());
-////            FabricProposal.ChaincodeAction ca = FabricProposal.ChaincodeAction.parseFrom(cpr.getExtension());
+////            // ProposalResponsePackage.ProposalResponsePayload cpr = ProposalResponsePackage.ProposalResponsePayload.parseFrom(cae.getProposalResponsePayload());
+////            ProposalResponsePackage.ProposalResponsePayload cpr = ProposalResponsePackage.ProposalResponsePayload.parseFrom(cae.getProposalResponsePayload());
+////            ProposalPackage.SmartContractAction ca = ProposalPackage.SmartContractAction.parseFrom(cpr.getExtension());
 ////
-////            FabricProposalResponse.Response rsp = ca.getResponse();
+////            ProposalResponsePackage.Response rsp = ca.getResponse();
 ////            System.out.println(String.format(" resp message= %s,  status=%d", new String(rsp.getPayload().toByteArray()), rsp.getStatus()));
 ////
 ////            ByteString rwset = ca.getResults();
@@ -120,7 +127,7 @@ class PayloadDeserializer {
 ////
 ////            Rwset.TxReadWriteSet txReadWriteSet = Rwset.TxReadWriteSet.parseFrom(ca.getResults());
 ////
-////            FabricProposalResponse.Response a = ca.getResponse();
+////            ProposalResponsePackage.Response a = ca.getResponse();
 ////
 ////            //cae.getProposalResponsePayload();r
 ////            System.out.println("rwset:'" + txReadWriteSet);
@@ -128,17 +135,17 @@ class PayloadDeserializer {
 ////        }
 //
 //            /*
-//            ChaincodeEndorsedAction.getAction
+//            SmartContractEndorsedAction.getAction
 //            ProposalResponsePayload
 //               ProposalResponsePayload.getExtension
-//               ChaincodeAction.getResults()
+//               SmartContractAction.getResults()
 //             */
 //
 ////
-////            FabricProposal.Proposal sp = FabricProposal.Proposal.parseFrom(bdb);
+////            ProposalPackage.Proposal sp = ProposalPackage.Proposal.parseFrom(bdb);
 ////            Header ph = Header.parseFrom(sp.getHeader());
 ////
-////            ChannelHeader pch = ChannelHeader.parseFrom(ph.getChannelHeader());
+////            GroupHeader pch = GroupHeader.parseFrom(ph.getGroupHeader());
 //
 //    }
 //
@@ -147,14 +154,14 @@ class PayloadDeserializer {
 //    PayloadDeserializer
 //     */
 //
-////    private void getChannelIDFromBlock() throws InvalidProtocolBufferException {
+////    private void getGroupIDFromBlock() throws InvalidProtocolBufferException {
 ////        blockData = block.getData();
 ////        ByteString data = blockData.getData(0);
 ////        Common.Envelope envelope = Envelope.parseFrom(data);
 ////        Payload payload = Payload.parseFrom(envelope.getPayload());
 ////        Common.Header plh = payload.getHeader();
-////        ChannelHeader channelHeader = ChannelHeader.parseFrom(plh.getChannelHeader());
-////        channelID = channelHeader.getChannelId();
+////        GroupHeader channelHeader = GroupHeader.parseFrom(plh.getGroupHeader());
+////        channelID = channelHeader.getGroupId();
 ////    }
 
 }

@@ -40,11 +40,18 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.protos.peer.Query.ChaincodeInfo;
+import org.bcia.javachain.protos.node.Query.SmartContractInfo;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.User.userContextCheck;
 
+
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class HFClient {
 
     private CryptoSuite cryptoSuite;
@@ -71,7 +78,7 @@ public class HFClient {
 
     private static final Log logger = LogFactory.getLog(HFClient.class);
 
-    private final Map<String, Channel> channels = new HashMap<>();
+    private final Map<String, Group> channels = new HashMap<>();
 
     public User getUserContext() {
         return userContext;
@@ -125,7 +132,7 @@ public class HFClient {
      * @return The configured channel, or null if the channel is not defined in the configuration
      * @throws InvalidArgumentException
      */
-    public Channel loadChannelFromConfig(String channelName, NetworkConfig networkConfig) throws InvalidArgumentException, NetworkConfigurationException {
+    public Group loadGroupFromConfig(String channelName, NetworkConfig networkConfig) throws InvalidArgumentException, NetworkConfigurationException {
         clientCheck();
 
         // Sanity checks
@@ -138,37 +145,37 @@ public class HFClient {
         }
 
         if (channels.containsKey(channelName)) {
-            throw new InvalidArgumentException(format("Channel with name %s already exists", channelName));
+            throw new InvalidArgumentException(format("Group with name %s already exists", channelName));
         }
 
-        return networkConfig.loadChannel(this, channelName);
+        return networkConfig.loadGroup(this, channelName);
     }
 
 
     /**
-     * newChannel - already configured channel.
+     * newGroup - already configured channel.
      *
      * @param name
      * @return a new channel.
      * @throws InvalidArgumentException
      */
 
-    public Channel newChannel(String name) throws InvalidArgumentException {
+    public Group newGroup(String name) throws InvalidArgumentException {
         clientCheck();
         if (Utils.isNullOrEmpty(name)) {
-            throw new InvalidArgumentException("Channel name can not be null or empty string.");
+            throw new InvalidArgumentException("Group name can not be null or empty string.");
         }
 
         synchronized (channels) {
 
             if (channels.containsKey(name)) {
-                throw new InvalidArgumentException(format("Channel by the name %s already exists", name));
+                throw new InvalidArgumentException(format("Group by the name %s already exists", name));
             }
             logger.trace("Creating channel :" + name);
-            Channel newChannel = Channel.createNewInstance(name, this);
+            Group newGroup = Group.createNewInstance(name, this);
 
-            channels.put(name, newChannel);
-            return newChannel;
+            channels.put(name, newGroup);
+            return newGroup;
 
         }
 
@@ -178,83 +185,83 @@ public class HFClient {
      * Create a new channel
      *
      * @param name                           The channel's name
-     * @param orderer                        Orderer to create the channel with.
-     * @param channelConfiguration           Channel configuration data.
+     * @param orderer                        Consenter to create the channel with.
+     * @param channelConfiguration           Group configuration data.
      * @param channelConfigurationSignatures byte arrays containing ConfigSignature's proto serialized.
-     *                                       See {@link Channel#getChannelConfigurationSignature} on how to create
+     *                                       See {@link Group#getGroupConfigurationSignature} on how to create
      * @return a new channel.
      * @throws TransactionException
      * @throws InvalidArgumentException
      */
 
-    public Channel newChannel(String name, Orderer orderer, ChannelConfiguration channelConfiguration,
+    public Group newGroup(String name, Consenter orderer, GroupConfiguration channelConfiguration,
             byte[]... channelConfigurationSignatures) throws TransactionException, InvalidArgumentException {
 
         clientCheck();
         if (Utils.isNullOrEmpty(name)) {
-            throw new InvalidArgumentException("Channel name can not be null or empty string.");
+            throw new InvalidArgumentException("Group name can not be null or empty string.");
         }
 
         synchronized (channels) {
 
             if (channels.containsKey(name)) {
-                throw new InvalidArgumentException(format("Channel by the name %s already exits", name));
+                throw new InvalidArgumentException(format("Group by the name %s already exits", name));
             }
 
             logger.trace("Creating channel :" + name);
 
-            Channel newChannel = Channel.createNewInstance(name, this, orderer, channelConfiguration,
+            Group newGroup = Group.createNewInstance(name, this, orderer, channelConfiguration,
                     channelConfigurationSignatures);
 
-            channels.put(name, newChannel);
-            return newChannel;
+            channels.put(name, newGroup);
+            return newGroup;
 
         }
 
     }
 
     /**
-     * Deserialize a channel serialized by {@link Channel#serializeChannel()}
+     * Deserialize a channel serialized by {@link Group#serializeGroup()}
      *
      * @param file a file which contains the bytes to be deserialized.
-     * @return A Channel that has not been initialized.
+     * @return A Group that has not been initialized.
      * @throws IOException
      * @throws ClassNotFoundException
      * @throws InvalidArgumentException
      */
 
-    public Channel deSerializeChannel(File file) throws IOException, ClassNotFoundException, InvalidArgumentException {
+    public Group deSerializeGroup(File file) throws IOException, ClassNotFoundException, InvalidArgumentException {
 
         if (null == file) {
             throw new InvalidArgumentException("File parameter may not be null");
         }
 
-        return deSerializeChannel(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+        return deSerializeGroup(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
     }
 
     /**
-     * Deserialize a channel serialized by {@link Channel#serializeChannel()}
+     * Deserialize a channel serialized by {@link Group#serializeGroup()}
      *
      * @param channelBytes bytes to be deserialized.
-     * @return A Channel that has not been initialized.
+     * @return A Group that has not been initialized.
      * @throws IOException
      * @throws ClassNotFoundException
      * @throws InvalidArgumentException
      */
 
-    public Channel deSerializeChannel(byte[] channelBytes)
+    public Group deSerializeGroup(byte[] channelBytes)
             throws IOException, ClassNotFoundException, InvalidArgumentException {
 
-        Channel channel;
+        Group channel;
         ObjectInputStream in = null;
         try {
             in = new ObjectInputStream(new ByteArrayInputStream(channelBytes));
-            channel = (Channel) in.readObject();
+            channel = (Group) in.readObject();
             final String name = channel.getName();
             synchronized (channels) {
-                if (null != getChannel(name)) {
+                if (null != getGroup(name)) {
                     channel.shutdown(true);
-                    throw new InvalidArgumentException(format("Channel %s already exists in the client", name));
+                    throw new InvalidArgumentException(format("Group %s already exists in the client", name));
                 }
                 channels.put(name, channel);
                 channel.client = this;
@@ -276,7 +283,7 @@ public class HFClient {
     }
 
     /**
-     * newPeer create a new peer
+     * newNode create a new peer
      *
      * @param name       name of peer.
      * @param grpcURL    to the peer's location
@@ -310,37 +317,37 @@ public class HFClient {
      *                   parameters need to be supplied in an array of Objects.
      *                   </li>
      *                   </ul>
-     * @return Peer
+     * @return Node
      * @throws InvalidArgumentException
      */
 
-    public Peer newPeer(String name, String grpcURL, Properties properties) throws InvalidArgumentException {
+    public Node newNode(String name, String grpcURL, Properties properties) throws InvalidArgumentException {
         clientCheck();
-        return Peer.createNewInstance(name, grpcURL, properties);
+        return Node.createNewInstance(name, grpcURL, properties);
     }
 
     /**
-     * newPeer create a new peer
+     * newNode create a new peer
      *
      * @param name
      * @param grpcURL to the peer's location
-     * @return Peer
+     * @return Node
      * @throws InvalidArgumentException
      */
 
-    public Peer newPeer(String name, String grpcURL) throws InvalidArgumentException {
+    public Node newNode(String name, String grpcURL) throws InvalidArgumentException {
         clientCheck();
-        return Peer.createNewInstance(name, grpcURL, null);
+        return Node.createNewInstance(name, grpcURL, null);
     }
 
     /**
-     * getChannel by name
+     * getGroup by name
      *
      * @param name The channel name
      * @return a channel (or null if the channel does not exist)
      */
 
-    public Channel getChannel(String name) {
+    public Group getGroup(String name) {
         return channels.get(name);
     }
 
@@ -380,11 +387,11 @@ public class HFClient {
     /**
      * newQueryProposalRequest get new query proposal request.
      *
-     * @return QueryByChaincodeRequest
+     * @return QueryBySmartContractRequest
      */
 
-    public QueryByChaincodeRequest newQueryProposalRequest() {
-        return QueryByChaincodeRequest.newInstance(userContext);
+    public QueryBySmartContractRequest newQueryProposalRequest() {
+        return QueryBySmartContractRequest.newInstance(userContext);
     }
 
     /**
@@ -414,7 +421,7 @@ public class HFClient {
     /**
      * Create a new Eventhub.
      *
-     * @param name       name of Orderer.
+     * @param name       name of Consenter.
      * @param grpcURL    url location of orderer grpc or grpcs protocol.
      * @param properties <p>
      *                   Supported properties
@@ -465,23 +472,23 @@ public class HFClient {
     }
 
     /**
-     * Create a new urlOrderer.
+     * Create a new urlConsenter.
      *
      * @param name    name of the orderer.
      * @param grpcURL url location of orderer grpc or grpcs protocol.
-     * @return a new Orderer.
+     * @return a new Consenter.
      * @throws InvalidArgumentException
      */
 
-    public Orderer newOrderer(String name, String grpcURL) throws InvalidArgumentException {
+    public Consenter newConsenter(String name, String grpcURL) throws InvalidArgumentException {
         clientCheck();
-        return newOrderer(name, grpcURL, null);
+        return newConsenter(name, grpcURL, null);
     }
 
     /**
      * Create a new orderer.
      *
-     * @param name       name of Orderer.
+     * @param name       name of Consenter.
      * @param grpcURL    url location of orderer grpc or grpcs protocol.
      * @param properties <p>
      *                   Supported properties
@@ -511,16 +518,16 @@ public class HFClient {
      *                   </li>
      *                   <li>
      *                   ordererWaitTimeMilliSecs Time to wait in milliseconds for the
-     *                   Orderer to accept requests before timing out. The default is two seconds.
+     *                   Consenter to accept requests before timing out. The default is two seconds.
      *                   </li>
      *                   </ul>
      * @return The orderer.
      * @throws InvalidArgumentException
      */
 
-    public Orderer newOrderer(String name, String grpcURL, Properties properties) throws InvalidArgumentException {
+    public Consenter newConsenter(String name, String grpcURL, Properties properties) throws InvalidArgumentException {
         clientCheck();
-        return Orderer.createNewInstance(name, grpcURL, properties);
+        return Consenter.createNewInstance(name, grpcURL, properties);
     }
 
     /**
@@ -531,7 +538,7 @@ public class HFClient {
      * @throws InvalidArgumentException
      * @throws ProposalException
      */
-    public Set<String> queryChannels(Peer peer) throws InvalidArgumentException, ProposalException {
+    public Set<String> queryGroups(Node peer) throws InvalidArgumentException, ProposalException {
 
         clientCheck();
 
@@ -544,13 +551,13 @@ public class HFClient {
         //Run this on a system channel.
 
         try {
-            Channel systemChannel = Channel.newSystemChannel(this);
+            Group systemGroup = Group.newSystemGroup(this);
 
-            return systemChannel.queryChannels(peer);
+            return systemGroup.queryGroups(peer);
         } catch (InvalidArgumentException e) {
             throw e; //dont log
         } catch (ProposalException e) {
-            logger.error(format("queryChannels for peer %s failed." + e.getMessage(), peer.getName()), e);
+            logger.error(format("queryGroups for peer %s failed." + e.getMessage(), peer.getName()), e);
             throw e;
         }
 
@@ -560,12 +567,12 @@ public class HFClient {
      * Query the peer for installed chaincode information
      *
      * @param peer The peer to query.
-     * @return List of ChaincodeInfo on installed chaincode @see {@link ChaincodeInfo}
+     * @return List of SmartContractInfo on installed chaincode @see {@link SmartContractInfo}
      * @throws InvalidArgumentException
      * @throws ProposalException
      */
 
-    public List<ChaincodeInfo> queryInstalledChaincodes(Peer peer) throws InvalidArgumentException, ProposalException {
+    public List<SmartContractInfo> queryInstalledSmartContracts(Node peer) throws InvalidArgumentException, ProposalException {
 
         clientCheck();
 
@@ -578,11 +585,11 @@ public class HFClient {
         try {
             //Run this on a system channel.
 
-            Channel systemChannel = Channel.newSystemChannel(this);
+            Group systemGroup = Group.newSystemGroup(this);
 
-            return systemChannel.queryInstalledChaincodes(peer);
+            return systemGroup.queryInstalledSmartContracts(peer);
         } catch (ProposalException e) {
-            logger.error(format("queryInstalledChaincodes for peer %s failed." + e.getMessage(), peer.getName()), e);
+            logger.error(format("queryInstalledSmartContracts for peer %s failed." + e.getMessage(), peer.getName()), e);
             throw e;
         }
 
@@ -597,32 +604,32 @@ public class HFClient {
      * @throws InvalidArgumentException
      */
 
-    public byte[] getChannelConfigurationSignature(ChannelConfiguration channelConfiguration, User signer)
+    public byte[] getGroupConfigurationSignature(GroupConfiguration channelConfiguration, User signer)
             throws InvalidArgumentException {
 
         clientCheck();
 
-        Channel systemChannel = Channel.newSystemChannel(this);
-        return systemChannel.getChannelConfigurationSignature(channelConfiguration, signer);
+        Group systemGroup = Group.newSystemGroup(this);
+        return systemGroup.getGroupConfigurationSignature(channelConfiguration, signer);
 
     }
 
     /**
      * Get signature for update channel configuration
      *
-     * @param updateChannelConfiguration
+     * @param updateGroupConfiguration
      * @param signer
      * @return byte array with the signature
      * @throws InvalidArgumentException
      */
 
-    public byte[] getUpdateChannelConfigurationSignature(UpdateChannelConfiguration updateChannelConfiguration,
+    public byte[] getUpdateGroupConfigurationSignature(UpdateGroupConfiguration updateGroupConfiguration,
             User signer) throws InvalidArgumentException {
 
         clientCheck();
 
-        Channel systemChannel = Channel.newSystemChannel(this);
-        return systemChannel.getUpdateChannelConfigurationSignature(updateChannelConfiguration, signer);
+        Group systemGroup = Group.newSystemGroup(this);
+        return systemGroup.getUpdateGroupConfigurationSignature(updateGroupConfiguration, signer);
 
     }
 
@@ -637,14 +644,14 @@ public class HFClient {
      */
 
     public Collection<ProposalResponse> sendInstallProposal(InstallProposalRequest installProposalRequest,
-            Collection<Peer> peers) throws ProposalException, InvalidArgumentException {
+            Collection<Node> peers) throws ProposalException, InvalidArgumentException {
 
         clientCheck();
 
         installProposalRequest.setSubmitted();
-        Channel systemChannel = Channel.newSystemChannel(this);
+        Group systemGroup = Group.newSystemGroup(this);
 
-        return systemChannel.sendInstallProposal(installProposalRequest, peers);
+        return systemGroup.sendInstallProposal(installProposalRequest, peers);
 
     }
 
@@ -659,7 +666,7 @@ public class HFClient {
 
     }
 
-    void removeChannel(Channel channel) {
+    void removeGroup(Group channel) {
         synchronized (channels) {
             final String name = channel.getName();
             if (channels.get(name) == channel) { // Only remove if it's the same instance.

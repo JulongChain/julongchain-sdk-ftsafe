@@ -27,20 +27,25 @@ import org.bcia.javachain.protos.common.Common;
 import org.bcia.javachain.protos.common.Common.Block;
 import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
 import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeInput;
-import org.bcia.javachain.protos.peer.FabricTransaction;
-import org.bcia.javachain.protos.peer.PeerEvents;
-import org.bcia.javachain.protos.peer.PeerEvents.FilteredTransaction;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractInput;
+import org.bcia.javachain.protos.node.TransactionPackage;
+import org.bcia.javachain.protos.node.EventsPackage;
+import org.bcia.javachain.protos.node.EventsPackage.FilteredTransaction;
 
 import static java.lang.String.format;
-import static org.bcia.javachain.protos.peer.FabricProposalResponse.Endorsement;
+import static org.bcia.javachain.protos.node.ProposalResponsePackage.Endorsement;
 
 /**
  * BlockInfo contains the data from a {@link Block}
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class BlockInfo {
     private final BlockDeserializer block; //can be only one or the other.
-    private final PeerEvents.FilteredBlock filteredBlock;
+    private final EventsPackage.FilteredBlock filteredBlock;
 
     BlockInfo(Block block) {
 
@@ -48,18 +53,18 @@ public class BlockInfo {
         this.block = new BlockDeserializer(block);
     }
 
-    BlockInfo(PeerEvents.DeliverResponse resp) {
+    BlockInfo(EventsPackage.DeliverResponse resp) {
 
-        final PeerEvents.DeliverResponse.TypeCase type = resp.getTypeCase();
+        final EventsPackage.DeliverResponse.TypeCase type = resp.getTypeCase();
 
-        if (type == PeerEvents.DeliverResponse.TypeCase.BLOCK) {
+        if (type == EventsPackage.DeliverResponse.TypeCase.BLOCK) {
             final Block respBlock = resp.getBlock();
             filteredBlock = null;
             if (respBlock == null) {
                 throw new AssertionError("DeliverResponse type block but block is null");
             }
             this.block = new BlockDeserializer(respBlock);
-        } else if (type == PeerEvents.DeliverResponse.TypeCase.FILTERED_BLOCK) {
+        } else if (type == EventsPackage.DeliverResponse.TypeCase.FILTERED_BLOCK) {
             filteredBlock = resp.getFilteredBlock();
             block = null;
             if (filteredBlock == null) {
@@ -82,9 +87,9 @@ public class BlockInfo {
         return filteredBlock != null;
     }
 
-    public String getChannelId() throws InvalidProtocolBufferException {
+    public String getGroupId() throws InvalidProtocolBufferException {
 
-        return isFiltered() ? filteredBlock.getChannelId() : getEnvelopeInfo(0).getChannelId();
+        return isFiltered() ? filteredBlock.getChannelId() : getEnvelopeInfo(0).getGroupId();
     }
 
     /**
@@ -95,9 +100,9 @@ public class BlockInfo {
     }
 
     /**
-     * @return the raw {@link org.bcia.javachain.protos.peer.PeerEvents.FilteredBlock}
+     * @return the raw {@link org.bcia.javachain.protos.node.EventsPackage.FilteredBlock}
      */
-    public PeerEvents.FilteredBlock getFilteredBlock() {
+    public EventsPackage.FilteredBlock getFilteredBlock() {
         return !isFiltered() ? null : filteredBlock;
     }
 
@@ -180,9 +185,9 @@ public class BlockInfo {
          *
          * @return The channel id also referred to as channel name.
          */
-        public String getChannelId() {
+        public String getGroupId() {
 
-            return BlockInfo.this.isFiltered() ? filteredBlock.getChannelId() : headerDeserializer.getChannelHeader().getChannelId();
+            return BlockInfo.this.isFiltered() ? filteredBlock.getChannelId() : headerDeserializer.getGroupHeader().getGroupId();
         }
 
         public class IdentitiesInfo {
@@ -243,7 +248,7 @@ public class BlockInfo {
          */
         public String getTransactionID() {
 
-            return BlockInfo.this.isFiltered() ? filteredTx.getTxid() : headerDeserializer.getChannelHeader().getTxId();
+            return BlockInfo.this.isFiltered() ? filteredTx.getTxid() : headerDeserializer.getGroupHeader().getTxId();
         }
 
         /**
@@ -253,7 +258,7 @@ public class BlockInfo {
 
         public long getEpoch() {
 
-            return BlockInfo.this.isFiltered() ? -1 : headerDeserializer.getChannelHeader().getEpoch();
+            return BlockInfo.this.isFiltered() ? -1 : headerDeserializer.getGroupHeader().getEpoch();
         }
 
         /**
@@ -265,14 +270,14 @@ public class BlockInfo {
         public Date getTimestamp() {
 
             return BlockInfo.this.isFiltered() ? null :
-                    ProtoUtils.getDateFromTimestamp(headerDeserializer.getChannelHeader().getTimestamp());
+                    ProtoUtils.getDateFromTimestamp(headerDeserializer.getGroupHeader().getTimestamp());
         }
 
         /**
          * @return whether this Transaction is marked as TxValidationCode.VALID
          */
         public boolean isValid() {
-            return BlockInfo.this.isFiltered() ? filteredTx.getTxValidationCode().getNumber() == FabricTransaction.TxValidationCode.VALID_VALUE
+            return BlockInfo.this.isFiltered() ? filteredTx.getTxValidationCode().getNumber() == TransactionPackage.TxValidationCode.VALID_VALUE
                     : envelopeDeserializer.isValid();
         }
 
@@ -297,7 +302,7 @@ public class BlockInfo {
                 type = filteredTx.getTypeValue();
 
             } else {
-                type = headerDeserializer.getChannelHeader().getType();
+                type = headerDeserializer.getGroupHeader().getType();
 
             }
 
@@ -402,7 +407,7 @@ public class BlockInfo {
         protected final EndorserTransactionEnvDeserializer transactionDeserializer;
 
         public int getTransactionActionInfoCount() {
-            return BlockInfo.this.isFiltered() ? filteredTx.getTransactionActions().getChaincodeActionsCount() : transactionDeserializer.getPayload().getTransaction().getActionsCount();
+            return BlockInfo.this.isFiltered() ? filteredTx.getTransactionActions().getSmartContractActionsCount() : transactionDeserializer.getPayload().getTransaction().getActionsCount();
         }
 
         public Iterable<TransactionActionInfo> getTransactionActionInfos() {
@@ -413,7 +418,7 @@ public class BlockInfo {
         public class TransactionActionInfo {
 
             private final TransactionActionDeserializer transactionAction;
-            private final PeerEvents.FilteredChaincodeAction filteredAction;
+            private final EventsPackage.FilteredSmartContractAction filteredAction;
             List<EndorserInfo> endorserInfos = null;
 
             private boolean isFiltered() {
@@ -427,7 +432,7 @@ public class BlockInfo {
                 filteredAction = null;
             }
 
-            TransactionActionInfo(PeerEvents.FilteredChaincodeAction filteredAction) {
+            TransactionActionInfo(EventsPackage.FilteredSmartContractAction filteredAction) {
                 this.filteredAction = filteredAction;
                 transactionAction = null;
 
@@ -446,26 +451,26 @@ public class BlockInfo {
                 return isFiltered() ? -1 : transactionAction.getPayload().getAction().getProposalResponsePayload().getExtension().getResponseStatus();
             }
 
-            int getChaincodeInputArgsCount = -1;
+            int getSmartContractInputArgsCount = -1;
 
-            public int getChaincodeInputArgsCount() {
+            public int getSmartContractInputArgsCount() {
                 if (isFiltered()) {
                     return 0;
                 }
-                if (getChaincodeInputArgsCount < 0) {
-                    getChaincodeInputArgsCount = transactionAction.getPayload().getChaincodeProposalPayload().
-                            getChaincodeInvocationSpec().getChaincodeInput().getChaincodeInput().getArgsCount();
+                if (getSmartContractInputArgsCount < 0) {
+                    getSmartContractInputArgsCount = transactionAction.getPayload().getSmartContractProposalPayload().
+                            getSmartContractInvocationSpec().getSmartContractInput().getSmartContractInput().getArgsCount();
                 }
-                return getChaincodeInputArgsCount;
+                return getSmartContractInputArgsCount;
             }
 
-            public byte[] getChaincodeInputArgs(int index) {
+            public byte[] getSmartContractInputArgs(int index) {
                 if (isFiltered()) {
                     return null;
                 }
 
-                ChaincodeInput input = transactionAction.getPayload().getChaincodeProposalPayload().
-                        getChaincodeInvocationSpec().getChaincodeInput().getChaincodeInput();
+                SmartContractInput input = transactionAction.getPayload().getSmartContractProposalPayload().
+                        getSmartContractInvocationSpec().getSmartContractInput().getSmartContractInput();
 
                 return input.getArgs(index).toByteArray();
             }
@@ -490,7 +495,7 @@ public class BlockInfo {
                     endorserInfos = new ArrayList<>();
 
                     for (Endorsement endorsement : transactionAction.getPayload().getAction()
-                            .getChaincodeEndorsedAction().getEndorsementsList()) {
+                            .getSmartContractEndorsedAction().getEndorsementsList()) {
 
                         endorserInfos.add(new EndorserInfo(endorsement));
 
@@ -566,10 +571,10 @@ public class BlockInfo {
              * @return A chaincode event if the chaincode set an event otherwise null.
              */
 
-            public ChaincodeEvent getEvent() {
+            public SmartContractEvent getEvent() {
                 if (isFiltered()) {
-                    final PeerEvents.FilteredChaincodeAction chaincodeActions = filteredAction;
-                    return new ChaincodeEvent(chaincodeActions.getChaincodeEvent().toByteString());
+                    final EventsPackage.FilteredSmartContractAction chaincodeActions = filteredAction;
+                    return new SmartContractEvent(chaincodeActions.getSmartContractEvent().toByteString());
                 }
 
                 return transactionAction.getPayload().getAction().getProposalResponsePayload()
@@ -580,7 +585,7 @@ public class BlockInfo {
         }
 
         public TransactionActionInfo getTransactionActionInfo(int index) {
-            return BlockInfo.this.isFiltered() ? new TransactionActionInfo(filteredTx.getTransactionActions().getChaincodeActionsList().get(index))
+            return BlockInfo.this.isFiltered() ? new TransactionActionInfo(filteredTx.getTransactionActions().getSmartContractActionsList().get(index))
                     : new TransactionActionInfo(transactionDeserializer.getPayload().getTransaction().getTransactionAction(index));
         }
 
@@ -607,7 +612,7 @@ public class BlockInfo {
                 }
 
                 //   return BlockInfo.this.isFiltered() ? new TransactionActionInfo(filteredTx.getFilteredAction(ci++))
-                return BlockInfo.this.isFiltered() ? new TransactionActionInfo(filteredTx.getTransactionActions().getChaincodeActions(ci++))
+                return BlockInfo.this.isFiltered() ? new TransactionActionInfo(filteredTx.getTransactionActions().getSmartContractActions(ci++))
                         : getTransactionActionInfo(ci++);
             }
         }

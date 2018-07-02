@@ -13,11 +13,14 @@
  */
 package org.bcia.javachain.sdk.helper;
 
+import static java.lang.String.format;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -25,8 +28,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import static java.lang.String.format;
+import org.mvel2.MVEL;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Config allows for a global config of the toolkit. Central location for all
@@ -36,12 +39,17 @@ import static java.lang.String.format;
  * with environment variable and then overridden
  * with a java system property. Property hierarchy goes System property
  * overrides environment variable which overrides config file for default values specified here.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 
 public class Config {
     private static final Log logger = LogFactory.getLog(Config.class);
 
-    private static final String DEFAULT_CONFIG = "config.properties";
+    private static final String DEFAULT_CONFIG = "config_gm.properties";
     public static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdk.configuration";
     /**
      * Timeout settings
@@ -82,19 +90,30 @@ public class Config {
     private static Config config;
     private static final Properties sdkProperties = new Properties();
 
+    
+    private Map<String, String> yamlMap;
+    
+    public String getValue(String key) {
+    	String value = (String) MVEL.eval(key, yamlMap);
+    	logger.info("config >> key: "+ key +", value: "+ value);
+    	return value;
+    }
+    
     private Config() {
-        File loadFile;
-        FileInputStream configProps;
+//        File loadFile;
+        InputStream configProps;
 
         try {
-            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
-                    .getAbsoluteFile();
-            logger.debug(format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-                    loadFile.exists()));
-            configProps = new FileInputStream(loadFile);
+//          loadFile = new File(System.getProperty(ORG_BCIA_JAVACHAIN_SDK_CONFIGURATION, DEFAULT_CONFIG))
+//          .getAbsoluteFile();
+//  logger.debug(format("Loading configuration from %s and it is present: %b", loadFile.toString(),
+//          loadFile.exists()));
+//  configProps = new FileInputStream(loadFile);
+        	configProps = Config.class.getResourceAsStream("/config_gm.properties");
             sdkProperties.load(configProps);
-
+            yamlMap = (LinkedHashMap<String, String>) new Yaml().load(this.getClass().getResourceAsStream("/config_gm.yaml"));
         } catch (IOException e) {
+        	e.printStackTrace();
             logger.warn(format("Failed to load any configuration from: %s. Using toolkit defaults",
                     DEFAULT_CONFIG));
         } finally {
@@ -107,7 +126,6 @@ public class Config {
             defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "15000");
             defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
             // defaultProperty(ORDERER_WAIT_TIME, "10000");
-
             defaultProperty(ORDERER_WAIT_TIME, "30000");
             defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
             defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
@@ -123,15 +141,25 @@ public class Config {
             /**
              * Crypto configuration settings
              **/
+            /*
             defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.HLSDKJCryptoSuiteFactory");
             defaultProperty(SECURITY_LEVEL, "256");
             defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
             defaultProperty(SECURITY_CURVE_MAPPING, "256=secp256r1:384=secp384r1");
             defaultProperty(HASH_ALGORITHM, "SHA2");
             defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
-
             defaultProperty(CERTIFICATE_FORMAT, "X.509");
             defaultProperty(SIGNATURE_ALGORITHM, "SHA256withECDSA");
+            */
+            
+            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
+            defaultProperty(SECURITY_LEVEL, "256");
+            defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
+            defaultProperty(SECURITY_CURVE_MAPPING, "256=sm2p256v1");
+            defaultProperty(HASH_ALGORITHM, "SM3");//SHA2
+            defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+            defaultProperty(CERTIFICATE_FORMAT, "X.509");
+            defaultProperty(SIGNATURE_ALGORITHM, "SM3withSM2");
 
             /**
              * Logging settings
@@ -337,7 +365,7 @@ public class Config {
      *
      * @return
      */
-    public long getChannelConfigWaitTime() {
+    public long getGroupConfigWaitTime() {
         return Long.parseLong(getProperty(CHANNEL_CONFIG_WAIT_TIME));
     }
 
@@ -346,29 +374,29 @@ public class Config {
      *
      * @return
      */
-    public long getOrdererRetryWaitTime() {
+    public long getConsenterRetryWaitTime() {
         return Long.parseLong(getProperty(ORDERER_RETRY_WAIT_TIME));
     }
 
-    public long getOrdererWaitTime() {
+    public long getConsenterWaitTime() {
         return Long.parseLong(getProperty(ORDERER_WAIT_TIME));
     }
 
     /**
-     * getPeerEventRegistrationWaitTime
+     * getNodeEventRegistrationWaitTime
      *
      * @return time in milliseconds to wait for peer eventing service to wait for event registration
      */
-    public long getPeerEventRegistrationWaitTime() {
+    public long getNodeEventRegistrationWaitTime() {
         return Long.parseLong(getProperty(PEER_EVENT_REGISTRATION_WAIT_TIME));
     }
 
     /**
-     * getPeerEventRegistrationWaitTime
+     * getNodeEventRegistrationWaitTime
      *
      * @return time in milliseconds to wait for peer eventing service to wait for event registration
      */
-    public  long getPeerRetryWaitTime() {
+    public  long getNodeRetryWaitTime() {
         return Long.parseLong(getProperty(PEER_EVENT_RETRY_WAIT_TIME));
     }
 

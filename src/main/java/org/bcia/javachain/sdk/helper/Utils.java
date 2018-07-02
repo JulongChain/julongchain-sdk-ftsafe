@@ -55,6 +55,13 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 
+
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public final class Utils {
     private static final Log logger = LogFactory.getLog(Utils.class);
 
@@ -65,8 +72,8 @@ public final class Utils {
     /**
      * Generate parameter hash for the given chaincode path,func and args
      *
-     * @param path Chaincode path
-     * @param func Chaincode function name
+     * @param path SmartContract path
+     * @param func SmartContract function name
      * @param args List of arguments
      * @return hash of path, func and args
      */
@@ -87,7 +94,7 @@ public final class Utils {
      * Generate hash of a chaincode directory
      *
      * @param rootDir      Root directory
-     * @param chaincodeDir Channel code directory
+     * @param chaincodeDir Group code directory
      * @param hash         Previous hash (if any)
      * @return hash of the directory
      * @throws IOException

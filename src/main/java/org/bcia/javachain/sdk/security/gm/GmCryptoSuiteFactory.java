@@ -18,7 +18,6 @@ package org.bcia.javachain.sdk.security.gm;
 
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
-import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain.sdk.security.CryptoSuiteFactory;
 

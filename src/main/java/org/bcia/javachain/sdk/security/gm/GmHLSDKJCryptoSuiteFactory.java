@@ -14,23 +14,23 @@
 
 package org.bcia.javachain.sdk.security.gm;
 
-import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.exception.InvalidArgumentException;
-import org.bcia.javachain.sdk.helper.Config;
-import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.sdk.security.CryptoSuiteFactory;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bcia.javachain.sdk.exception.CryptoException;
+import org.bcia.javachain.sdk.exception.InvalidArgumentException;
+import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.javachain.sdk.security.CryptoSuite;
+import org.bcia.javachain.sdk.security.CryptoSuiteFactory;
+
 /**
  * SDK's Default implementation of GmCryptoSuiteFactory.
  */
 public class GmHLSDKJCryptoSuiteFactory implements GmCryptoSuiteFactory {
-    private static final GmConfig config = GmConfig.getConfig();
+    private static final Config config = Config.getConfig();
     private static final int SECURITY_LEVEL = config.getSecurityLevel();
     private static final String HASH_ALGORITHM = config.getHashAlgorithm();
 

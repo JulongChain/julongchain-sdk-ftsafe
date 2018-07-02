@@ -25,10 +25,17 @@ import org.bcia.javachain.protos.common.Common;
 import org.bcia.javachain.protos.common.Common.Header;
 import org.bcia.javachain.protos.msp.Identities;
 
+
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class HeaderDeserializer {
 
     private final Header header;
-    private WeakReference<ChannelHeaderDeserializer> channelHeader;
+    private WeakReference<GroupHeaderDeserializer> channelHeader;
 
     HeaderDeserializer(Header header) {
         this.header = header;
@@ -39,9 +46,9 @@ class HeaderDeserializer {
         return header;
     }
 
-    ChannelHeaderDeserializer getChannelHeader() {
+    GroupHeaderDeserializer getGroupHeader() {
 
-        ChannelHeaderDeserializer ret = null;
+        GroupHeaderDeserializer ret = null;
 
         if (channelHeader != null) {
             ret = channelHeader.get();
@@ -49,7 +56,7 @@ class HeaderDeserializer {
         }
         if (ret == null) {
 
-            ret = new ChannelHeaderDeserializer(getHeader().getChannelHeader());
+            ret = new GroupHeaderDeserializer(getHeader().getGroupHeader());
             channelHeader = new WeakReference<>(ret);
 
         }

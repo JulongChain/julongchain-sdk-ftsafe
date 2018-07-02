@@ -17,7 +17,7 @@ package org.bcia.javachain.sdk.transaction;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
-import org.bcia.javachain.sdk.Channel;
+import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.helper.Config;
@@ -29,6 +29,11 @@ import org.bcia.javachain.protos.msp.Identities;
  * Internal class, not an public API.
  * A transaction context emits events 'submitted', 'complete', and 'error'.
  * Each transaction context uses exactly one tcert.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class TransactionContext {
     private static final Config config = Config.getConfig();
@@ -37,7 +42,7 @@ public class TransactionContext {
     private final ByteString nonce = ByteString.copyFrom(Utils.generateNonce());
     private final CryptoSuite cryptoPrimitives;
     private final User user;
-    private final Channel channel;
+    private final Group channel;
     private final String txID;
     private final Identities.SerializedIdentity identity;
     Timestamp currentTimeStamp = null;
@@ -45,7 +50,7 @@ public class TransactionContext {
     //private List<String> attrs;
     private long proposalWaitTime = config.getProposalWaitTime();
 
-    public TransactionContext(Channel channel, User user, CryptoSuite cryptoPrimitives) {
+    public TransactionContext(Group channel, User user, CryptoSuite cryptoPrimitives) {
 
         this.user = user;
         this.channel = channel;
@@ -114,7 +119,7 @@ public class TransactionContext {
      *
      * @return The channel
      */
-    public Channel getChannel() {
+    public Group getGroup() {
         return this.channel;
     }
 
@@ -158,8 +163,8 @@ public class TransactionContext {
         return verify;
     }
 
-    public String getChannelID() {
-        return getChannel().getName();
+    public String getGroupID() {
+        return getGroup().getName();
     }
 
     public String getTxID() {

@@ -23,11 +23,17 @@ import org.bcia.javachain.protos.common.Common;
 import org.bcia.javachain.protos.common.Common.Header;
 import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
 import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.peer.FabricProposal;
-import org.bcia.javachain.protos.peer.FabricProposal.ChaincodeHeaderExtension;
-import org.bcia.javachain.protos.peer.FabricProposalResponse;
+import org.bcia.javachain.protos.node.ProposalPackage;
+import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
+import org.bcia.javachain.protos.node.ProposalResponsePackage;
 
-public class ProposalResponse extends ChaincodeResponse {
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
+public class ProposalResponse extends SmartContractResponse {
 
     private static final Log logger = LogFactory.getLog(ProposalResponse.class);
     private static final Config config = Config.getConfig();
@@ -39,10 +45,10 @@ public class ProposalResponse extends ChaincodeResponse {
     private boolean isVerified = false;
 
     private WeakReference<ProposalResponsePayloadDeserializer> proposalResponsePayload;
-    private FabricProposal.Proposal proposal;
-    private FabricProposalResponse.ProposalResponse proposalResponse;
-    private Peer peer = null;
-    private ChaincodeID chaincodeID = null;
+    private ProposalPackage.Proposal proposal;
+    private ProposalResponsePackage.ProposalResponse proposalResponse;
+    private Node peer = null;
+    private SmartContractID chaincodeID = null;
 
     ProposalResponse(String transactionID, String chaincodeID, int status, String message) {
         super(transactionID, chaincodeID, status, message);
@@ -105,7 +111,7 @@ public class ProposalResponse extends ChaincodeResponse {
             this.isVerified = false;
         }
 
-        FabricProposalResponse.Endorsement endorsement = this.proposalResponse.getEndorsement();
+        ProposalResponsePackage.Endorsement endorsement = this.proposalResponse.getEndorsement();
         ByteString sig = endorsement.getSignature();
 
         try {
@@ -141,14 +147,14 @@ public class ProposalResponse extends ChaincodeResponse {
         return this.isVerified;
     } // verify
 
-    public FabricProposal.Proposal getProposal() {
+    public ProposalPackage.Proposal getProposal() {
         return proposal;
     }
 
-    public void setProposal(FabricProposal.SignedProposal signedProposal) throws ProposalException {
+    public void setProposal(ProposalPackage.SignedProposal signedProposal) throws ProposalException {
 
         try {
-            this.proposal = FabricProposal.Proposal.parseFrom(signedProposal.getProposalBytes());
+            this.proposal = ProposalPackage.Proposal.parseFrom(signedProposal.getProposalBytes());
         } catch (InvalidProtocolBufferException e) {
             throw new ProposalException("Proposal exception", e);
 
@@ -161,25 +167,25 @@ public class ProposalResponse extends ChaincodeResponse {
      * @return peer response.
      */
 
-    public FabricProposalResponse.ProposalResponse getProposalResponse() {
+    public ProposalResponsePackage.ProposalResponse getProposalResponse() {
         return proposalResponse;
     }
 
-    public void setProposalResponse(FabricProposalResponse.ProposalResponse proposalResponse) {
+    public void setProposalResponse(ProposalResponsePackage.ProposalResponse proposalResponse) {
         this.proposalResponse = proposalResponse;
     }
 
     /**
      * The peer this proposal was created on.
      *
-     * @return See {@link Peer}
+     * @return See {@link Node}
      */
 
-    public Peer getPeer() {
+    public Node getNode() {
         return this.peer;
     }
 
-    void setPeer(Peer peer) {
+    void setNode(Node peer) {
         this.peer = peer;
     }
 
@@ -188,22 +194,22 @@ public class ProposalResponse extends ChaincodeResponse {
 //    }
 
     /**
-     * Chaincode ID that was executed.
+     * SmartContract ID that was executed.
      *
-     * @return See {@link ChaincodeID}
+     * @return See {@link SmartContractID}
      * @throws InvalidArgumentException
      */
 
-    public ChaincodeID getChaincodeID() throws InvalidArgumentException {
+    public SmartContractID getSmartContractID() throws InvalidArgumentException {
 
         try {
 
             if (chaincodeID == null) {
 
                 Header header = Header.parseFrom(proposal.getHeader());
-                Common.ChannelHeader channelHeader = Common.ChannelHeader.parseFrom(header.getChannelHeader());
-                ChaincodeHeaderExtension chaincodeHeaderExtension = ChaincodeHeaderExtension.parseFrom(channelHeader.getExtension());
-                chaincodeID = new ChaincodeID(chaincodeHeaderExtension.getChaincodeId());
+                Common.GroupHeader channelHeader = Common.GroupHeader.parseFrom(header.getGroupHeader());
+                SmartContractHeaderExtension chaincodeHeaderExtension = SmartContractHeaderExtension.parseFrom(channelHeader.getExtension());
+                chaincodeID = new SmartContractID(chaincodeHeaderExtension.getSmartContractId());
             }
             return chaincodeID;
 
@@ -214,13 +220,13 @@ public class ProposalResponse extends ChaincodeResponse {
     }
 
     /**
-     * ChaincodeActionResponsePayload is the result of the executing chaincode.
+     * SmartContractActionResponsePayload is the result of the executing chaincode.
      *
      * @return the result of the executing chaincode.
      * @throws InvalidArgumentException
      */
 
-    public byte[] getChaincodeActionResponsePayload() throws InvalidArgumentException {
+    public byte[] getSmartContractActionResponsePayload() throws InvalidArgumentException {
 
         if (isInvalid()) {
             throw new InvalidArgumentException("Proposal response is invalid.");
@@ -229,7 +235,7 @@ public class ProposalResponse extends ChaincodeResponse {
         try {
 
             final ProposalResponsePayloadDeserializer proposalResponsePayloadDeserializer = getProposalResponsePayloadDeserializer();
-            ByteString ret = proposalResponsePayloadDeserializer.getExtension().getChaincodeAction().getResponse().getPayload();
+            ByteString ret = proposalResponsePayloadDeserializer.getExtension().getSmartContractAction().getResponse().getPayload();
             if (null == ret) {
                 return null;
             }
@@ -242,13 +248,13 @@ public class ProposalResponse extends ChaincodeResponse {
     }
 
     /**
-     * getChaincodeActionResponseStatus returns the what chaincode executions set as the return status.
+     * getSmartContractActionResponseStatus returns the what chaincode executions set as the return status.
      *
      * @return status code.
      * @throws InvalidArgumentException
      */
 
-    public int getChaincodeActionResponseStatus() throws InvalidArgumentException {
+    public int getSmartContractActionResponseStatus() throws InvalidArgumentException {
         if (isInvalid()) {
             throw new InvalidArgumentException("Proposal response is invalid.");
         }
@@ -267,13 +273,13 @@ public class ProposalResponse extends ChaincodeResponse {
     }
 
     /**
-     * getChaincodeActionResponseReadWriteSetInfo get this proposals read write set.
+     * getSmartContractActionResponseReadWriteSetInfo get this proposals read write set.
      *
      * @return The read write set. See {@link TxReadWriteSetInfo}
      * @throws InvalidArgumentException
      */
 
-    public TxReadWriteSetInfo getChaincodeActionResponseReadWriteSetInfo() throws InvalidArgumentException {
+    public TxReadWriteSetInfo getSmartContractActionResponseReadWriteSetInfo() throws InvalidArgumentException {
 
         if (isInvalid()) {
             throw new InvalidArgumentException("Proposal response is invalid.");

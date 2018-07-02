@@ -14,18 +14,24 @@
 
 package org.bcia.javachain.sdk.transaction;
 
-import org.bcia.javachain.protos.peer.Chaincode;
-import org.bcia.javachain.protos.peer.FabricProposal;
+import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.ProposalPackage;
 
-import static org.bcia.javachain.protos.peer.Chaincode.ChaincodeSpec.Type.GOLANG;
+import static org.bcia.javachain.protos.node.SmartContract.SmartContractSpec.Type.GOLANG;
 
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class CSCCProposalBuilder extends ProposalBuilder {
     private static final String CSCC_CHAIN_NAME = "cscc";
-    private static final Chaincode.ChaincodeID CHAINCODE_ID_CSCC =
-            Chaincode.ChaincodeID.newBuilder().setName(CSCC_CHAIN_NAME).build();
+    private static final SmartContract.SmartContractID CHAINCODE_ID_CSCC =
+            SmartContract.SmartContractID.newBuilder().setName(CSCC_CHAIN_NAME).build();
 
     @Override
     public CSCCProposalBuilder context(TransactionContext context) {
@@ -34,10 +40,10 @@ public class CSCCProposalBuilder extends ProposalBuilder {
     }
 
     @Override
-    public FabricProposal.Proposal build() throws ProposalException, InvalidArgumentException {
+    public ProposalPackage.Proposal build() throws ProposalException, InvalidArgumentException {
 
         ccType(GOLANG);
-        chaincodeID(CHAINCODE_ID_CSCC);
+        smartContractID(CHAINCODE_ID_CSCC);
 
         return super.build();
 

@@ -33,6 +33,12 @@ import org.bouncycastle.asn1.DERSequenceGenerator;
 
 import static java.lang.String.format;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class SDKUtils {
     private SDKUtils() {
 
@@ -128,10 +134,10 @@ public class SDKUtils {
 
                 if (payloadBytes == null) {
                     throw new InvalidArgumentException(format("proposalResponse.getPayloadBytes() was null from peer: %s.",
-                            proposalResponse.getPeer()));
+                            proposalResponse.getNode()));
                 } else if (payloadBytes.isEmpty()) {
                     throw new InvalidArgumentException(format("proposalResponse.getPayloadBytes() was empty from peer: %s.",
-                            proposalResponse.getPeer()));
+                            proposalResponse.getNode()));
                 }
                 Set<ProposalResponse> set = ret.computeIfAbsent(payloadBytes, k -> new HashSet<>());
                 set.add(proposalResponse);

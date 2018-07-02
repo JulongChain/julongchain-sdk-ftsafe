@@ -27,8 +27,14 @@ import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import static org.bcia.javachain.protos.peer.FabricTransaction.Transaction;
+import static org.bcia.javachain.protos.node.TransactionPackage.Transaction;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class TransactionDeserializer {
     private final ByteString byteString;
     private WeakReference<Transaction> transaction;

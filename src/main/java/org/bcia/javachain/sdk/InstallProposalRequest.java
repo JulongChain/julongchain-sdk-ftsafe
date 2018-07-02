@@ -21,6 +21,11 @@ import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 
 /**
  * InstallProposalRequest.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class InstallProposalRequest extends TransactionRequest {
 
@@ -28,7 +33,7 @@ public class InstallProposalRequest extends TransactionRequest {
     private InputStream chaincodeInputStream = null;
     private File chaincodeMetaInfLocation = null;
 
-    File getChaincodeMetaInfLocation() {
+    File getSmartContractMetaInfLocation() {
         return chaincodeMetaInfLocation;
     }
 
@@ -42,13 +47,13 @@ public class InstallProposalRequest extends TransactionRequest {
      * </a>
      */
 
-    public void setChaincodeMetaInfLocation(File chaincodeMetaInfLocation) throws InvalidArgumentException {
+    public void setSmartContractMetaInfLocation(File chaincodeMetaInfLocation) throws InvalidArgumentException {
         if (chaincodeMetaInfLocation == null) {
-            throw new InvalidArgumentException("Chaincode META-INF location may not be null.");
+            throw new InvalidArgumentException("SmartContract META-INF location may not be null.");
         }
 
         if (chaincodeInputStream != null) {
-            throw new InvalidArgumentException("Chaincode META-INF location may not be set with chaincode input stream set.");
+            throw new InvalidArgumentException("SmartContract META-INF location may not be set with chaincode input stream set.");
         }
         this.chaincodeMetaInfLocation = chaincodeMetaInfLocation;
     }
@@ -59,12 +64,12 @@ public class InstallProposalRequest extends TransactionRequest {
         super(userContext);
     }
 
-    public InputStream getChaincodeInputStream() {
+    public InputStream getSmartContractInputStream() {
         return chaincodeInputStream;
     }
 
     /**
-     * Chaincode input stream containing the actual chaincode. Only format supported is a tar zip compressed input of the source.
+     * SmartContract input stream containing the actual chaincode. Only format supported is a tar zip compressed input of the source.
      * Only input stream or source location maybe used at the same time.
      * The contents of the stream are not validated or inspected by the SDK.
      *
@@ -72,36 +77,36 @@ public class InstallProposalRequest extends TransactionRequest {
      * @throws InvalidArgumentException
      */
 
-    public void setChaincodeInputStream(InputStream chaincodeInputStream) throws InvalidArgumentException {
+    public void setSmartContractInputStream(InputStream chaincodeInputStream) throws InvalidArgumentException {
         if (chaincodeInputStream == null) {
-            throw new InvalidArgumentException("Chaincode input stream may not be null.");
+            throw new InvalidArgumentException("SmartContract input stream may not be null.");
         }
         if (chaincodeSourceLocation != null) {
-            throw new InvalidArgumentException("Error setting chaincode input stream. Chaincode source location already set. Only one or the other maybe set.");
+            throw new InvalidArgumentException("Error setting chaincode input stream. SmartContract source location already set. Only one or the other maybe set.");
         }
         if (chaincodeMetaInfLocation != null) {
-            throw new InvalidArgumentException("Error setting chaincode input stream. Chaincode META-INF location  already set. Only one or the other maybe set.");
+            throw new InvalidArgumentException("Error setting chaincode input stream. SmartContract META-INF location  already set. Only one or the other maybe set.");
         }
         this.chaincodeInputStream = chaincodeInputStream;
     }
 
-    public File getChaincodeSourceLocation() {
+    public File getSmartContractSourceLocation() {
         return chaincodeSourceLocation;
     }
 
     /**
      * The location of the chaincode.
-     * Chaincode input stream and source location can not both be set.
+     * SmartContract input stream and source location can not both be set.
      *
      * @param chaincodeSourceLocation
      * @throws InvalidArgumentException
      */
-    public void setChaincodeSourceLocation(File chaincodeSourceLocation) throws InvalidArgumentException {
+    public void setSmartContractSourceLocation(File chaincodeSourceLocation) throws InvalidArgumentException {
         if (chaincodeSourceLocation == null) {
-            throw new InvalidArgumentException("Chaincode source location may not be null.");
+            throw new InvalidArgumentException("SmartContract source location may not be null.");
         }
         if (chaincodeInputStream != null) {
-            throw new InvalidArgumentException("Error setting chaincode location. Chaincode input stream already set. Only one or the other maybe set.");
+            throw new InvalidArgumentException("Error setting chaincode location. SmartContract input stream already set. Only one or the other maybe set.");
         }
 
         this.chaincodeSourceLocation = chaincodeSourceLocation;

@@ -15,51 +15,56 @@
 package org.bcia.javachain.sdk;
 
 /**
- * ChaincodeID identifies chaincode.
+ * SmartContractID identifies smartContract.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
-public final class ChaincodeID {
+public final class SmartContractID {
 
-    private final org.bcia.javachain.protos.peer.Chaincode.ChaincodeID fabricChaincodeID;
+    private final org.bcia.javachain.protos.node.SmartContract.SmartContractID smartcontractID;
 
-    public org.bcia.javachain.protos.peer.Chaincode.ChaincodeID getFabricChaincodeID() {
-        return fabricChaincodeID;
+    public org.bcia.javachain.protos.node.SmartContract.SmartContractID getSmartContractID() {
+        return smartcontractID;
     }
 
-    ChaincodeID(org.bcia.javachain.protos.peer.Chaincode.ChaincodeID chaincodeID) {
-        this.fabricChaincodeID = chaincodeID;
+    SmartContractID(org.bcia.javachain.protos.node.SmartContract.SmartContractID chaincodeID) {
+        this.smartcontractID = chaincodeID;
     }
 
     public String getName() {
-        return fabricChaincodeID.getName();
+        return smartcontractID.getName();
     }
 
     public String getPath() {
-        return fabricChaincodeID.getPath();
+        return smartcontractID.getPath();
 
     }
 
     public String getVersion() {
-        return fabricChaincodeID.getVersion();
+        return smartcontractID.getVersion();
 
     }
 
     @Override
     public String toString() {
-        return "ChaincodeID(" + getName() + ":" + getPath() + ":" + getVersion() + ")";
+        return "SmartContractID(" + getName() + ":" + getPath() + ":" + getVersion() + ")";
     }
 
     /**
-     * Build a new ChaincodeID
+     * Build a new SmartContractID
      */
 
     public static final class Builder {
-        private final org.bcia.javachain.protos.peer.Chaincode.ChaincodeID.Builder protoBuilder = org.bcia.javachain.protos.peer.Chaincode.ChaincodeID.newBuilder();
+        private final org.bcia.javachain.protos.node.SmartContract.SmartContractID.Builder protoBuilder = org.bcia.javachain.protos.node.SmartContract.SmartContractID.newBuilder();
 
         private Builder() {
         }
 
         /**
-         * @param name of the Chaincode
+         * @param name of the SmartContract
          * @return Builder
          */
 
@@ -69,7 +74,7 @@ public final class ChaincodeID {
         }
 
         /**
-         * Set the version of the Chaincode
+         * Set the version of the SmartContract
          *
          * @param version of the chaincode
          * @return Builder
@@ -91,15 +96,15 @@ public final class ChaincodeID {
             return this;
         }
 
-        public ChaincodeID build() {
-            return new ChaincodeID(this.protoBuilder.build());
+        public SmartContractID build() {
+            return new SmartContractID(this.protoBuilder.build());
         }
     }
 
     /**
-     * Chaincode builder
+     * SmartContract builder
      *
-     * @return ChaincodeID builder.
+     * @return SmartContractID builder.
      */
 
     public static Builder newBuilder() {

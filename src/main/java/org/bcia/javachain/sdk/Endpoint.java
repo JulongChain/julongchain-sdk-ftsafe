@@ -58,6 +58,12 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bcia.javachain.sdk.helper.Utils.parseGrpcUrl;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class Endpoint {
     private static final Log logger = LogFactory.getLog(Endpoint.class);
 
@@ -340,7 +346,7 @@ class Endpoint {
 
     }
 
-    ManagedChannelBuilder<?> getChannelBuilder() {
+    ManagedChannelBuilder<?> getGroupBuilder() {
         return this.channelBuilder;
     }
 

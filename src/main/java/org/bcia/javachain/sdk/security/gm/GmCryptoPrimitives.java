@@ -1,14 +1,69 @@
 package org.bcia.javachain.sdk.security.gm;
 
+import static java.lang.String.format;
+import static org.bcia.javachain.sdk.helper.Utils.isNullOrEmpty;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.CertPath;
+import java.security.cert.CertPathValidator;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPrivateKey;
+import java.security.spec.ECGenParameterSpec;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.security.auth.x500.X500Principal;
+import javax.xml.bind.DatatypeConverter;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain.sdk.security.CryptoSuiteFactory;
-import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERSequenceGenerator;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -28,21 +83,6 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 
-import javax.security.auth.x500.X500Principal;
-import javax.xml.bind.DatatypeConverter;
-import java.io.*;
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.*;
-import java.security.cert.Certificate;
-import java.security.interfaces.ECPrivateKey;
-import java.security.spec.ECGenParameterSpec;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static java.lang.String.format;
-import static org.bcia.javachain.sdk.helper.Utils.isNullOrEmpty;
-
 
 /**
  * 国密算法实现
@@ -53,7 +93,7 @@ import static org.bcia.javachain.sdk.helper.Utils.isNullOrEmpty;
  */
 public class GmCryptoPrimitives implements CryptoSuite {
     private static final Log logger = LogFactory.getLog(GmCryptoPrimitives.class);
-    private static final GmConfig config = GmConfig.getConfig();
+    private static final Config config = Config.getConfig();
     private static final boolean IS_TRACE_LEVEL = logger.isTraceEnabled();
 
     private static final DiagnosticFileDumper diagnosticFileDumper = IS_TRACE_LEVEL
@@ -71,7 +111,6 @@ public class GmCryptoPrimitives implements CryptoSuite {
 
     public GmCryptoPrimitives() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         String securityProviderClassName = config.getSecurityProviderClassName();
-
         SECURITY_PROVIDER = setUpExplictProvider(securityProviderClassName);
 
         //Decided TO NOT do this as it can have affects over the whole JVM and could have
@@ -222,7 +261,7 @@ public class GmCryptoPrimitives implements CryptoSuite {
 
      /**
      * Return PrivateKey  from pem bytes.
-     * byte 变 privateKey
+     * pem byte[] 变 privateKey
      * @param pemKey pem-encoded private key
      * @return
      */

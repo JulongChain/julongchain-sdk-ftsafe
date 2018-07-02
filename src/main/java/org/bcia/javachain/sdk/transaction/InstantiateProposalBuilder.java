@@ -25,14 +25,20 @@ import java.util.Map;
 import com.google.protobuf.ByteString;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.ChaincodeEndorsementPolicy;
+import org.bcia.javachain.sdk.SmartContractEndorsementPolicy;
 import org.bcia.javachain.sdk.TransactionRequest;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.peer.Chaincode;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeDeploymentSpec;
-import org.bcia.javachain.protos.peer.FabricProposal;
+import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractDeploymentSpec;
+import org.bcia.javachain.protos.node.ProposalPackage;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class InstantiateProposalBuilder extends LSCCProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(InstantiateProposalBuilder.class);
@@ -89,9 +95,9 @@ public class InstantiateProposalBuilder extends LSCCProposalBuilder {
 
     }
 
-    public void chaincodEndorsementPolicy(ChaincodeEndorsementPolicy policy) {
+    public void chaincodEndorsementPolicy(SmartContractEndorsementPolicy policy) {
         if (policy != null) {
-            this.chaincodePolicy = policy.getChaincodeEndorsementPolicyAsBytes();
+            this.chaincodePolicy = policy.getSmartContractEndorsementPolicyAsBytes();
         }
     }
 
@@ -101,7 +107,7 @@ public class InstantiateProposalBuilder extends LSCCProposalBuilder {
     }
 
     @Override
-    public FabricProposal.Proposal build() throws ProposalException, InvalidArgumentException {
+    public ProposalPackage.Proposal build() throws ProposalException, InvalidArgumentException {
 
         constructInstantiateProposal();
         return super.build();
@@ -126,7 +132,7 @@ public class InstantiateProposalBuilder extends LSCCProposalBuilder {
         logger.debug("NetModeTransaction");
 
         if (chaincodeType == null) {
-            throw new InvalidArgumentException("Chaincode type is required");
+            throw new InvalidArgumentException("SmartContract type is required");
         }
 
         List<String> modlist = new LinkedList<>();
@@ -135,24 +141,24 @@ public class InstantiateProposalBuilder extends LSCCProposalBuilder {
 
         switch (chaincodeType) {
             case JAVA:
-                ccType(Chaincode.ChaincodeSpec.Type.JAVA);
+                ccType(SmartContract.SmartContractSpec.Type.JAVA);
                 break;
             case NODE:
-                ccType(Chaincode.ChaincodeSpec.Type.NODE);
+                ccType(SmartContract.SmartContractSpec.Type.NODE);
                 break;
             case GO_LANG:
-                ccType(Chaincode.ChaincodeSpec.Type.GOLANG);
+                ccType(SmartContract.SmartContractSpec.Type.GOLANG);
                 break;
             default:
                 throw new InvalidArgumentException("Requested chaincode type is not supported: " + chaincodeType);
         }
 
-        ChaincodeDeploymentSpec depspec = createDeploymentSpec(ccType,
+        SmartContractDeploymentSpec depspec = createDeploymentSpec(ccType,
                 chaincodeName, chaincodePath, chaincodeVersion, modlist, null);
 
         List<ByteString> argList = new ArrayList<>();
         argList.add(ByteString.copyFrom(action, StandardCharsets.UTF_8));
-        argList.add(ByteString.copyFrom(context.getChannelID(), StandardCharsets.UTF_8));
+        argList.add(ByteString.copyFrom(context.getGroupID(), StandardCharsets.UTF_8));
         argList.add(depspec.toByteString());
         if (chaincodePolicy != null) {
             argList.add(ByteString.copyFrom(chaincodePolicy));

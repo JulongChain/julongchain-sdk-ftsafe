@@ -13,6 +13,11 @@
  */
 package org.bcia.javachain.sdk.transaction;
 
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.bcia.javachain.sdk.helper.Utils.logString;
+import static org.bcia.javachain.sdk.helper.Utils.toHexString;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,39 +25,40 @@ import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
-import com.google.protobuf.util.Timestamps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.protos.common.Common;
+import org.bcia.javachain.protos.common.Common.Envelope;
+import org.bcia.javachain.protos.common.Common.GroupHeader;
+import org.bcia.javachain.protos.common.Common.HeaderType;
+import org.bcia.javachain.protos.common.Common.Payload;
+import org.bcia.javachain.protos.common.Common.SignatureHeader;
+import org.bcia.javachain.protos.consenter.Ab.SeekInfo;
+import org.bcia.javachain.protos.consenter.Ab.SeekInfo.SeekBehavior;
+import org.bcia.javachain.protos.consenter.Ab.SeekPosition;
+import org.bcia.javachain.protos.msp.Identities;
+import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
+import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractDeploymentSpec;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractInput;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec;
+import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec.Type;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.security.CryptoPrimitives;
 import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.ChannelHeader;
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.common.Common.HeaderType;
-import org.bcia.javachain.protos.common.Common.Payload;
-import org.bcia.javachain.protos.common.Common.SignatureHeader;
-import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.orderer.Ab.SeekInfo;
-import org.bcia.javachain.protos.orderer.Ab.SeekInfo.SeekBehavior;
-import org.bcia.javachain.protos.orderer.Ab.SeekPosition;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeDeploymentSpec;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeID;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeInput;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeSpec;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeSpec.Type;
-import org.bcia.javachain.protos.peer.FabricProposal.ChaincodeHeaderExtension;
 
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bcia.javachain.sdk.helper.Utils.logString;
-import static org.bcia.javachain.sdk.helper.Utils.toHexString;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
+import com.google.protobuf.util.Timestamps;
 
 /**
  * Internal use only, not a public API.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public final class ProtoUtils {
 
@@ -69,19 +75,19 @@ public final class ProtoUtils {
     // static CryptoSuite suite = null;
 
     /*
-     * createChannelHeader create chainHeader
+     * createGroupHeader create chainHeader
      *
-     * @param type                     header type. See {@link ChannelHeader.Builder#setType}.
-     * @param txID                     transaction ID. See {@link ChannelHeader.Builder#setTxId}.
-     * @param channelID                channel ID. See {@link ChannelHeader.Builder#setChannelId}.
-     * @param epoch                    the epoch in which this header was generated. See {@link ChannelHeader.Builder#setEpoch}.
-     * @param timeStamp                local time when the message was created. See {@link ChannelHeader.Builder#setTimestamp}.
-     * @param chaincodeHeaderExtension extension to attach dependent on the header type. See {@link ChannelHeader.Builder#setExtension}.
+     * @param type                     header type. See {@link GroupHeader.Builder#setType}.
+     * @param txID                     transaction ID. See {@link GroupHeader.Builder#setTxId}.
+     * @param channelID                channel ID. See {@link GroupHeader.Builder#setGroupId}.
+     * @param epoch                    the epoch in which this header was generated. See {@link GroupHeader.Builder#setEpoch}.
+     * @param timeStamp                local time when the message was created. See {@link GroupHeader.Builder#setTimestamp}.
+     * @param chaincodeHeaderExtension extension to attach dependent on the header type. See {@link GroupHeader.Builder#setExtension}.
      * @param tlsCertHash
      * @return a new chain header.
      */
-    public static ChannelHeader createChannelHeader(HeaderType type, String txID, String channelID, long epoch,
-                                                    Timestamp timeStamp, ChaincodeHeaderExtension chaincodeHeaderExtension,
+    public static GroupHeader createGroupHeader(HeaderType type, String txID, String channelID, long epoch,
+                                                    Timestamp timeStamp, SmartContractHeaderExtension chaincodeHeaderExtension,
                                                     byte[] tlsCertHash) {
 
         if (isDebugLevel) {
@@ -90,16 +96,16 @@ public final class ProtoUtils {
                 tlschs = DatatypeConverter.printHexBinary(tlsCertHash);
 
             }
-            logger.debug(format("ChannelHeader: type: %s, version: 1, Txid: %s, channelId: %s, epoch %d, clientTLSCertificate digest: %s",
+            logger.debug(format("GroupHeader: type: %s, version: 1, Txid: %s, channelId: %s, epoch %d, clientTLSCertificate digest: %s",
                     type.name(), txID, channelID, epoch, tlschs));
 
         }
 
-        ChannelHeader.Builder ret = ChannelHeader.newBuilder()
+        GroupHeader.Builder ret = GroupHeader.newBuilder()
                 .setType(type.getNumber())
                 .setVersion(1)
                 .setTxId(txID)
-                .setChannelId(channelID)
+                .setGroupId(channelID)
                 .setTimestamp(timeStamp)
                 .setEpoch(epoch);
         if (null != chaincodeHeaderExtension) {
@@ -114,16 +120,16 @@ public final class ProtoUtils {
 
     }
 
-    public static ChaincodeDeploymentSpec createDeploymentSpec(Type ccType, String name, String chaincodePath,
+    public static SmartContractDeploymentSpec createDeploymentSpec(Type ccType, String name, String chaincodePath,
                                                                String chaincodeVersion, List<String> args,
                                                                byte[] codePackage) {
 
-        ChaincodeID.Builder chaincodeIDBuilder = ChaincodeID.newBuilder().setName(name).setVersion(chaincodeVersion);
+    	SmartContract.SmartContractID.Builder chaincodeIDBuilder = SmartContract.SmartContractID.newBuilder().setName(name).setVersion(chaincodeVersion);
         if (chaincodePath != null) {
             chaincodeIDBuilder = chaincodeIDBuilder.setPath(chaincodePath);
         }
 
-        ChaincodeID chaincodeID = chaincodeIDBuilder.build();
+        SmartContract.SmartContractID chaincodeID = chaincodeIDBuilder.build();
 
         // build chaincodeInput
         List<ByteString> argList = new ArrayList<>(args == null ? 0 : args.size());
@@ -135,16 +141,16 @@ public final class ProtoUtils {
 
         }
 
-        ChaincodeInput chaincodeInput = ChaincodeInput.newBuilder().addAllArgs(argList).build();
+        SmartContractInput chaincodeInput = SmartContractInput.newBuilder().addAllArgs(argList).build();
 
-        // Construct the ChaincodeSpec
-        ChaincodeSpec chaincodeSpec = ChaincodeSpec.newBuilder().setType(ccType).setChaincodeId(chaincodeID)
+        // Construct the SmartContractSpec
+        SmartContractSpec chaincodeSpec = SmartContractSpec.newBuilder().setType(ccType).setSmartContractId(chaincodeID)
                 .setInput(chaincodeInput)
                 .build();
 
         if (isDebugLevel) {
             StringBuilder sb = new StringBuilder(1000);
-            sb.append("ChaincodeDeploymentSpec chaincode cctype: ")
+            sb.append("SmartContractDeploymentSpec chaincode cctype: ")
                     .append(ccType.name())
                     .append(", name:")
                     .append(chaincodeID.getName())
@@ -167,9 +173,9 @@ public final class ProtoUtils {
 
         }
 
-        ChaincodeDeploymentSpec.Builder chaincodeDeploymentSpecBuilder = ChaincodeDeploymentSpec
-                .newBuilder().setChaincodeSpec(chaincodeSpec) //.setEffectiveDate(context.getFabricTimestamp())
-                .setExecEnv(ChaincodeDeploymentSpec.ExecutionEnvironment.DOCKER);
+        SmartContractDeploymentSpec.Builder chaincodeDeploymentSpecBuilder = SmartContractDeploymentSpec
+                .newBuilder().setSmartContractSpec(chaincodeSpec) //.setEffectiveDate(context.getFabricTimestamp())
+                .setExecEnv(SmartContractDeploymentSpec.ExecutionEnvironment.DOCKER);
 
         if (codePackage != null) {
             chaincodeDeploymentSpecBuilder.setCodePackage(ByteString.copyFrom(codePackage));
@@ -255,8 +261,8 @@ public final class ProtoUtils {
 
     public static Envelope createSeekInfoEnvelope(TransactionContext transactionContext, SeekInfo seekInfo, byte[] tlsCertHash) throws CryptoException {
 
-        ChannelHeader seekInfoHeader = createChannelHeader(Common.HeaderType.DELIVER_SEEK_INFO,
-                transactionContext.getTxID(), transactionContext.getChannelID(), transactionContext.getEpoch(),
+        GroupHeader seekInfoHeader = createGroupHeader(Common.HeaderType.DELIVER_SEEK_INFO,
+                transactionContext.getTxID(), transactionContext.getGroupID(), transactionContext.getEpoch(),
                 transactionContext.getFabricTimestamp(), null, tlsCertHash);
 
         SignatureHeader signatureHeader = SignatureHeader.newBuilder()
@@ -266,7 +272,7 @@ public final class ProtoUtils {
 
         Common.Header seekHeader = Common.Header.newBuilder()
                 .setSignatureHeader(signatureHeader.toByteString())
-                .setChannelHeader(seekInfoHeader.toByteString())
+                .setGroupHeader(seekInfoHeader.toByteString())
                 .build();
 
         Payload seekPayload = Payload.newBuilder()

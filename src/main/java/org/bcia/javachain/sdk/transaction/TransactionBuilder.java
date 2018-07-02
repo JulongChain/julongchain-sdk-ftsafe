@@ -24,10 +24,16 @@ import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.peer.FabricProposal;
-import org.bcia.javachain.protos.peer.FabricProposalResponse;
-import org.bcia.javachain.protos.peer.FabricTransaction;
+import org.bcia.javachain.protos.node.ProposalPackage;
+import org.bcia.javachain.protos.node.ProposalResponsePackage;
+import org.bcia.javachain.protos.node.TransactionPackage;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class TransactionBuilder {
 
     private static final Log logger = LogFactory.getLog(TransactionBuilder.class);
@@ -36,20 +42,20 @@ public class TransactionBuilder {
 
     private static final DiagnosticFileDumper diagnosticFileDumper = IS_TRACE_LEVEL
             ? config.getDiagnosticFileDumper() : null;
-    private FabricProposal.Proposal chaincodeProposal;
-    private Collection<FabricProposalResponse.Endorsement> endorsements;
+    private ProposalPackage.Proposal chaincodeProposal;
+    private Collection<ProposalResponsePackage.Endorsement> endorsements;
     private ByteString proposalResponsePayload;
 
     public static TransactionBuilder newBuilder() {
         return new TransactionBuilder();
     }
 
-    public TransactionBuilder chaincodeProposal(FabricProposal.Proposal chaincodeProposal) {
+    public TransactionBuilder chaincodeProposal(ProposalPackage.Proposal chaincodeProposal) {
         this.chaincodeProposal = chaincodeProposal;
         return this;
     }
 
-    public TransactionBuilder endorsements(Collection<FabricProposalResponse.Endorsement> endorsements) {
+    public TransactionBuilder endorsements(Collection<ProposalResponsePackage.Endorsement> endorsements) {
         this.endorsements = endorsements;
         return this;
     }
@@ -65,25 +71,25 @@ public class TransactionBuilder {
 
     }
 
-    private Common.Payload createTransactionCommonPayload(FabricProposal.Proposal chaincodeProposal, ByteString proposalResponsePayload,
-                                                          Collection<FabricProposalResponse.Endorsement> endorsements) throws InvalidProtocolBufferException {
+    private Common.Payload createTransactionCommonPayload(ProposalPackage.Proposal chaincodeProposal, ByteString proposalResponsePayload,
+                                                          Collection<ProposalResponsePackage.Endorsement> endorsements) throws InvalidProtocolBufferException {
 
-        FabricTransaction.ChaincodeEndorsedAction.Builder chaincodeEndorsedActionBuilder = FabricTransaction.ChaincodeEndorsedAction.newBuilder();
+        TransactionPackage.SmartContractEndorsedAction.Builder chaincodeEndorsedActionBuilder = TransactionPackage.SmartContractEndorsedAction.newBuilder();
         chaincodeEndorsedActionBuilder.setProposalResponsePayload(proposalResponsePayload);
         chaincodeEndorsedActionBuilder.addAllEndorsements(endorsements);
 
-        //ChaincodeActionPayload
-        FabricTransaction.ChaincodeActionPayload.Builder chaincodeActionPayloadBuilder = FabricTransaction.ChaincodeActionPayload.newBuilder();
+        //SmartContractActionPayload
+        TransactionPackage.SmartContractActionPayload.Builder chaincodeActionPayloadBuilder = TransactionPackage.SmartContractActionPayload.newBuilder();
         chaincodeActionPayloadBuilder.setAction(chaincodeEndorsedActionBuilder.build());
 
         //We need to remove any transient fields - they are not part of what the peer uses to calculate hash.
-        FabricProposal.ChaincodeProposalPayload.Builder chaincodeProposalPayloadNoTransBuilder = FabricProposal.ChaincodeProposalPayload.newBuilder();
+        ProposalPackage.SmartContractProposalPayload.Builder chaincodeProposalPayloadNoTransBuilder = ProposalPackage.SmartContractProposalPayload.newBuilder();
         chaincodeProposalPayloadNoTransBuilder.mergeFrom(chaincodeProposal.getPayload());
         chaincodeProposalPayloadNoTransBuilder.clearTransientMap();
 
-        chaincodeActionPayloadBuilder.setChaincodeProposalPayload(chaincodeProposalPayloadNoTransBuilder.build().toByteString());
+        chaincodeActionPayloadBuilder.setSmartContractProposalPayload(chaincodeProposalPayloadNoTransBuilder.build().toByteString());
 
-        FabricTransaction.TransactionAction.Builder transactionActionBuilder = FabricTransaction.TransactionAction.newBuilder();
+        TransactionPackage.TransactionAction.Builder transactionActionBuilder = TransactionPackage.TransactionAction.newBuilder();
 
         Common.Header header = Common.Header.parseFrom(chaincodeProposal.getHeader());
 
@@ -101,7 +107,7 @@ public class TransactionBuilder {
 
         transactionActionBuilder.setHeader(header.getSignatureHeader());
 
-        FabricTransaction.ChaincodeActionPayload chaincodeActionPayload = chaincodeActionPayloadBuilder.build();
+        TransactionPackage.SmartContractActionPayload chaincodeActionPayload = chaincodeActionPayloadBuilder.build();
         if (config.extraLogLevel(10)) {
             if (null != diagnosticFileDumper) {
                 logger.trace("transactionActionBuilder.setPayload: " +
@@ -111,7 +117,7 @@ public class TransactionBuilder {
         transactionActionBuilder.setPayload(chaincodeActionPayload.toByteString());
 
         //Transaction
-        FabricTransaction.Transaction.Builder transactionBuilder = FabricTransaction.Transaction.newBuilder();
+        TransactionPackage.Transaction.Builder transactionBuilder = TransactionPackage.Transaction.newBuilder();
         transactionBuilder.addActions(transactionActionBuilder.build());
 
         Common.Payload.Builder payload = Common.Payload.newBuilder();
