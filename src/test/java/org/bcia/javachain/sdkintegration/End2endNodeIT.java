@@ -1,6 +1,6 @@
 package org.bcia.javachain.sdkintegration;
 
-import org.bcia.javachain.sdk.Channel;
+import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.TransactionRequest.Type;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
@@ -32,7 +32,7 @@ public class End2endNodeIT extends End2endIT {
     }
 
     @Override
-    void blockWalker(HFClient client, Channel channel) throws InvalidArgumentException, ProposalException, IOException {
+    void blockWalker(HFClient client, Group channel) throws InvalidArgumentException, ProposalException, IOException {
         // block walker depends on the state of the chain after go's end2end. Nothing here is language specific so
         // there is no loss in coverage for not doing this.
     }
@@ -46,13 +46,13 @@ public class End2endNodeIT extends End2endIT {
     }
 
     @Override
-    Channel constructChannel(String name, HFClient client, SampleOrg sampleOrg) throws Exception {
+    Group constructGroup(String name, HFClient client, SampleOrg sampleOrg) throws Exception {
         // override this method since we don't want to construct the channel that's been done.
         // Just get it out of the samplestore!
 
-        client.setUserContext(sampleOrg.getPeerAdmin());
+        client.setUserContext(sampleOrg.getNodeAdmin());
 
-        return sampleStore.getChannel(client, name).initialize();
+        return sampleStore.getGroup(client, name).initialize();
 
     }
 }

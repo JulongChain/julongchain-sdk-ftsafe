@@ -15,7 +15,7 @@
 package org.bcia.javachain.sdk.transaction;
 
 import com.google.protobuf.ByteString;
-import org.bcia.javachain.sdk.Channel;
+import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.TestHFClient;
 import org.bcia.javachain.sdk.User;
@@ -49,7 +49,7 @@ public class TransactionContextTest {
     @Test
     public void testGetters() throws Exception {
 
-        Channel channel = createTestChannel("channel1");
+        Group channel = createTestGroup("channel1");
 
         User user = hfclient.getUserContext();
         CryptoSuite cryptoSuite = hfclient.getCryptoSuite();
@@ -83,7 +83,7 @@ public class TransactionContextTest {
     // ==========================================================================================
 
     private TransactionContext createTestContext() {
-        Channel channel = createTestChannel("channel1");
+        Group channel = createTestGroup("channel1");
 
         User user = hfclient.getUserContext();
         CryptoSuite cryptoSuite = hfclient.getCryptoSuite();
@@ -91,15 +91,15 @@ public class TransactionContextTest {
         return new TransactionContext(channel, user, cryptoSuite);
     }
 
-    private Channel createTestChannel(String channelName) {
+    private Group createTestGroup(String channelName) {
 
-        Channel channel = null;
+        Group channel = null;
 
         try {
-            Constructor<?> constructor = Channel.class.getDeclaredConstructor(String.class, HFClient.class);
+            Constructor<?> constructor = Group.class.getDeclaredConstructor(String.class, HFClient.class);
             constructor.setAccessible(true);
 
-            channel = (Channel) constructor.newInstance(channelName, hfclient);
+            channel = (Group) constructor.newInstance(channelName, hfclient);
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail("Unexpected Exception " + e.getMessage());

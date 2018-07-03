@@ -15,11 +15,11 @@
 package org.bcia.javachain.sdkintegration;
 
 import org.bcia.javachain.protos.common.Configtx;
-import org.bcia.javachain.protos.peer.Query.ChaincodeInfo;
+import org.bcia.javachain.protos.node.Query.SmartContractInfo;
 import org.bcia.javachain.sdk.*;
-import org.bcia.javachain.sdk.ChaincodeResponse.Status;
-import org.bcia.javachain.sdk.Channel.PeerOptions;
-import org.bcia.javachain.sdk.Peer.PeerRole;
+import org.bcia.javachain.sdk.SmartContractResponse.Status;
+import org.bcia.javachain.sdk.Group.NodeOptions;
+import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionEventException;
@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bcia.javachain.sdk.BlockInfo.EnvelopeType.TRANSACTION_ENVELOPE;
-import static org.bcia.javachain.sdk.Channel.PeerOptions.createPeerOptions;
+import static org.bcia.javachain.sdk.Group.NodeOptions.createNodeOptions;
 import static org.bcia.javachain.sdk.testutils.TestUtils.resetConfig;
 import static org.junit.Assert.*;
 
@@ -73,10 +73,10 @@ public class End2endAndBackAgainIT {
     String CHAIN_CODE_VERSION = "1";
     TransactionRequest.Type CHAIN_CODE_LANG = TransactionRequest.Type.GO_LANG;
 
-    ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+    SmartContractID chaincodeID = SmartContractID.newBuilder().setName(CHAIN_CODE_NAME)
             .setVersion(CHAIN_CODE_VERSION)
             .setPath(CHAIN_CODE_PATH).build();
-    ChaincodeID chaincodeID_11 = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+    SmartContractID chaincodeID_11 = SmartContractID.newBuilder().setName(CHAIN_CODE_NAME)
             .setVersion(CHAIN_CODE_VERSION_11)
             .setPath(CHAIN_CODE_PATH).build();
 
@@ -88,14 +88,14 @@ public class End2endAndBackAgainIT {
 //        }
 //    }
 
-    private static boolean checkInstalledChaincode(HFClient client, Peer peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
+    private static boolean checkInstalledSmartContract(HFClient client, Node peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
 
         out("Checking installed chaincode: %s, at version: %s, on peer: %s", ccName, ccVersion, peer.getName());
-        List<ChaincodeInfo> ccinfoList = client.queryInstalledChaincodes(peer);
+        List<SmartContractInfo> ccinfoList = client.queryInstalledSmartContracts(peer);
 
         boolean found = false;
 
-        for (ChaincodeInfo ccifo : ccinfoList) {
+        for (SmartContractInfo ccifo : ccinfoList) {
 
             if (ccPath != null) {
                 found = ccName.equals(ccifo.getName()) && ccPath.equals(ccifo.getPath()) && ccVersion.equals(ccifo.getVersion());
@@ -114,13 +114,13 @@ public class End2endAndBackAgainIT {
         return found;
     }
 
-    private static boolean checkInstantiatedChaincode(Channel channel, Peer peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
+    private static boolean checkInstantiatedSmartContract(Group channel, Node peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
         out("Checking instantiated chaincode: %s, at version: %s, on peer: %s", ccName, ccVersion, peer.getName());
-        List<ChaincodeInfo> ccinfoList = channel.queryInstantiatedChaincodes(peer);
+        List<SmartContractInfo> ccinfoList = channel.queryInstantiatedSmartContracts(peer);
 
         boolean found = false;
 
-        for (ChaincodeInfo ccifo : ccinfoList) {
+        for (SmartContractInfo ccifo : ccinfoList) {
 
             if (ccPath != null) {
                 found = ccName.equals(ccifo.getName()) && ccPath.equals(ccifo.getPath()) && ccVersion.equals(ccifo.getVersion());
@@ -218,7 +218,7 @@ public class End2endAndBackAgainIT {
             SampleUser user = sampleStore.getMember(TESTUSER_1_NAME, orgName);
             sampleOrg.addUser(user);  //Remember user belongs to this Org
 
-            sampleOrg.setPeerAdmin(sampleStore.getMember(orgName + "Admin", orgName));
+            sampleOrg.setNodeAdmin(sampleStore.getMember(orgName + "Admin", orgName));
         }
     }
 
@@ -234,44 +234,44 @@ public class End2endAndBackAgainIT {
         ////////////////////////////
         //Reconstruct and run the channels
         SampleOrg sampleOrg = testConfig.getIntegrationTestsSampleOrg("peerOrg1");
-        Channel fooChannel = reconstructChannel(FOO_CHANNEL_NAME, client, sampleOrg);
-        runChannel(client, fooChannel, sampleOrg, 0);
-        assertFalse(fooChannel.isShutdown());
-        assertTrue(fooChannel.isInitialized());
-        fooChannel.shutdown(true); //clean up resources no longer needed.
-        assertTrue(fooChannel.isShutdown());
+        Group fooGroup = reconstructGroup(FOO_CHANNEL_NAME, client, sampleOrg);
+        runGroup(client, fooGroup, sampleOrg, 0);
+        assertFalse(fooGroup.isShutdown());
+        assertTrue(fooGroup.isInitialized());
+        fooGroup.shutdown(true); //clean up resources no longer needed.
+        assertTrue(fooGroup.isShutdown());
         out("\n");
 
         sampleOrg = testConfig.getIntegrationTestsSampleOrg("peerOrg2");
-        Channel barChannel = reconstructChannel(BAR_CHANNEL_NAME, client, sampleOrg);
-        runChannel(client, barChannel, sampleOrg, 100); //run a newly constructed foo channel with different b value!
-        assertFalse(barChannel.isShutdown());
-        assertTrue(barChannel.isInitialized());
+        Group barGroup = reconstructGroup(BAR_CHANNEL_NAME, client, sampleOrg);
+        runGroup(client, barGroup, sampleOrg, 100); //run a newly constructed foo channel with different b value!
+        assertFalse(barGroup.isShutdown());
+        assertTrue(barGroup.isInitialized());
 
-        if (!testConfig.isRunningAgainstFabric10()) { //Peer eventing service support started with v1.1
+        if (!testConfig.isRunningAgainstFabric10()) { //Node eventing service support started with v1.1
 
             // Now test replay feature of V1.1 peer eventing services.
-            byte[] replayChannelBytes = barChannel.serializeChannel();
-            barChannel.shutdown(true);
+            byte[] replayGroupBytes = barGroup.serializeGroup();
+            barGroup.shutdown(true);
 
-            Channel replayChannel = client.deSerializeChannel(replayChannelBytes);
+            Group replayGroup = client.deSerializeGroup(replayGroupBytes);
 
-            out("doing testPeerServiceEventingReplay,0,-1,false");
-            testPeerServiceEventingReplay(client, replayChannel, 0L, -1L, false);
+            out("doing testNodeServiceEventingReplay,0,-1,false");
+            testNodeServiceEventingReplay(client, replayGroup, 0L, -1L, false);
 
-            replayChannel = client.deSerializeChannel(replayChannelBytes);
-            out("doing testPeerServiceEventingReplay,0,-1,true"); // block 0 is import to test
-            testPeerServiceEventingReplay(client, replayChannel, 0L, -1L, true);
+            replayGroup = client.deSerializeGroup(replayGroupBytes);
+            out("doing testNodeServiceEventingReplay,0,-1,true"); // block 0 is import to test
+            testNodeServiceEventingReplay(client, replayGroup, 0L, -1L, true);
 
             //Now do it again starting at block 1
-            replayChannel = client.deSerializeChannel(replayChannelBytes);
-            out("doing testPeerServiceEventingReplay,1,-1,false");
-            testPeerServiceEventingReplay(client, replayChannel, 1L, -1L, false);
+            replayGroup = client.deSerializeGroup(replayGroupBytes);
+            out("doing testNodeServiceEventingReplay,1,-1,false");
+            testNodeServiceEventingReplay(client, replayGroup, 1L, -1L, false);
 
             //Now do it again starting at block 2 to 3
-            replayChannel = client.deSerializeChannel(replayChannelBytes);
-            out("doing testPeerServiceEventingReplay,2,3,false");
-            testPeerServiceEventingReplay(client, replayChannel, 2L, 3L, false);
+            replayGroup = client.deSerializeGroup(replayGroupBytes);
+            out("doing testNodeServiceEventingReplay,2,3,false");
+            testNodeServiceEventingReplay(client, replayGroup, 2L, 3L, false);
 
         }
 
@@ -281,7 +281,7 @@ public class End2endAndBackAgainIT {
     // Disable MethodLength as this method is for instructional purposes and hence
     // we don't want to split it into smaller pieces
     // CHECKSTYLE:OFF: MethodLength
-    void runChannel(HFClient client, Channel channel, SampleOrg sampleOrg, final int delta) {
+    void runGroup(HFClient client, Group channel, SampleOrg sampleOrg, final int delta) {
         final String channelName = channel.getName();
         try {
 
@@ -290,13 +290,13 @@ public class End2endAndBackAgainIT {
 //            final boolean changeContext = false; // BAR_CHANNEL_NAME.equals(channel.getName()) ? true : false;
             final boolean changeContext = BAR_CHANNEL_NAME.equals(channel.getName());
 
-            out("Running Channel %s with a delta %d", channelName, delta);
+            out("Running Group %s with a delta %d", channelName, delta);
 
-            out("ChaincodeID: ", chaincodeID);
+            out("SmartContractID: ", chaincodeID);
             ////////////////////////////
             // Send Query Proposal to all peers see if it's what we expect from end of End2endIT
             //
-            queryChaincodeForExpectedValue(client, channel, "" + (300 + delta), chaincodeID);
+            querySmartContractForExpectedValue(client, channel, "" + (300 + delta), chaincodeID);
 
             //Set user context on client but use explicit user contest on each call.
             if (changeContext) {
@@ -306,30 +306,30 @@ public class End2endAndBackAgainIT {
 
             // exercise v1 of chaincode
 
-            moveAmount(client, channel, chaincodeID, "25", changeContext ? sampleOrg.getPeerAdmin() : null).thenApply((BlockEvent.TransactionEvent transactionEvent) -> {
+            moveAmount(client, channel, chaincodeID, "25", changeContext ? sampleOrg.getNodeAdmin() : null).thenApply((BlockEvent.TransactionEvent transactionEvent) -> {
                 try {
 
                     waitOnFabric();
                     client.setUserContext(sampleOrg.getUser(TESTUSER_1_NAME));
 
-                    queryChaincodeForExpectedValue(client, channel, "" + (325 + delta), chaincodeID);
+                    querySmartContractForExpectedValue(client, channel, "" + (325 + delta), chaincodeID);
 
                     //////////////////
                     // Start of upgrade first must install it.
 
-                    client.setUserContext(sampleOrg.getPeerAdmin());
+                    client.setUserContext(sampleOrg.getNodeAdmin());
                     ///////////////
                     ////
                     InstallProposalRequest installProposalRequest = client.newInstallProposalRequest();
-                    installProposalRequest.setChaincodeID(chaincodeID);
+                    installProposalRequest.setSmartContractID(chaincodeID);
                     ////For GO language and serving just a single user, chaincodeSource is mostly likely the users GOPATH
-                    installProposalRequest.setChaincodeSourceLocation(Paths.get(TEST_FIXTURES_PATH, CHAIN_CODE_FILEPATH).toFile());
-                    installProposalRequest.setChaincodeVersion(CHAIN_CODE_VERSION_11);
+                    installProposalRequest.setSmartContractSourceLocation(Paths.get(TEST_FIXTURES_PATH, CHAIN_CODE_FILEPATH).toFile());
+                    installProposalRequest.setSmartContractVersion(CHAIN_CODE_VERSION_11);
                     installProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
-                    installProposalRequest.setChaincodeLanguage(CHAIN_CODE_LANG);
+                    installProposalRequest.setSmartContractLanguage(CHAIN_CODE_LANG);
 
                     if (changeContext) {
-                        installProposalRequest.setUserContext(sampleOrg.getPeerAdmin());
+                        installProposalRequest.setUserContext(sampleOrg.getNodeAdmin());
                     }
 
                     out("Sending install proposal for channel: %s", channel.getName());
@@ -341,14 +341,14 @@ public class End2endAndBackAgainIT {
                     Collection<ProposalResponse> responses;
                     final Collection<ProposalResponse> successful = new LinkedList<>();
                     final Collection<ProposalResponse> failed = new LinkedList<>();
-                    Collection<Peer> peersFromOrg = channel.getPeers();
+                    Collection<Node> peersFromOrg = channel.getNodes();
                     numInstallProposal = numInstallProposal + peersFromOrg.size();
 
                     responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
 
                     for (ProposalResponse response : responses) {
                         if (response.getStatus() == Status.SUCCESS) {
-                            out("Successful install proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                            out("Successful install proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                             successful.add(response);
                         } else {
                             failed.add(response);
@@ -366,27 +366,27 @@ public class End2endAndBackAgainIT {
                     // Upgrade chaincode to ***double*** our move results.
 
                     if (changeContext) {
-                        installProposalRequest.setUserContext(sampleOrg.getPeerAdmin());
+                        installProposalRequest.setUserContext(sampleOrg.getNodeAdmin());
                     }
 
                     UpgradeProposalRequest upgradeProposalRequest = client.newUpgradeProposalRequest();
-                    upgradeProposalRequest.setChaincodeID(chaincodeID_11);
+                    upgradeProposalRequest.setSmartContractID(chaincodeID_11);
                     upgradeProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
                     upgradeProposalRequest.setFcn("init");
                     upgradeProposalRequest.setArgs(new String[] {});    // no arguments don't change the ledger see chaincode.
 
-                    ChaincodeEndorsementPolicy chaincodeEndorsementPolicy;
+                    SmartContractEndorsementPolicy chaincodeEndorsementPolicy;
 
-                    chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
+                    chaincodeEndorsementPolicy = new SmartContractEndorsementPolicy();
                     chaincodeEndorsementPolicy.fromYamlFile(new File(TEST_FIXTURES_PATH + "/sdkintegration/chaincodeendorsementpolicy.yaml"));
 
-                    upgradeProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
+                    upgradeProposalRequest.setSmartContractEndorsementPolicy(chaincodeEndorsementPolicy);
                     Map<String, byte[]> tmap = new HashMap<>();
                     tmap.put("test", "data".getBytes());
                     upgradeProposalRequest.setTransientMap(tmap);
 
                     if (changeContext) {
-                        upgradeProposalRequest.setUserContext(sampleOrg.getPeerAdmin());
+                        upgradeProposalRequest.setUserContext(sampleOrg.getNodeAdmin());
                     }
 
                     out("Sending upgrade proposal");
@@ -399,14 +399,14 @@ public class End2endAndBackAgainIT {
                     failed.clear();
                     for (ProposalResponse response : responses2) {
                         if (response.getStatus() == Status.SUCCESS) {
-                            out("Successful upgrade proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                            out("Successful upgrade proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                             successful.add(response);
                         } else {
                             failed.add(response);
                         }
                     }
 
-                    out("Received %d upgrade proposal responses. Successful+verified: %d . Failed: %d", channel.getPeers().size(), successful.size(), failed.size());
+                    out("Received %d upgrade proposal responses. Successful+verified: %d . Failed: %d", channel.getNodes().size(), successful.size(), failed.size());
 
                     if (failed.size() > 0) {
                         ProposalResponse first = failed.iterator().next();
@@ -415,7 +415,7 @@ public class End2endAndBackAgainIT {
                     }
 
                     if (changeContext) {
-                        return channel.sendTransaction(successful, sampleOrg.getPeerAdmin()).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS);
+                        return channel.sendTransaction(successful, sampleOrg.getNodeAdmin()).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS);
 
                     } else {
 
@@ -433,28 +433,28 @@ public class End2endAndBackAgainIT {
                 try {
                     waitOnFabric(10000);
 
-                    out("Chaincode has been upgraded to version %s", CHAIN_CODE_VERSION_11);
+                    out("SmartContract has been upgraded to version %s", CHAIN_CODE_VERSION_11);
 
                     //Check to see if peers have new chaincode and old chaincode is gone.
 
-                    client.setUserContext(sampleOrg.getPeerAdmin());
-                    for (Peer peer : channel.getPeers()) {
+                    client.setUserContext(sampleOrg.getNodeAdmin());
+                    for (Node peer : channel.getNodes()) {
 
-                        if (!checkInstalledChaincode(client, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION_11)) {
-                            throw new AssertionError(format("Peer %s is missing chaincode name:%s, path:%s, version: %s",
+                        if (!checkInstalledSmartContract(client, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION_11)) {
+                            throw new AssertionError(format("Node %s is missing chaincode name:%s, path:%s, version: %s",
                                     peer.getName(), CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_PATH));
                         }
 
                         //should be instantiated too..
-                        if (!checkInstantiatedChaincode(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION_11)) {
+                        if (!checkInstantiatedSmartContract(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION_11)) {
 
-                            throw new AssertionError(format("Peer %s is missing instantiated chaincode name:%s, path:%s, version: %s",
+                            throw new AssertionError(format("Node %s is missing instantiated chaincode name:%s, path:%s, version: %s",
                                     peer.getName(), CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_PATH));
                         }
 
-                        if (checkInstantiatedChaincode(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
+                        if (checkInstantiatedSmartContract(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
 
-                            throw new AssertionError(format("Peer %s still has old instantiated chaincode name:%s, path:%s, version: %s",
+                            throw new AssertionError(format("Node %s still has old instantiated chaincode name:%s, path:%s, version: %s",
                                     peer.getName(), CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_PATH));
                         }
 
@@ -464,11 +464,11 @@ public class End2endAndBackAgainIT {
 
                     ///Check if we still get the same value on the ledger
                     out("delta is %s", delta);
-                    queryChaincodeForExpectedValue(client, channel, "" + (325 + delta), chaincodeID);
+                    querySmartContractForExpectedValue(client, channel, "" + (325 + delta), chaincodeID);
 
                     //Now lets run the new chaincode which should *double* the results we asked to move.
                     return moveAmount(client, channel, chaincodeID_11, "50",
-                            changeContext ? sampleOrg.getPeerAdmin() : null).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS); // really move 100
+                            changeContext ? sampleOrg.getNodeAdmin() : null).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS); // really move 100
                 } catch (CompletionException e) {
                     throw e;
                 } catch (Exception e) {
@@ -479,7 +479,7 @@ public class End2endAndBackAgainIT {
 
                 waitOnFabric(10000);
 
-                queryChaincodeForExpectedValue(client, channel, "" + (425 + delta), chaincodeID_11);
+                querySmartContractForExpectedValue(client, channel, "" + (425 + delta), chaincodeID_11);
 
                 return null;
             }).exceptionally(e -> {
@@ -503,11 +503,11 @@ public class End2endAndBackAgainIT {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        out("Running for Channel %s done", channelName);
+        out("Running for Group %s done", channelName);
 
     }
 
-    CompletableFuture<BlockEvent.TransactionEvent> moveAmount(HFClient client, Channel channel, ChaincodeID chaincodeID, String moveAmount, User user) {
+    CompletableFuture<BlockEvent.TransactionEvent> moveAmount(HFClient client, Group channel, SmartContractID chaincodeID, String moveAmount, User user) {
 
         try {
             Collection<ProposalResponse> successful = new LinkedList<>();
@@ -516,7 +516,7 @@ public class End2endAndBackAgainIT {
             ///////////////
             /// Send transaction proposal to all peers
             TransactionProposalRequest transactionProposalRequest = client.newTransactionProposalRequest();
-            transactionProposalRequest.setChaincodeID(chaincodeID);
+            transactionProposalRequest.setSmartContractID(chaincodeID);
             transactionProposalRequest.setFcn("move");
             transactionProposalRequest.setArgs(new byte[][] {//test using bytes .. end2end uses Strings.
                     "a".getBytes(UTF_8), "b".getBytes(UTF_8), moveAmount.getBytes(UTF_8)});
@@ -529,7 +529,7 @@ public class End2endAndBackAgainIT {
             Collection<ProposalResponse> invokePropResp = channel.sendTransactionProposal(transactionProposalRequest);
             for (ProposalResponse response : invokePropResp) {
                 if (response.getStatus() == Status.SUCCESS) {
-                    out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                    out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                     successful.add(response);
                 } else {
                     failed.add(response);
@@ -562,27 +562,27 @@ public class End2endAndBackAgainIT {
 
     }
 
-    private Channel reconstructChannel(String name, HFClient client, SampleOrg sampleOrg) throws Exception {
+    private Group reconstructGroup(String name, HFClient client, SampleOrg sampleOrg) throws Exception {
         out("Reconstructing %s channel", name);
 
         client.setUserContext(sampleOrg.getUser(TESTUSER_1_NAME));
 
-        Channel newChannel;
+        Group newGroup;
 
         if (BAR_CHANNEL_NAME.equals(name)) { // bar channel was stored in samplestore in End2endIT testcase.
 
             /**
-             *  sampleStore.getChannel uses {@link HFClient#deSerializeChannel(byte[])}
+             *  sampleStore.getGroup uses {@link HFClient#deSerializeGroup(byte[])}
              */
-            newChannel = sampleStore.getChannel(client, name);
+            newGroup = sampleStore.getGroup(client, name);
 
             if (!IS_FABRIC_V10) {
                 // Make sure there is one of each type peer at the very least. see End2end for how peers were constructed.
-                assertFalse(newChannel.getPeers(EnumSet.of(PeerRole.EVENT_SOURCE)).isEmpty());
-                assertFalse(newChannel.getPeers(PeerRole.NO_EVENT_SOURCE).isEmpty());
+                assertFalse(newGroup.getNodes(EnumSet.of(NodeRole.EVENT_SOURCE)).isEmpty());
+                assertFalse(newGroup.getNodes(NodeRole.NO_EVENT_SOURCE).isEmpty());
 
             }
-            assertEquals(2, newChannel.getEventHubs().size());
+            assertEquals(2, newGroup.getEventHubs().size());
             out("Retrieved channel %s from sample store.", name);
 
         } else {
@@ -600,29 +600,29 @@ public class End2endAndBackAgainIT {
                 clientTLSProperties.put("clientKeyBytes", clientPEMTLSKey.getBytes(UTF_8));
             }
 
-            newChannel = client.newChannel(name);
+            newGroup = client.newGroup(name);
 
-            for (String ordererName : sampleOrg.getOrdererNames()) {
+            for (String ordererName : sampleOrg.getConsenterNames()) {
                 Properties ordererProperties = (Properties) clientTLSProperties.clone();
-                ordererProperties.putAll(testConfig.getOrdererProperties(ordererName));
-                newChannel.addOrderer(client.newOrderer(ordererName, sampleOrg.getOrdererLocation(ordererName),
+                ordererProperties.putAll(testConfig.getConsenterProperties(ordererName));
+                newGroup.addConsenter(client.newConsenter(ordererName, sampleOrg.getConsenterLocation(ordererName),
                         ordererProperties));
             }
 
             boolean everyOther = false;
 
-            for (String peerName : sampleOrg.getPeerNames()) {
-                String peerLocation = sampleOrg.getPeerLocation(peerName);
-                Properties peerProperties = testConfig.getPeerProperties(peerName);
+            for (String peerName : sampleOrg.getNodeNames()) {
+                String peerLocation = sampleOrg.getNodeLocation(peerName);
+                Properties peerProperties = testConfig.getNodeProperties(peerName);
                 peerProperties.putAll(clientTLSProperties);
-                Peer peer = client.newPeer(peerName, peerLocation, peerProperties);
-                final PeerOptions peerEventingOptions = // we have two peers on one use block on other use filtered
+                Node peer = client.newNode(peerName, peerLocation, peerProperties);
+                final NodeOptions peerEventingOptions = // we have two peers on one use block on other use filtered
                         everyOther ?
-                                createPeerOptions().registerEventsForBlocks() :
-                                createPeerOptions().registerEventsForFilteredBlocks();
+                                createNodeOptions().registerEventsForBlocks() :
+                                createNodeOptions().registerEventsForFilteredBlocks();
 
-                newChannel.addPeer(peer, IS_FABRIC_V10 ?
-                        createPeerOptions().setPeerRoles(PeerRole.NO_EVENT_SOURCE) : peerEventingOptions);
+                newGroup.addNode(peer, IS_FABRIC_V10 ?
+                        createNodeOptions().setNodeRoles(NodeRole.NO_EVENT_SOURCE) : peerEventingOptions);
 
                 everyOther = !everyOther;
             }
@@ -630,99 +630,99 @@ public class End2endAndBackAgainIT {
             //For testing mix it up. For v1.1 use just peer eventing service for foo channel.
             if (IS_FABRIC_V10) {
                 //Should have no peers with event sources.
-                assertTrue(newChannel.getPeers(EnumSet.of(PeerRole.EVENT_SOURCE)).isEmpty());
+                assertTrue(newGroup.getNodes(EnumSet.of(NodeRole.EVENT_SOURCE)).isEmpty());
                 //Should have two peers with all roles but event source.
-                assertEquals(2, newChannel.getPeers(PeerRole.NO_EVENT_SOURCE).size());
+                assertEquals(2, newGroup.getNodes(NodeRole.NO_EVENT_SOURCE).size());
                 for (String eventHubName : sampleOrg.getEventHubNames()) {
                     Properties eventhubProperties = (Properties) clientTLSProperties.clone();
                     eventhubProperties.putAll(testConfig.getEventHubProperties(eventHubName));
                     EventHub eventHub = client.newEventHub(eventHubName, sampleOrg.getEventHubLocation(eventHubName),
                             eventhubProperties);
-                    newChannel.addEventHub(eventHub);
+                    newGroup.addEventHub(eventHub);
                 }
             } else {
-                //Peers should have all roles. Do some sanity checks that they do.
+                //Nodes should have all roles. Do some sanity checks that they do.
 
                 //Should have two peers with event sources.
-                assertEquals(2, newChannel.getPeers(EnumSet.of(PeerRole.EVENT_SOURCE)).size());
+                assertEquals(2, newGroup.getNodes(EnumSet.of(NodeRole.EVENT_SOURCE)).size());
                 //Check some other roles too..
-                assertEquals(2, newChannel.getPeers(EnumSet.of(PeerRole.CHAINCODE_QUERY, PeerRole.LEDGER_QUERY)).size());
-                assertEquals(2, newChannel.getPeers(PeerRole.ALL).size());  //really same as newChannel.getPeers()
+                assertEquals(2, newGroup.getNodes(EnumSet.of(NodeRole.CHAINCODE_QUERY, NodeRole.LEDGER_QUERY)).size());
+                assertEquals(2, newGroup.getNodes(NodeRole.ALL).size());  //really same as newGroup.getNodes()
             }
 
-            assertEquals(IS_FABRIC_V10 ? sampleOrg.getEventHubNames().size() : 0, newChannel.getEventHubs().size());
+            assertEquals(IS_FABRIC_V10 ? sampleOrg.getEventHubNames().size() : 0, newGroup.getEventHubs().size());
         }
 
         //Just some sanity check tests
-        assertTrue(newChannel == client.getChannel(name));
-        assertTrue(client == TestUtils.getField(newChannel, "client"));
-        assertEquals(name, newChannel.getName());
-        assertEquals(2, newChannel.getPeers().size());
-        assertEquals(1, newChannel.getOrderers().size());
-        assertFalse(newChannel.isShutdown());
-        assertFalse(newChannel.isInitialized());
-        byte[] serializedChannelBytes = newChannel.serializeChannel();
+        assertTrue(newGroup == client.getGroup(name));
+        assertTrue(client == TestUtils.getField(newGroup, "client"));
+        assertEquals(name, newGroup.getName());
+        assertEquals(2, newGroup.getNodes().size());
+        assertEquals(1, newGroup.getConsenters().size());
+        assertFalse(newGroup.isShutdown());
+        assertFalse(newGroup.isInitialized());
+        byte[] serializedGroupBytes = newGroup.serializeGroup();
 
         //Just checks if channel can be serialized and deserialized .. otherwise this is just a waste :)
         // Get channel back.
 
-        newChannel.shutdown(true);
-        newChannel = client.deSerializeChannel(serializedChannelBytes);
+        newGroup.shutdown(true);
+        newGroup = client.deSerializeGroup(serializedGroupBytes);
 
-        assertEquals(2, newChannel.getPeers().size());
+        assertEquals(2, newGroup.getNodes().size());
 
-        assertEquals(1, newChannel.getOrderers().size());
+        assertEquals(1, newGroup.getConsenters().size());
 
-        assertNotNull(client.getChannel(name));
-        assertEquals(newChannel, client.getChannel(name));
-        assertFalse(newChannel.isInitialized());
-        assertFalse(newChannel.isShutdown());
+        assertNotNull(client.getGroup(name));
+        assertEquals(newGroup, client.getGroup(name));
+        assertFalse(newGroup.isInitialized());
+        assertFalse(newGroup.isShutdown());
         assertEquals(TESTUSER_1_NAME, client.getUserContext().getName());
-        newChannel.initialize();
-        assertTrue(newChannel.isInitialized());
-        assertFalse(newChannel.isShutdown());
+        newGroup.initialize();
+        assertTrue(newGroup.isInitialized());
+        assertFalse(newGroup.isShutdown());
 
         //Begin tests with de-serialized channel.
 
         //Query the actual peer for which channels it belongs to and check it belongs to this channel
-        for (Peer peer : newChannel.getPeers()) {
-            Set<String> channels = client.queryChannels(peer);
+        for (Node peer : newGroup.getNodes()) {
+            Set<String> channels = client.queryGroups(peer);
             if (!channels.contains(name)) {
-                throw new AssertionError(format("Peer %s does not appear to belong to channel %s", peer.getName(), name));
+                throw new AssertionError(format("Node %s does not appear to belong to channel %s", peer.getName(), name));
             }
         }
 
         //Just see if we can get channelConfiguration. Not required for the rest of scenario but should work.
-        final byte[] channelConfigurationBytes = newChannel.getChannelConfigurationBytes();
+        final byte[] channelConfigurationBytes = newGroup.getGroupConfigurationBytes();
         Configtx.Config channelConfig = Configtx.Config.parseFrom(channelConfigurationBytes);
 
         assertNotNull(channelConfig);
 
-        Configtx.ConfigGroup channelGroup = channelConfig.getChannelGroup();
+        Configtx.ConfigTree channelGroup = channelConfig.getGroupTree();
 
         assertNotNull(channelGroup);
 
-        Map<String, Configtx.ConfigGroup> groupsMap = channelGroup.getGroupsMap();
+        Map<String, Configtx.ConfigTree> groupsMap = channelGroup.getChildsMap();
 
-        assertNotNull(groupsMap.get("Orderer"));
+        assertNotNull(groupsMap.get("Consenter"));
 
         assertNotNull(groupsMap.get("Application"));
 
         //Before return lets see if we have the chaincode on the peers that we expect from End2endIT
         //And if they were instantiated too. this requires peer admin user
 
-        client.setUserContext(sampleOrg.getPeerAdmin());
+        client.setUserContext(sampleOrg.getNodeAdmin());
 
-        for (Peer peer : newChannel.getPeers()) {
+        for (Node peer : newGroup.getNodes()) {
 
-            if (!checkInstalledChaincode(client, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
-                throw new AssertionError(format("Peer %s is missing chaincode name: %s, path:%s, version: %s",
+            if (!checkInstalledSmartContract(client, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
+                throw new AssertionError(format("Node %s is missing chaincode name: %s, path:%s, version: %s",
                         peer.getName(), CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_PATH));
             }
 
-            if (!checkInstantiatedChaincode(newChannel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
+            if (!checkInstantiatedSmartContract(newGroup, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
 
-                throw new AssertionError(format("Peer %s is missing instantiated chaincode name: %s, path:%s, version: %s",
+                throw new AssertionError(format("Node %s is missing instantiated chaincode name: %s, path:%s, version: %s",
                         peer.getName(), CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_PATH));
             }
 
@@ -730,12 +730,12 @@ public class End2endAndBackAgainIT {
 
         client.setUserContext(sampleOrg.getUser(TESTUSER_1_NAME));
 
-        assertTrue(newChannel.isInitialized());
-        assertFalse(newChannel.isShutdown());
+        assertTrue(newGroup.isInitialized());
+        assertFalse(newGroup.isShutdown());
 
         out("Finished reconstructing channel %s.", name);
 
-        return newChannel;
+        return newGroup;
     }
 
     /**
@@ -745,62 +745,62 @@ public class End2endAndBackAgainIT {
      * Depends on end2end and end2endAndBackagain of have fully run to have the blocks need to work with.
      *
      * @param client
-     * @param replayTestChannel
+     * @param replayTestGroup
      * @param start
      * @param stop
      * @param useFilteredBlocks
      * @throws InvalidArgumentException
      */
 
-    private void testPeerServiceEventingReplay(HFClient client, Channel replayTestChannel, final long start, final long stop,
+    private void testNodeServiceEventingReplay(HFClient client, Group replayTestGroup, final long start, final long stop,
                                                final boolean useFilteredBlocks) throws InvalidArgumentException {
 
         if (testConfig.isRunningAgainstFabric10()) {
             return; // not supported for v1.0
         }
 
-        assertFalse(replayTestChannel.isInitialized()); //not yet initialized
-        assertFalse(replayTestChannel.isShutdown()); // not yet shutdown.
+        assertFalse(replayTestGroup.isInitialized()); //not yet initialized
+        assertFalse(replayTestGroup.isShutdown()); // not yet shutdown.
 
         //Remove all peers just have one ledger peer and one eventing peer.
-        List<Peer> savedPeers = new ArrayList<>(replayTestChannel.getPeers());
-        for (Peer peer : savedPeers) {
-            replayTestChannel.removePeer(peer);
+        List<Node> savedNodes = new ArrayList<>(replayTestGroup.getNodes());
+        for (Node peer : savedNodes) {
+            replayTestGroup.removeNode(peer);
         }
-        assertTrue(savedPeers.size() > 1); //need at least two
-        final Peer eventingPeer = savedPeers.remove(0);
-        Peer ledgerPeer = savedPeers.remove(0);
+        assertTrue(savedNodes.size() > 1); //need at least two
+        final Node eventingNode = savedNodes.remove(0);
+        Node ledgerNode = savedNodes.remove(0);
 
-        assertTrue(replayTestChannel.getPeers().isEmpty()); // no more peers.
-        assertTrue(replayTestChannel.getPeers(EnumSet.of(PeerRole.CHAINCODE_QUERY, PeerRole.ENDORSING_PEER)).isEmpty()); // just checking :)
-        assertTrue(replayTestChannel.getPeers(EnumSet.of(PeerRole.LEDGER_QUERY)).isEmpty()); // just checking
+        assertTrue(replayTestGroup.getNodes().isEmpty()); // no more peers.
+        assertTrue(replayTestGroup.getNodes(EnumSet.of(NodeRole.CHAINCODE_QUERY, NodeRole.ENDORSING_PEER)).isEmpty()); // just checking :)
+        assertTrue(replayTestGroup.getNodes(EnumSet.of(NodeRole.LEDGER_QUERY)).isEmpty()); // just checking
 
-        assertNotNull(client.getChannel(replayTestChannel.getName())); // should be known by client.
+        assertNotNull(client.getGroup(replayTestGroup.getName())); // should be known by client.
 
-        final PeerOptions eventingPeerOptions = createPeerOptions().setPeerRoles(EnumSet.of(PeerRole.EVENT_SOURCE));
+        final NodeOptions eventingNodeOptions = createNodeOptions().setNodeRoles(EnumSet.of(NodeRole.EVENT_SOURCE));
         if (useFilteredBlocks) {
-            eventingPeerOptions.registerEventsForFilteredBlocks();
+            eventingNodeOptions.registerEventsForFilteredBlocks();
         }
 
         if (-1L == stop) { //the height of the blockchain
 
-            replayTestChannel.addPeer(eventingPeer, eventingPeerOptions.startEvents(start)); // Eventing peer start getting blocks from block 0
+            replayTestGroup.addNode(eventingNode, eventingNodeOptions.startEvents(start)); // Eventing peer start getting blocks from block 0
         } else {
-            replayTestChannel.addPeer(eventingPeer, eventingPeerOptions
+            replayTestGroup.addNode(eventingNode, eventingNodeOptions
                     .startEvents(start).stopEvents(stop)); // Eventing peer start getting blocks from block 0
         }
         //add a ledger peer
-        replayTestChannel.addPeer(ledgerPeer, createPeerOptions().setPeerRoles(EnumSet.of(PeerRole.LEDGER_QUERY)));
+        replayTestGroup.addNode(ledgerNode, createNodeOptions().setNodeRoles(EnumSet.of(NodeRole.LEDGER_QUERY)));
 
         CompletableFuture<Long> done = new CompletableFuture<>(); // future to set when done.
         // some variable used by the block listener being set up.
         final AtomicLong bcount = new AtomicLong(0);
         final AtomicLong stopValue = new AtomicLong(stop == -1L ? Long.MAX_VALUE : stop);
-        final Channel finalChannel = replayTestChannel;
+        final Group finalGroup = replayTestGroup;
 
         final Map<Long, BlockEvent> blockEvents = Collections.synchronizedMap(new HashMap<>(100));
 
-        final String blockListenerHandle = replayTestChannel.registerBlockListener(blockEvent -> { // register a block listener
+        final String blockListenerHandle = replayTestGroup.registerBlockListener(blockEvent -> { // register a block listener
 
             try {
                 final long blockNumber = blockEvent.getBlockNumber();
@@ -812,10 +812,10 @@ public class End2endAndBackAgainIT {
                         useFilteredBlocks ? blockEvent.isFiltered() : !blockEvent.isFiltered());
                 final long count = bcount.getAndIncrement(); //count starts with 0 not 1 !
 
-                //out("Block count: %d, block number: %d  received from peer: %s", count, blockNumber, blockEvent.getPeer().getName());
+                //out("Block count: %d, block number: %d  received from peer: %s", count, blockNumber, blockEvent.getNode().getName());
 
                 if (count == 0 && stop == -1L) {
-                    final BlockchainInfo blockchainInfo = finalChannel.queryBlockchainInfo();
+                    final BlockchainInfo blockchainInfo = finalGroup.queryBlockchainInfo();
 
                     long lh = blockchainInfo.getHeight();
                     stopValue.set(lh - 1L);  // blocks 0L 9L are on chain height 10 .. stop on 9
@@ -837,10 +837,10 @@ public class End2endAndBackAgainIT {
         });
 
         try {
-            replayTestChannel.initialize(); // start it all up.
+            replayTestGroup.initialize(); // start it all up.
             done.get(30, TimeUnit.SECONDS); // give a timeout here.
             Thread.sleep(1000); // sleep a little to see if more blocks trickle in .. they should not
-            replayTestChannel.unregisterBlockListener(blockListenerHandle);
+            replayTestGroup.unregisterBlockListener(blockListenerHandle);
 
             final long expectNumber = stopValue.longValue() - start + 1L; // Start 2 and stop is 3  expect 2
 
@@ -872,7 +872,7 @@ public class End2endAndBackAgainIT {
                     assertNull(blockEvent.getFilteredBlock()); // should have raw filtered block.
                 }
 
-                assertEquals(replayTestChannel.getName(), blockEvent.getChannelId());
+                assertEquals(replayTestGroup.getName(), blockEvent.getGroupId());
 
                 for (BlockInfo.EnvelopeInfo envelopeInfo : blockEvent.getEnvelopeInfos()) {
                     if (envelopeInfo.getType() == TRANSACTION_ENVELOPE) {
@@ -884,9 +884,9 @@ public class End2endAndBackAgainIT {
                         ++transactionEventCounts;
                         for (BlockInfo.TransactionEnvelopeInfo.TransactionActionInfo ta : transactionEnvelopeInfo.getTransactionActionInfos()) {
                             //    out("\nTA:", ta + "\n\n");
-                            ChaincodeEvent event = ta.getEvent();
+                            SmartContractEvent event = ta.getEvent();
                             if (event != null) {
-                                assertNotNull(event.getChaincodeId());
+                                assertNotNull(event.getSmartContractId());
                                 assertNotNull(event.getEventName());
                                 chaincodeEventsCounts++;
                             }
@@ -909,37 +909,37 @@ public class End2endAndBackAgainIT {
                 assertTrue(chaincodeEventsCounts > 0);
             }
 
-            replayTestChannel.shutdown(true); //all done.
+            replayTestGroup.shutdown(true); //all done.
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
 
-    private void queryChaincodeForExpectedValue(HFClient client, Channel channel, final String expect, ChaincodeID chaincodeID) {
+    private void querySmartContractForExpectedValue(HFClient client, Group channel, final String expect, SmartContractID chaincodeID) {
 
         out("Now query chaincode %s on channel %s for the value of b expecting to see: %s", chaincodeID, channel.getName(), expect);
-        QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
-        queryByChaincodeRequest.setArgs("b".getBytes(UTF_8)); // test using bytes as args. End2end uses Strings.
-        queryByChaincodeRequest.setFcn("query");
-        queryByChaincodeRequest.setChaincodeID(chaincodeID);
+        QueryBySmartContractRequest queryBySmartContractRequest = client.newQueryProposalRequest();
+        queryBySmartContractRequest.setArgs("b".getBytes(UTF_8)); // test using bytes as args. End2end uses Strings.
+        queryBySmartContractRequest.setFcn("query");
+        queryBySmartContractRequest.setSmartContractID(chaincodeID);
 
         Collection<ProposalResponse> queryProposals;
 
         try {
-            queryProposals = channel.queryByChaincode(queryByChaincodeRequest);
+            queryProposals = channel.queryBySmartContract(queryBySmartContractRequest);
         } catch (Exception e) {
             throw new CompletionException(e);
         }
 
         for (ProposalResponse proposalResponse : queryProposals) {
             if (!proposalResponse.isVerified() || proposalResponse.getStatus() != Status.SUCCESS) {
-                fail("Failed query proposal from peer " + proposalResponse.getPeer().getName() + " status: " + proposalResponse.getStatus() +
+                fail("Failed query proposal from peer " + proposalResponse.getNode().getName() + " status: " + proposalResponse.getStatus() +
                         ". Messages: " + proposalResponse.getMessage()
                         + ". Was verified : " + proposalResponse.isVerified());
             } else {
                 String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
-                out("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), payload);
+                out("Query payload of b from peer %s returned %s", proposalResponse.getNode().getName(), payload);
                 assertEquals(format("Failed compare on channel %s chaincode id %s expected value:'%s', but got:'%s'",
                         channel.getName(), chaincodeID, expect, payload), expect, payload);
             }

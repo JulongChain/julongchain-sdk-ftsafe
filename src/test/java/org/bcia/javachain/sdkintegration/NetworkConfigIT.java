@@ -14,10 +14,44 @@
 
 package org.bcia.javachain.sdkintegration;
 
-import org.bcia.javachain.protos.peer.Query.ChaincodeInfo;
-import org.bcia.javachain.sdk.*;
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.bcia.javachain.sdk.testutils.TestUtils.resetConfig;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.security.PrivateKey;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
+
+import org.bcia.javachain.protos.node.Query.SmartContractInfo;
+import org.bcia.javachain.sdk.BlockEvent;
 import org.bcia.javachain.sdk.BlockEvent.TransactionEvent;
-import org.bcia.javachain.sdk.ChaincodeResponse.Status;
+import org.bcia.javachain.sdk.Consenter;
+import org.bcia.javachain.sdk.Group;
+import org.bcia.javachain.sdk.HFClient;
+import org.bcia.javachain.sdk.InstallProposalRequest;
+import org.bcia.javachain.sdk.InstantiateProposalRequest;
+import org.bcia.javachain.sdk.NetworkConfig;
+import org.bcia.javachain.sdk.Node;
+import org.bcia.javachain.sdk.ProposalResponse;
+import org.bcia.javachain.sdk.QueryBySmartContractRequest;
+import org.bcia.javachain.sdk.SDKUtils;
+import org.bcia.javachain.sdk.SmartContractEndorsementPolicy;
+import org.bcia.javachain.sdk.SmartContractID;
+import org.bcia.javachain.sdk.SmartContractResponse.Status;
+import org.bcia.javachain.sdk.TestConfigHelper;
+import org.bcia.javachain.sdk.TransactionProposalRequest;
+import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionEventException;
@@ -27,18 +61,6 @@ import org.bcia.javachain.sdk.testutils.TestUtils;
 import org.bcia.javachain.sdk.testutils.TestUtils.MockUser;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.File;
-import java.security.PrivateKey;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bcia.javachain.sdk.testutils.TestUtils.resetConfig;
-import static org.junit.Assert.*;
 
 /**
  * Integration test for the Network Configuration YAML (/JSON) file
@@ -86,24 +108,24 @@ public class NetworkConfigIT {
         networkConfig = NetworkConfig.fromYamlFile(testConfig.getTestNetworkConfigFileYAML());
 
         // Ensure the chaincode required for these tests is deployed
-        deployChaincodeIfRequired();
+        deploySmartContractIfRequired();
     }
 
     // Determines whether or not the chaincode has been deployed and deploys it if necessary
-    private static void deployChaincodeIfRequired() throws Exception {
+    private static void deploySmartContractIfRequired() throws Exception {
 
         ////////////////////////////
         // Setup client
         HFClient client = getTheClient();
 
-        Channel channel = constructChannel(client, FOO_CHANNEL_NAME);
+        Group channel = constructGroup(client, FOO_CHANNEL_NAME);
 
         // Use any old peer...
-        Peer peer = channel.getPeers().iterator().next();
-        if (!checkInstantiatedChaincode(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
+        Node peer = channel.getNodes().iterator().next();
+        if (!checkInstantiatedSmartContract(channel, peer, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION)) {
 
             // The chaincode we require does not exist, so deploy it...
-            deployChaincode(client, channel, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION);
+            deploySmartContract(client, channel, CHAIN_CODE_NAME, CHAIN_CODE_PATH, CHAIN_CODE_VERSION);
         }
 
     }
@@ -122,8 +144,8 @@ public class NetworkConfigIT {
 
     private static User getAdminUser(String orgName) throws Exception {
 
-        NetworkConfig.UserInfo userInfo = networkConfig.getPeerAdmin(orgName);
-        //NetworkConfig.UserInfo userInfo = networkConfig.getPeerAdmin();
+        NetworkConfig.UserInfo userInfo = networkConfig.getNodeAdmin(orgName);
+        //NetworkConfig.UserInfo userInfo = networkConfig.getNodeAdmin();
 
         String userName = userInfo.getEnrollId();
         String mspId = userInfo.getMspId();
@@ -142,18 +164,18 @@ public class NetworkConfigIT {
 
         // Setup client and channel instances
         HFClient client = getTheClient();
-        Channel channel = constructChannel(client, FOO_CHANNEL_NAME);
+        Group channel = constructGroup(client, FOO_CHANNEL_NAME);
 
-        final ChaincodeID chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+        final SmartContractID chaincodeID = SmartContractID.newBuilder().setName(CHAIN_CODE_NAME)
                 .setVersion(CHAIN_CODE_VERSION)
                 .setPath(CHAIN_CODE_PATH).build();
 
         final String channelName = channel.getName();
 
-        out("Running testUpdate1 - Channel %s", channelName);
+        out("Running testUpdate1 - Group %s", channelName);
 
         int moveAmount = 5;
-        String originalVal = queryChaincodeForCurrentValue(client, channel, chaincodeID);
+        String originalVal = querySmartContractForCurrentValue(client, channel, chaincodeID);
         String newVal = "" + (Integer.parseInt(originalVal) + moveAmount);
 
         out("Original value = %s", originalVal);
@@ -161,7 +183,7 @@ public class NetworkConfigIT {
         // Move some assets
         moveAmount(client, channel, chaincodeID, "a", "b", "" + moveAmount, null).thenApply(transactionEvent -> {
             // Check that they were moved
-            queryChaincodeForExpectedValue(client, channel, newVal, chaincodeID);
+            querySmartContractForExpectedValue(client, channel, newVal, chaincodeID);
             return null;
 
         }).thenApply(transactionEvent -> {
@@ -174,7 +196,7 @@ public class NetworkConfigIT {
 
         }).thenApply(transactionEvent -> {
             // Check that they were moved back
-            queryChaincodeForExpectedValue(client, channel, originalVal, chaincodeID);
+            querySmartContractForExpectedValue(client, channel, originalVal, chaincodeID);
             return null;
 
         }).exceptionally(e -> {
@@ -202,28 +224,28 @@ public class NetworkConfigIT {
         out("testUpdate1 - done");
     }
 
-    private static void queryChaincodeForExpectedValue(HFClient client, Channel channel, final String expect, ChaincodeID chaincodeID) {
+    private static void querySmartContractForExpectedValue(HFClient client, Group channel, final String expect, SmartContractID chaincodeID) {
 
         out("Now query chaincode on channel %s for the value of b expecting to see: %s", channel.getName(), expect);
 
-        String value = queryChaincodeForCurrentValue(client, channel, chaincodeID);
+        String value = querySmartContractForCurrentValue(client, channel, chaincodeID);
         assertEquals(expect, value);
     }
 
     // Returns the current value of b's assets
-    private static String queryChaincodeForCurrentValue(HFClient client, Channel channel, ChaincodeID chaincodeID) {
+    private static String querySmartContractForCurrentValue(HFClient client, Group channel, SmartContractID chaincodeID) {
 
         out("Now query chaincode on channel %s for the current value of b", channel.getName());
 
-        QueryByChaincodeRequest queryByChaincodeRequest = client.newQueryProposalRequest();
-        queryByChaincodeRequest.setArgs("b");
-        queryByChaincodeRequest.setFcn("query");
-        queryByChaincodeRequest.setChaincodeID(chaincodeID);
+        QueryBySmartContractRequest queryBySmartContractRequest = client.newQueryProposalRequest();
+        queryBySmartContractRequest.setArgs("b");
+        queryBySmartContractRequest.setFcn("query");
+        queryBySmartContractRequest.setSmartContractID(chaincodeID);
 
         Collection<ProposalResponse> queryProposals;
 
         try {
-            queryProposals = channel.queryByChaincode(queryByChaincodeRequest);
+            queryProposals = channel.queryBySmartContract(queryBySmartContractRequest);
         } catch (Exception e) {
             throw new CompletionException(e);
         }
@@ -231,12 +253,12 @@ public class NetworkConfigIT {
         String expect = null;
         for (ProposalResponse proposalResponse : queryProposals) {
             if (!proposalResponse.isVerified() || proposalResponse.getStatus() != Status.SUCCESS) {
-                fail("Failed query proposal from peer " + proposalResponse.getPeer().getName() + " status: " + proposalResponse.getStatus() +
+                fail("Failed query proposal from peer " + proposalResponse.getNode().getName() + " status: " + proposalResponse.getStatus() +
                         ". Messages: " + proposalResponse.getMessage()
                         + ". Was verified : " + proposalResponse.isVerified());
             } else {
                 String payload = proposalResponse.getProposalResponse().getResponse().getPayload().toStringUtf8();
-                out("Query payload of b from peer %s returned %s", proposalResponse.getPeer().getName(), payload);
+                out("Query payload of b from peer %s returned %s", proposalResponse.getNode().getName(), payload);
                 if (expect != null) {
                     assertEquals(expect, payload);
                 } else {
@@ -247,7 +269,7 @@ public class NetworkConfigIT {
         return expect;
     }
 
-    private static CompletableFuture<TransactionEvent> moveAmount(HFClient client, Channel channel, ChaincodeID chaincodeID, String from, String to, String moveAmount, User user) throws Exception {
+    private static CompletableFuture<TransactionEvent> moveAmount(HFClient client, Group channel, SmartContractID chaincodeID, String from, String to, String moveAmount, User user) throws Exception {
 
         Collection<ProposalResponse> successful = new LinkedList<>();
         Collection<ProposalResponse> failed = new LinkedList<>();
@@ -255,7 +277,7 @@ public class NetworkConfigIT {
         ///////////////
         /// Send transaction proposal to all peers
         TransactionProposalRequest transactionProposalRequest = client.newTransactionProposalRequest();
-        transactionProposalRequest.setChaincodeID(chaincodeID);
+        transactionProposalRequest.setSmartContractID(chaincodeID);
         transactionProposalRequest.setFcn("move");
         transactionProposalRequest.setArgs(from, to, moveAmount);
         transactionProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
@@ -267,7 +289,7 @@ public class NetworkConfigIT {
         Collection<ProposalResponse> invokePropResp = channel.sendTransactionProposal(transactionProposalRequest);
         for (ProposalResponse response : invokePropResp) {
             if (response.getStatus() == Status.SUCCESS) {
-                out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                out("Successful transaction proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                 successful.add(response);
             } else {
                 failed.add(response);
@@ -301,22 +323,22 @@ public class NetworkConfigIT {
         return channel.sendTransaction(successful);
     }
 
-    private static ChaincodeID deployChaincode(HFClient client, Channel channel, String ccName, String ccPath, String ccVersion) throws Exception {
+    private static SmartContractID deploySmartContract(HFClient client, Group channel, String ccName, String ccPath, String ccVersion) throws Exception {
 
-        out("deployChaincode - enter");
-        ChaincodeID chaincodeID = null;
+        out("deploySmartContract - enter");
+        SmartContractID chaincodeID = null;
 
         try {
 
             final String channelName = channel.getName();
-            out("deployChaincode - channelName = " + channelName);
+            out("deploySmartContract - channelName = " + channelName);
 
-            Collection<Orderer> orderers = channel.getOrderers();
+            Collection<Consenter> orderers = channel.getConsenters();
             Collection<ProposalResponse> responses;
             Collection<ProposalResponse> successful = new LinkedList<>();
             Collection<ProposalResponse> failed = new LinkedList<>();
 
-            chaincodeID = ChaincodeID.newBuilder().setName(ccName)
+            chaincodeID = SmartContractID.newBuilder().setName(ccName)
                     .setVersion(ccVersion)
                     .setPath(ccPath).build();
 
@@ -326,12 +348,12 @@ public class NetworkConfigIT {
             out("Creating install proposal");
 
             InstallProposalRequest installProposalRequest = client.newInstallProposalRequest();
-            installProposalRequest.setChaincodeID(chaincodeID);
+            installProposalRequest.setSmartContractID(chaincodeID);
 
             ////For GO language and serving just a single user, chaincodeSource is mostly likely the users GOPATH
-            installProposalRequest.setChaincodeSourceLocation(new File(TEST_FIXTURES_PATH + "/sdkintegration/gocc/sample1"));
+            installProposalRequest.setSmartContractSourceLocation(new File(TEST_FIXTURES_PATH + "/sdkintegration/gocc/sample1"));
 
-            installProposalRequest.setChaincodeVersion(ccVersion);
+            installProposalRequest.setSmartContractVersion(ccVersion);
 
             out("Sending install proposal");
 
@@ -339,13 +361,13 @@ public class NetworkConfigIT {
             // only a client from the same org as the peer can issue an install request
             int numInstallProposal = 0;
 
-            Collection<Peer> peersFromOrg = channel.getPeers();
+            Collection<Node> peersFromOrg = channel.getNodes();
             numInstallProposal = numInstallProposal + peersFromOrg.size();
             responses = client.sendInstallProposal(installProposalRequest, peersFromOrg);
 
             for (ProposalResponse response : responses) {
                 if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
-                    out("Successful install proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                    out("Successful install proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                     successful.add(response);
                 } else {
                     failed.add(response);
@@ -363,12 +385,12 @@ public class NetworkConfigIT {
             //// Instantiate chaincode.
             //
             // From the docs:
-            // The instantiate transaction invokes the lifecycle System Chaincode (LSCC) to create and initialize a chaincode on a channel
+            // The instantiate transaction invokes the lifecycle System SmartContract (LSCC) to create and initialize a chaincode on a channel
             // After being successfully instantiated, the chaincode enters the active state on the channel and is ready to process any transaction proposals of type ENDORSER_TRANSACTION
 
             InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
             instantiateProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
-            instantiateProposalRequest.setChaincodeID(chaincodeID);
+            instantiateProposalRequest.setSmartContractID(chaincodeID);
             instantiateProposalRequest.setFcn("init");
             instantiateProposalRequest.setArgs("a", "500", "b", "999");
 
@@ -379,11 +401,11 @@ public class NetworkConfigIT {
 
             /*
               policy OR(Org1MSP.member, Org2MSP.member) meaning 1 signature from someone in either Org1 or Org2
-              See README.md Chaincode endorsement policies section for more details.
+              See README.md SmartContract endorsement policies section for more details.
             */
-            ChaincodeEndorsementPolicy chaincodeEndorsementPolicy = new ChaincodeEndorsementPolicy();
+            SmartContractEndorsementPolicy chaincodeEndorsementPolicy = new SmartContractEndorsementPolicy();
             chaincodeEndorsementPolicy.fromYamlFile(new File(TEST_FIXTURES_PATH + "/sdkintegration/chaincodeendorsementpolicy.yaml"));
-            instantiateProposalRequest.setChaincodeEndorsementPolicy(chaincodeEndorsementPolicy);
+            instantiateProposalRequest.setSmartContractEndorsementPolicy(chaincodeEndorsementPolicy);
 
             out("Sending instantiateProposalRequest to all peers...");
             successful.clear();
@@ -394,7 +416,7 @@ public class NetworkConfigIT {
             for (ProposalResponse response : responses) {
                 if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
                     successful.add(response);
-                    out("Succesful instantiate proposal response Txid: %s from peer %s", response.getTransactionID(), response.getPeer().getName());
+                    out("Succesful instantiate proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
                 } else {
                     failed.add(response);
                 }
@@ -426,25 +448,25 @@ public class NetworkConfigIT {
         return chaincodeID;
     }
 
-    private static Channel constructChannel(HFClient client, String channelName) throws Exception {
+    private static Group constructGroup(HFClient client, String channelName) throws Exception {
 
-        //Channel newChannel = client.getChannel(channelName);
-        Channel newChannel = client.loadChannelFromConfig(channelName, networkConfig);
-        if (newChannel == null) {
-            throw new RuntimeException("Channel " + channelName + " is not defined in the config file!");
+        //Group newGroup = client.getGroup(channelName);
+        Group newGroup = client.loadGroupFromConfig(channelName, networkConfig);
+        if (newGroup == null) {
+            throw new RuntimeException("Group " + channelName + " is not defined in the config file!");
         }
 
-        return newChannel.initialize();
+        return newGroup.initialize();
     }
 
     // Determines if the specified chaincode has been instantiated on the channel
-    private static boolean checkInstantiatedChaincode(Channel channel, Peer peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
+    private static boolean checkInstantiatedSmartContract(Group channel, Node peer, String ccName, String ccPath, String ccVersion) throws InvalidArgumentException, ProposalException {
         out("Checking instantiated chaincode: %s, at version: %s, on peer: %s", ccName, ccVersion, peer.getName());
-        List<ChaincodeInfo> ccinfoList = channel.queryInstantiatedChaincodes(peer);
+        List<SmartContractInfo> ccinfoList = channel.queryInstantiatedSmartContracts(peer);
 
         boolean found = false;
 
-        for (ChaincodeInfo ccifo : ccinfoList) {
+        for (SmartContractInfo ccifo : ccinfoList) {
             found = ccName.equals(ccifo.getName()) && ccPath.equals(ccifo.getPath()) && ccVersion.equals(ccifo.getVersion());
             if (found) {
                 break;

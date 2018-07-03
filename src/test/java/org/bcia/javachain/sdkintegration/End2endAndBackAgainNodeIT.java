@@ -1,7 +1,7 @@
 package org.bcia.javachain.sdkintegration;
 
 
-import org.bcia.javachain.sdk.ChaincodeID;
+import org.bcia.javachain.sdk.SmartContractID;
 import org.bcia.javachain.sdk.TransactionRequest.Type;
 import org.junit.Test;
 
@@ -19,9 +19,9 @@ public class End2endAndBackAgainNodeIT extends End2endAndBackAgainIT {
         CHAIN_CODE_PATH = null; //This is used only for GO.
         CHAIN_CODE_NAME = "example_cc_node"; // chaincode name.
         CHAIN_CODE_LANG = Type.NODE; //language is Node.
-        chaincodeID = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+        chaincodeID = SmartContractID.newBuilder().setName(CHAIN_CODE_NAME)
                 .setVersion(CHAIN_CODE_VERSION).build();
-        chaincodeID_11 = ChaincodeID.newBuilder().setName(CHAIN_CODE_NAME)
+        chaincodeID_11 = SmartContractID.newBuilder().setName(CHAIN_CODE_NAME)
                 .setVersion(CHAIN_CODE_VERSION_11).build();
     }
 

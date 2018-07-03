@@ -145,7 +145,7 @@ public class TestConfig {
                 String[] ps = peerNames.split("[ \t]*,[ \t]*");
                 for (String peer : ps) {
                     String[] nl = peer.split("[ \t]*@[ \t]*");
-                    sampleOrg.addPeerLocation(nl[0], grpcTLSify(nl[1]));
+                    sampleOrg.addNodeLocation(nl[0], grpcTLSify(nl[1]));
                 }
 
                 final String domainName = sdkProperties.getProperty(INTEGRATIONTESTS_ORG + orgName + ".domname");
@@ -156,7 +156,7 @@ public class TestConfig {
                 ps = ordererNames.split("[ \t]*,[ \t]*");
                 for (String peer : ps) {
                     String[] nl = peer.split("[ \t]*@[ \t]*");
-                    sampleOrg.addOrdererLocation(nl[0], grpcTLSify(nl[1]));
+                    sampleOrg.addConsenterLocation(nl[0], grpcTLSify(nl[1]));
                 }
 
                 String eventHubNames = sdkProperties.getProperty(INTEGRATIONTESTS_ORG + orgName + ".eventhub_locations");
@@ -278,13 +278,13 @@ public class TestConfig {
 
     }
 
-    public Properties getPeerProperties(String name) {
+    public Properties getNodeProperties(String name) {
 
         return getEndPointProperties("peer", name);
 
     }
 
-    public Properties getOrdererProperties(String name) {
+    public Properties getConsenterProperties(String name) {
 
         return getEndPointProperties("orderer", name);
 
@@ -294,7 +294,7 @@ public class TestConfig {
 
         final String domainName = getDomainName(name);
 
-        File cert = Paths.get(getTestChannelPath(), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
+        File cert = Paths.get(getTestGroupPath(), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
                 name, "tls/server.crt").toFile();
         if (!cert.exists()) {
             throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", name,
@@ -317,7 +317,7 @@ public class TestConfig {
 
     }
 
-    public String getTestChannelPath() {
+    public String getTestGroupPath() {
 
         return "src/test/fixture/sdkintegration/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
 

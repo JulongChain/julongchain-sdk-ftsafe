@@ -16,8 +16,8 @@ package org.bcia.javachain.sdk;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.bcia.javachain.protos.common.Common.*;
-import org.bcia.javachain.protos.peer.FabricTransaction.TxValidationCode;
-import org.bcia.javachain.protos.peer.PeerEvents;
+import org.bcia.javachain.protos.node.TransactionPackage.TxValidationCode;
+import org.bcia.javachain.protos.node.EventsPackage;
 import org.bcia.javachain.sdk.BlockEvent;
 import org.bcia.javachain.sdk.EventHub;
 import org.junit.BeforeClass;
@@ -35,8 +35,8 @@ public class BlockEventTest {
     private static BlockData blockData;
     private static BlockMetadata blockMetadata;
     private static EventHub eventHub;
-    private static PeerEvents.Event goodEventBlock;
-    private static PeerEvents.Event badEventBlock;
+    private static EventsPackage.Event goodEventBlock;
+    private static EventsPackage.Event badEventBlock;
 
     /**
      * @throws Exception
@@ -49,16 +49,16 @@ public class BlockEventTest {
         // build a block with 3 transactions, set transaction 1,3 as valid, transaction 2 as invalid
         BlockData.Builder blockDataBuilder = BlockData.newBuilder();
         Payload.Builder payloadBuilder = Payload.newBuilder();
-        ChannelHeader.Builder channelHeaderBuilder = ChannelHeader.newBuilder();
+        GroupHeader.Builder channelHeaderBuilder = GroupHeader.newBuilder();
         channelHeaderBuilder.setType(HeaderType.ENDORSER_TRANSACTION_VALUE);
         Header.Builder headerBuilder = Header.newBuilder();
         Envelope.Builder envelopeBuilder = Envelope.newBuilder();
 
-        channelHeaderBuilder.setChannelId("TESTCHANNEL");
+        channelHeaderBuilder.setGroupId("TESTCHANNEL");
 
         // transaction 1
         channelHeaderBuilder.setTxId("TRANSACTION1");
-        headerBuilder.setChannelHeader(channelHeaderBuilder.build().toByteString());
+        headerBuilder.setGroupHeader(channelHeaderBuilder.build().toByteString());
         payloadBuilder.setHeader(headerBuilder.build());
         payloadBuilder.setData(ByteString.copyFrom("test data".getBytes(UTF_8)));
         envelopeBuilder.setPayload(payloadBuilder.build().toByteString());
@@ -67,8 +67,8 @@ public class BlockEventTest {
         // transaction 2
         channelHeaderBuilder.clearTxId();
         channelHeaderBuilder.setTxId("TRANSACTION2");
-        headerBuilder.clearChannelHeader();
-        headerBuilder.setChannelHeader(channelHeaderBuilder.build().toByteString());
+        headerBuilder.clearGroupHeader();
+        headerBuilder.setGroupHeader(channelHeaderBuilder.build().toByteString());
         payloadBuilder.clearHeader();
         payloadBuilder.setHeader(headerBuilder.build());
         payloadBuilder.setData(ByteString.copyFrom("test data".getBytes(UTF_8)));
@@ -79,8 +79,8 @@ public class BlockEventTest {
         // transaction 3
         channelHeaderBuilder.clearTxId();
         channelHeaderBuilder.setTxId("TRANSACTION3");
-        headerBuilder.clearChannelHeader();
-        headerBuilder.setChannelHeader(channelHeaderBuilder.build().toByteString());
+        headerBuilder.clearGroupHeader();
+        headerBuilder.setGroupHeader(channelHeaderBuilder.build().toByteString());
         payloadBuilder.clearHeader();
         payloadBuilder.setHeader(headerBuilder.build());
         payloadBuilder.setData(ByteString.copyFrom("test data".getBytes(UTF_8)));
@@ -113,11 +113,11 @@ public class BlockEventTest {
         blockBuilder.setMetadata(blockMetadata);
         block = blockBuilder.build();
 
-        goodEventBlock = PeerEvents.Event.newBuilder().setBlock(blockBuilder).build();
+        goodEventBlock = EventsPackage.Event.newBuilder().setBlock(blockBuilder).build();
 
         // block with bad header
-        headerBuilder.clearChannelHeader();
-        headerBuilder.setChannelHeader(ByteString.copyFrom("bad channel header".getBytes(UTF_8)));
+        headerBuilder.clearGroupHeader();
+        headerBuilder.setGroupHeader(ByteString.copyFrom("bad channel header".getBytes(UTF_8)));
         payloadBuilder.clearHeader();
         payloadBuilder.setHeader(headerBuilder.build());
         payloadBuilder.setData(ByteString.copyFrom("test data".getBytes(UTF_8)));
@@ -127,14 +127,14 @@ public class BlockEventTest {
         blockDataBuilder.addData(envelopeBuilder.build().toByteString());
         blockBuilder.setData(blockDataBuilder.build());
         badBlock = blockBuilder.build();
-        badEventBlock = PeerEvents.Event.newBuilder().setBlock(badBlock).build();
+        badEventBlock = EventsPackage.Event.newBuilder().setBlock(badBlock).build();
     }
 
     @Test
     public void testBlockEvent() {
         try {
             BlockEvent be = new BlockEvent(eventHub, goodEventBlock);
-            assertEquals(be.getChannelId(), "TESTCHANNEL");
+            assertEquals(be.getGroupId(), "TESTCHANNEL");
             assertArrayEquals(be.getBlock().toByteArray(), block.toByteArray());
             List<BlockEvent.TransactionEvent> txList = be.getTransactionEventsList();
             assertEquals(txList.size(), 3);
@@ -152,7 +152,7 @@ public class BlockEventTest {
     @Test (expected = InvalidProtocolBufferException.class)
     public void testBlockEventBadBlock() throws InvalidProtocolBufferException {
         BlockEvent be = new BlockEvent(eventHub, badEventBlock);
-        be.getChannelId();
+        be.getGroupId();
     }
 
 }

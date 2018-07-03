@@ -74,12 +74,12 @@ public class SampleOrg {
         this.caLocation = caLocation;
     }
 
-    public void addPeerLocation(String name, String location) {
+    public void addNodeLocation(String name, String location) {
 
         peerLocations.put(name, location);
     }
 
-    public void addOrdererLocation(String name, String location) {
+    public void addConsenterLocation(String name, String location) {
 
         ordererLocations.put(name, location);
     }
@@ -89,12 +89,12 @@ public class SampleOrg {
         eventHubLocations.put(name, location);
     }
 
-    public String getPeerLocation(String name) {
+    public String getNodeLocation(String name) {
         return peerLocations.get(name);
 
     }
 
-    public String getOrdererLocation(String name) {
+    public String getConsenterLocation(String name) {
         return ordererLocations.get(name);
 
     }
@@ -104,13 +104,13 @@ public class SampleOrg {
 
     }
 
-    public Set<String> getPeerNames() {
+    public Set<String> getNodeNames() {
 
         return Collections.unmodifiableSet(peerLocations.keySet());
     }
 
 
-    public Set<String> getOrdererNames() {
+    public Set<String> getConsenterNames() {
 
         return Collections.unmodifiableSet(ordererLocations.keySet());
     }
@@ -142,7 +142,7 @@ public class SampleOrg {
         return userMap.get(name);
     }
 
-    public Collection<String> getOrdererLocations() {
+    public Collection<String> getConsenterLocations() {
         return Collections.unmodifiableCollection(ordererLocations.values());
     }
 
@@ -160,11 +160,11 @@ public class SampleOrg {
     }
 
 
-    public SampleUser getPeerAdmin() {
+    public SampleUser getNodeAdmin() {
         return peerAdmin;
     }
 
-    public void setPeerAdmin(SampleUser peerAdmin) {
+    public void setNodeAdmin(SampleUser peerAdmin) {
         this.peerAdmin = peerAdmin;
     }
 

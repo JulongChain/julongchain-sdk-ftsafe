@@ -59,33 +59,33 @@ public class FabricExceptionsTest {
     }
 
     @Test
-    public void testChaincodeEndorsementPolicyParseException1() throws ChaincodeEndorsementPolicyParseException {
+    public void testSmartContractEndorsementPolicyParseException1() throws SmartContractEndorsementPolicyParseException {
 
-        thrown.expect(ChaincodeEndorsementPolicyParseException.class);
+        thrown.expect(SmartContractEndorsementPolicyParseException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new ChaincodeEndorsementPolicyParseException(MESSAGE);
+        throw new SmartContractEndorsementPolicyParseException(MESSAGE);
 
     }
 
     @Test
-    public void testChaincodeEndorsementPolicyParseException2() throws ChaincodeEndorsementPolicyParseException {
+    public void testSmartContractEndorsementPolicyParseException2() throws SmartContractEndorsementPolicyParseException {
 
-        thrown.expect(ChaincodeEndorsementPolicyParseException.class);
+        thrown.expect(SmartContractEndorsementPolicyParseException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new ChaincodeEndorsementPolicyParseException(MESSAGE,
-                new ChaincodeEndorsementPolicyParseException(MESSAGE));
+        throw new SmartContractEndorsementPolicyParseException(MESSAGE,
+                new SmartContractEndorsementPolicyParseException(MESSAGE));
 
     }
 
     @Test
-    public void testChaincodeException() throws ChaincodeException {
+    public void testSmartContractException() throws SmartContractException {
         BaseException baseException = new BaseException(MESSAGE);
-        thrown.expect(ChaincodeException.class);
+        thrown.expect(SmartContractException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new ChaincodeException(MESSAGE, baseException);
+        throw new SmartContractException(MESSAGE, baseException);
 
     }
 
@@ -241,32 +241,32 @@ public class FabricExceptionsTest {
     }
 
     @Test
-    public void testNoValidPeerException() throws NoValidPeerException {
+    public void testNoValidNodeException() throws NoValidNodeException {
 
-        thrown.expect(NoValidPeerException.class);
+        thrown.expect(NoValidNodeException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new NoValidPeerException(MESSAGE);
+        throw new NoValidNodeException(MESSAGE);
 
     }
 
     @Test
-    public void testPeerException1() throws PeerException {
+    public void testNodeException1() throws NodeException {
 
-        thrown.expect(PeerException.class);
+        thrown.expect(NodeException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new PeerException(MESSAGE);
+        throw new NodeException(MESSAGE);
 
     }
 
     @Test
-    public void testPeerException2() throws PeerException {
+    public void testNodeException2() throws NodeException {
 
-        thrown.expect(PeerException.class);
+        thrown.expect(NodeException.class);
         thrown.expectMessage(MESSAGE);
 
-        throw new PeerException(MESSAGE, new PeerException(MESSAGE));
+        throw new NodeException(MESSAGE, new NodeException(MESSAGE));
 
     }
 

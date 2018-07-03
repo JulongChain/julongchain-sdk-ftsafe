@@ -49,80 +49,80 @@ public class RequestTest {
     @Test
     public void testinstallProposalRequestStreamWithMeta() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Chaincode META-INF location may not be set with chaincode input stream set.");
+        thrown.expectMessage("SmartContract META-INF location may not be set with chaincode input stream set.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeInputStream(mockstream);
-        installProposalRequest.setChaincodeMetaInfLocation(someFileLocation);
+        installProposalRequest.setSmartContractInputStream(mockstream);
+        installProposalRequest.setSmartContractMetaInfLocation(someFileLocation);
 
     }
 
     @Test
     public void testinstallProposalRequestStreamWithSourceLocation() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Error setting chaincode location. Chaincode input stream already set. Only one or the other maybe set.");
+        thrown.expectMessage("Error setting chaincode location. SmartContract input stream already set. Only one or the other maybe set.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeInputStream(mockstream);
-        assertEquals(installProposalRequest.getChaincodeInputStream(), mockstream);
-        installProposalRequest.setChaincodeSourceLocation(someFileLocation);
+        installProposalRequest.setSmartContractInputStream(mockstream);
+        assertEquals(installProposalRequest.getSmartContractInputStream(), mockstream);
+        installProposalRequest.setSmartContractSourceLocation(someFileLocation);
 
     }
 
     @Test
     public void testinstallProposalRequestWithLocationSetStream() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Error setting chaincode input stream. Chaincode source location already set. Only one or the other maybe set.");
+        thrown.expectMessage("Error setting chaincode input stream. SmartContract source location already set. Only one or the other maybe set.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeSourceLocation(someFileLocation);
-        installProposalRequest.setChaincodeInputStream(mockstream);
+        installProposalRequest.setSmartContractSourceLocation(someFileLocation);
+        installProposalRequest.setSmartContractInputStream(mockstream);
 
     }
 
     @Test
     public void testinstallProposalRequestWithMetaInfSetStream() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Error setting chaincode input stream. Chaincode META-INF location  already set. Only one or the other maybe set.");
+        thrown.expectMessage("Error setting chaincode input stream. SmartContract META-INF location  already set. Only one or the other maybe set.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeMetaInfLocation(someFileLocation);
-        installProposalRequest.setChaincodeInputStream(mockstream);
+        installProposalRequest.setSmartContractMetaInfLocation(someFileLocation);
+        installProposalRequest.setSmartContractInputStream(mockstream);
 
     }
 
     @Test
     public void testinstallProposalRequestWithMetaInfSetStreamNULL() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Chaincode META-INF location may not be null.");
+        thrown.expectMessage("SmartContract META-INF location may not be null.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeMetaInfLocation(null);
+        installProposalRequest.setSmartContractMetaInfLocation(null);
     }
 
     @Test
     public void testinstallProposalRequestWithSourceNull() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Chaincode source location may not be null");
+        thrown.expectMessage("SmartContract source location may not be null");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeSourceLocation(null);
+        installProposalRequest.setSmartContractSourceLocation(null);
     }
 
     @Test
     public void testinstallProposalRequestWithInputStreamNULL() throws Exception {
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Chaincode input stream may not be null.");
+        thrown.expectMessage("SmartContract input stream may not be null.");
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeInputStream(null);
+        installProposalRequest.setSmartContractInputStream(null);
     }
 
     @Test
@@ -130,11 +130,11 @@ public class RequestTest {
 
         InstallProposalRequest installProposalRequest = hfclient.newInstallProposalRequest();
 
-        installProposalRequest.setChaincodeSourceLocation(someFileLocation);
-        installProposalRequest.setChaincodeMetaInfLocation(someFileLocation2);
+        installProposalRequest.setSmartContractSourceLocation(someFileLocation);
+        installProposalRequest.setSmartContractMetaInfLocation(someFileLocation2);
 
-        assertEquals(installProposalRequest.getChaincodeSourceLocation(), someFileLocation);
-        assertEquals(installProposalRequest.getChaincodeMetaInfLocation(), someFileLocation2);
+        assertEquals(installProposalRequest.getSmartContractSourceLocation(), someFileLocation);
+        assertEquals(installProposalRequest.getSmartContractMetaInfLocation(), someFileLocation2);
 
     }
 

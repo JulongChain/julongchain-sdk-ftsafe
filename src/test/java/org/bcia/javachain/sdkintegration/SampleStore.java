@@ -17,7 +17,7 @@ package org.bcia.javachain.sdkintegration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.Channel;
+import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
@@ -249,19 +249,19 @@ public class SampleStore {
 
     }
 
-    void saveChannel(Channel channel) throws IOException, InvalidArgumentException {
+    void saveGroup(Group channel) throws IOException, InvalidArgumentException {
 
-        setValue("channel." + channel.getName(), Hex.toHexString(channel.serializeChannel()));
+        setValue("channel." + channel.getName(), Hex.toHexString(channel.serializeGroup()));
 
     }
 
-    Channel getChannel(HFClient client, String name) throws IOException, ClassNotFoundException, InvalidArgumentException {
-        Channel ret = null;
+    Group getGroup(HFClient client, String name) throws IOException, ClassNotFoundException, InvalidArgumentException {
+        Group ret = null;
 
         String channelHex = getValue("channel." + name);
         if (channelHex != null) {
 
-            ret = client.deSerializeChannel(Hex.decode(channelHex));
+            ret = client.deSerializeGroup(Hex.decode(channelHex));
 
         }
         return ret;

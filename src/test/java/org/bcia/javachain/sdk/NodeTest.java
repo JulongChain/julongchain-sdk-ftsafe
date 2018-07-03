@@ -15,16 +15,16 @@
 package org.bcia.javachain.sdk;
 
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
-import org.bcia.javachain.sdk.exception.PeerException;
+import org.bcia.javachain.sdk.exception.NodeException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-public class PeerTest {
+public class NodeTest {
     static HFClient hfclient = null;
-    static Peer peer = null;
+    static Node peer = null;
 
     static final String PEER_NAME = "peertest";
 
@@ -35,7 +35,7 @@ public class PeerTest {
     public static void setupClient() {
         try {
             hfclient = TestHFClient.newInstance();
-            peer = hfclient.newPeer(PEER_NAME, "grpc://localhost:7051");
+            peer = hfclient.newNode(PEER_NAME, "grpc://localhost:7051");
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail("Unexpected Exception " + e.getMessage());
@@ -46,7 +46,7 @@ public class PeerTest {
     public void testGetName() {
         Assert.assertTrue(peer != null);
         try {
-            peer = hfclient.newPeer(PEER_NAME, "grpc://localhost:4");
+            peer = hfclient.newNode(PEER_NAME, "grpc://localhost:4");
             Assert.assertEquals(PEER_NAME, peer.getName());
         } catch (InvalidArgumentException e) {
             Assert.fail("Unexpected Exeception " + e.getMessage());
@@ -56,34 +56,34 @@ public class PeerTest {
 
     @Test (expected = InvalidArgumentException.class)
     public void testSetNullName() throws InvalidArgumentException {
-        peer = hfclient.newPeer(null, "grpc://localhost:4");
+        peer = hfclient.newNode(null, "grpc://localhost:4");
         Assert.fail("expected set null name to throw exception.");
     }
 
     @Test (expected = InvalidArgumentException.class)
     public void testSetEmptyName() throws InvalidArgumentException {
-        peer = hfclient.newPeer("", "grpc://localhost:4");
+        peer = hfclient.newNode("", "grpc://localhost:4");
         Assert.fail("expected set empty name to throw exception.");
     }
 
-    @Test (expected = PeerException.class)
-    public void testSendAsyncNullProposal() throws PeerException, InvalidArgumentException {
+    @Test (expected = NodeException.class)
+    public void testSendAsyncNullProposal() throws NodeException, InvalidArgumentException {
         peer.sendProposalAsync(null);
     }
 
     @Test (expected = InvalidArgumentException.class)
     public void testBadURL() throws InvalidArgumentException {
-        hfclient.newPeer(PEER_NAME, " ");
+        hfclient.newNode(PEER_NAME, " ");
         Assert.fail("Expected peer with no channel throw exception");
     }
 
     @Test
-    public void testDuplicateChannel() throws InvalidArgumentException {
+    public void testDuplicateGroup() throws InvalidArgumentException {
         thrown.expect(InvalidArgumentException.class);
         thrown.expectMessage("Can not add peer " + PEER_NAME + " to channel duplicate because it already belongs to channel duplicate.");
 
-        Channel duplicate = hfclient.newChannel("duplicate");
-        peer.setChannel(duplicate);
-        peer.setChannel(duplicate);
+        Group duplicate = hfclient.newGroup("duplicate");
+        peer.setGroup(duplicate);
+        peer.setGroup(duplicate);
     }
 }

@@ -34,7 +34,7 @@ import java.util.Collection;
 
 public class NetworkConfigTest {
 
-    private static final String CHANNEL_NAME = "myChannel";
+    private static final String CHANNEL_NAME = "myGroup";
     private static final String CLIENT_ORG_NAME = "Org1";
 
 
@@ -126,7 +126,7 @@ public class NetworkConfigTest {
         client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         client.setUserContext(TestUtils.getMockUser(USER_NAME, USER_MSP_ID));
 
-        Channel channel = client.loadChannelFromConfig("foo", config);
+        Group channel = client.loadGroupFromConfig("foo", config);
         Assert.assertNotNull(channel);
     }
 
@@ -145,14 +145,14 @@ public class NetworkConfigTest {
         client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         client.setUserContext(TestUtils.getMockUser(USER_NAME, USER_MSP_ID));
 
-        Channel channel = client.loadChannelFromConfig("mychannel", config);
+        Group channel = client.loadGroupFromConfig("mychannel", config);
         Assert.assertNotNull(channel);
     }
 
     @Test
     public void testLoadFromConfigNoOrganization() throws Exception {
 
-        // Should not be able to instantiate a new instance of "Channel" without specifying a valid client organization
+        // Should not be able to instantiate a new instance of "Group" without specifying a valid client organization
         thrown.expect(InvalidArgumentException.class);
         thrown.expectMessage("client organization must be specified");
 
@@ -174,9 +174,9 @@ public class NetworkConfigTest {
     // TODO: At least one orderer must be specified
     @Ignore
     @Test
-    public void testNewChannel() throws Exception {
+    public void testNewGroup() throws Exception {
 
-        // Should be able to instantiate a new instance of "Channel" with the definition in the network configuration'
+        // Should be able to instantiate a new instance of "Group" with the definition in the network configuration'
         JsonObject jsonConfig = getJsonConfig1(1, 0, 0);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
@@ -184,18 +184,18 @@ public class NetworkConfigTest {
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        Channel channel = client.loadChannelFromConfig(CHANNEL_NAME, config);
+        Group channel = client.loadGroupFromConfig(CHANNEL_NAME, config);
         Assert.assertNotNull(channel);
         Assert.assertEquals(CHANNEL_NAME, channel.getName());
     }
 
     @Test
-    public void testGetChannelNotExists() throws Exception {
+    public void testGetGroupNotExists() throws Exception {
 
         //thrown.expect(InvalidArgumentException.class);
-        //thrown.expectMessage("Channel is not configured");
+        //thrown.expectMessage("Group is not configured");
 
-        // Should not be able to instantiate a new instance of "Channel" with an invalid channel name
+        // Should not be able to instantiate a new instance of "Group" with an invalid channel name
         JsonObject jsonConfig = getJsonConfig1(1, 1, 1);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
@@ -203,21 +203,21 @@ public class NetworkConfigTest {
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        Channel channel = client.loadChannelFromConfig("ThisChannelDoesNotExist", config);
+        Group channel = client.loadGroupFromConfig("ThisGroupDoesNotExist", config);
 
         //HFClient client = HFClient.loadFromConfig(jsonConfig);
-        //Channel channel = client.getChannel("ThisChannelDoesNotExist");
+        //Group channel = client.getGroup("ThisGroupDoesNotExist");
         Assert.assertNull("Expected null to be returned for channels that are not configured", channel);
 
     }
 
     @Test
-    public void testGetChannelNoOrderersOrPeers() throws Exception {
+    public void testGetGroupNoConsentersOrNodes() throws Exception {
 
         thrown.expect(NetworkConfigurationException.class);
         thrown.expectMessage("Error constructing");
 
-        // Should not be able to instantiate a new instance of "Channel" with no orderers or peers configured
+        // Should not be able to instantiate a new instance of "Group" with no orderers or peers configured
         JsonObject jsonConfig = getJsonConfig1(1, 0, 0);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
@@ -225,45 +225,45 @@ public class NetworkConfigTest {
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        client.loadChannelFromConfig(CHANNEL_NAME, config);
+        client.loadGroupFromConfig(CHANNEL_NAME, config);
 
         //HFClient client = HFClient.loadFromConfig(jsonConfig);
         //TestHFClient.setupClient(client);
 
-        //client.getChannel(CHANNEL_NAME);
+        //client.getGroup(CHANNEL_NAME);
     }
 
     @Test
-    public void testGetChannelNoOrderers() throws Exception {
+    public void testGetGroupNoConsenters() throws Exception {
 
         thrown.expect(NetworkConfigurationException.class);
         thrown.expectMessage("Error constructing");
 
-        // Should not be able to instantiate a new instance of "Channel" with no orderers configured
+        // Should not be able to instantiate a new instance of "Group" with no orderers configured
         JsonObject jsonConfig = getJsonConfig1(1, 0, 1);
 
         //HFClient client = HFClient.loadFromConfig(jsonConfig);
         //TestHFClient.setupClient(client);
 
 
-        //client.getChannel(CHANNEL_NAME);
+        //client.getGroup(CHANNEL_NAME);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
 
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        client.loadChannelFromConfig(CHANNEL_NAME, config);
+        client.loadGroupFromConfig(CHANNEL_NAME, config);
 
     }
 
     @Test
-    public void testGetChannelNoPeers() throws Exception {
+    public void testGetGroupNoNodes() throws Exception {
 
         thrown.expect(NetworkConfigurationException.class);
         thrown.expectMessage("Error constructing");
 
-        // Should not be able to instantiate a new instance of "Channel" with no peers configured
+        // Should not be able to instantiate a new instance of "Group" with no peers configured
         JsonObject jsonConfig = getJsonConfig1(1, 1, 0);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
@@ -271,13 +271,13 @@ public class NetworkConfigTest {
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        client.loadChannelFromConfig(CHANNEL_NAME, config);
+        client.loadGroupFromConfig(CHANNEL_NAME, config);
 
         //HFClient client = HFClient.loadFromConfig(jsonConfig);
         //TestHFClient.setupClient(client);
 
 
-        //client.getChannel(CHANNEL_NAME);
+        //client.getGroup(CHANNEL_NAME);
 
     }
 
@@ -285,9 +285,9 @@ public class NetworkConfigTest {
     // TODO: ca-org1 not defined
     @Ignore
     @Test
-    public void testGetChannel() throws Exception {
+    public void testGetGroup() throws Exception {
 
-        // Should be able to instantiate a new instance of "Channel" with orderer, org and peer defined in the network configuration
+        // Should be able to instantiate a new instance of "Group" with orderer, org and peer defined in the network configuration
         JsonObject jsonConfig = getJsonConfig1(4, 1, 1);
 
         NetworkConfig config = NetworkConfig.fromJsonObject(jsonConfig);
@@ -295,36 +295,36 @@ public class NetworkConfigTest {
         HFClient client = HFClient.createNewInstance();
         TestHFClient.setupClient(client);
 
-        Channel channel = client.loadChannelFromConfig(CHANNEL_NAME, config);
+        Group channel = client.loadGroupFromConfig(CHANNEL_NAME, config);
 
         //HFClient client = HFClient.loadFromConfig(jsonConfig);
         //TestHFClient.setupClient(client);
 
-        //Channel channel = client.getChannel(CHANNEL_NAME);
+        //Group channel = client.getGroup(CHANNEL_NAME);
         Assert.assertNotNull(channel);
         Assert.assertEquals(CHANNEL_NAME, channel.getName());
 
-        Collection<Orderer> orderers = channel.getOrderers();
+        Collection<Consenter> orderers = channel.getConsenters();
         Assert.assertNotNull(orderers);
         Assert.assertEquals(1, orderers.size());
 
-        Orderer orderer = orderers.iterator().next();
+        Consenter orderer = orderers.iterator().next();
         Assert.assertEquals("orderer1.example.com", orderer.getName());
 
-        Collection<Peer> peers = channel.getPeers();
+        Collection<Node> peers = channel.getNodes();
         Assert.assertNotNull(peers);
         Assert.assertEquals(1, peers.size());
 
-        Peer peer = peers.iterator().next();
+        Node peer = peers.iterator().next();
         Assert.assertEquals("peer0.org1.example.com", peer.getName());
 
     }
 
 
-    private static JsonObject getJsonConfig1(int nOrganizations, int nOrderers, int nPeers) {
+    private static JsonObject getJsonConfig1(int nOrganizations, int nConsenters, int nNodes) {
 
         // Sanity check
-        if (nPeers > nOrganizations) {
+        if (nNodes > nOrganizations) {
             // To keep things simple we require a maximum of 1 peer per organization
             throw new RuntimeException("Number of peers cannot exceed number of organizations!");
         }
@@ -341,20 +341,20 @@ public class NetworkConfigTest {
         }
         mainConfig.add("client", client);
 
-        JsonArray orderers = nOrderers > 0 ? createJsonArray("orderer1.example.com") : null;
-        JsonArray chaincodes = (nOrderers > 0 && nPeers > 0) ? createJsonArray("example02:v1", "marbles:1.0") : null;
+        JsonArray orderers = nConsenters > 0 ? createJsonArray("orderer1.example.com") : null;
+        JsonArray chaincodes = (nConsenters > 0 && nNodes > 0) ? createJsonArray("example02:v1", "marbles:1.0") : null;
 
         JsonObject peers = null;
-        if (nPeers > 0) {
+        if (nNodes > 0) {
             JsonObjectBuilder builder = Json.createObjectBuilder();
-            builder.add("peer0.org1.example.com", createJsonChannelPeer("Org1", true, true, true, true));
-            if (nPeers > 1) {
-                builder.add("peer0.org2.example.com", createJsonChannelPeer("Org2", true, false, true, false));
+            builder.add("peer0.org1.example.com", createJsonGroupNode("Org1", true, true, true, true));
+            if (nNodes > 1) {
+                builder.add("peer0.org2.example.com", createJsonGroupNode("Org2", true, false, true, false));
             }
             peers = builder.build();
         }
 
-        JsonObject channel1 = createJsonChannel(
+        JsonObject channel1 = createJsonGroup(
                 orderers,
                 peers,
                 chaincodes
@@ -389,14 +389,14 @@ public class NetworkConfigTest {
             mainConfig.add("organizations", builder.build());
         }
 
-        if (nOrderers > 0) {
+        if (nConsenters > 0) {
             // Add some orderers to the config
             JsonObjectBuilder builder = Json.createObjectBuilder();
 
-            for (int i = 1; i <= nOrderers; i++) {
+            for (int i = 1; i <= nConsenters; i++) {
                 String ordererName = "orderer" + i + ".example.com";
                 int port = (6 + i) * 1000 + 50;         // 7050, 8050, etc
-                JsonObject orderer = createJsonOrderer(
+                JsonObject orderer = createJsonConsenter(
                         "grpcs://localhost:" + port,
                         Json.createObjectBuilder()
                             .add("ssl-target-name-override", "orderer" + i + ".example.com")
@@ -411,11 +411,11 @@ public class NetworkConfigTest {
         }
 
 
-        if (nPeers > 0) {
+        if (nNodes > 0) {
             // Add some peers to the config
             JsonObjectBuilder builder = Json.createObjectBuilder();
 
-            for (int i = 1; i <= nPeers; i++) {
+            for (int i = 1; i <= nNodes; i++) {
                 String peerName = "peer0.org" + i + ".example.com";
 
                 int port1 = (6 + i) * 1000 + 51;         // 7051, 8051, etc
@@ -424,7 +424,7 @@ public class NetworkConfigTest {
                 int orgNo = i;
                 int peerNo = 0;
 
-                JsonObject peer = createJsonPeer(
+                JsonObject peer = createJsonNode(
                         "grpcs://localhost:" + port1,
                         "grpcs://localhost:" + port2,
                         Json.createObjectBuilder()
@@ -459,18 +459,18 @@ public class NetworkConfigTest {
 
 
 
-    private static JsonObject createJsonChannelPeer(String name, Boolean endorsingPeer, Boolean chaincodeQuery, Boolean ledgerQuery, Boolean eventSource) {
+    private static JsonObject createJsonGroupNode(String name, Boolean endorsingNode, Boolean chaincodeQuery, Boolean ledgerQuery, Boolean eventSource) {
 
         return Json.createObjectBuilder()
             .add("name", name)
-            .add("endorsingPeer", endorsingPeer)
+            .add("endorsingNode", endorsingNode)
             .add("chaincodeQuery", chaincodeQuery)
             .add("ledgerQuery", ledgerQuery)
             .add("eventSource", eventSource)
             .build();
     }
 
-    private static JsonObject createJsonChannel(JsonArray orderers, JsonObject peers, JsonArray chaincodes) {
+    private static JsonObject createJsonGroup(JsonArray orderers, JsonObject peers, JsonArray chaincodes) {
 
         JsonObjectBuilder builder = Json.createObjectBuilder();
 
@@ -510,7 +510,7 @@ public class NetworkConfigTest {
     }
 
 
-    private static JsonObject createJsonOrderer(String url, JsonObject grpcOptions, JsonObject tlsCaCerts) {
+    private static JsonObject createJsonConsenter(String url, JsonObject grpcOptions, JsonObject tlsCaCerts) {
 
         return Json.createObjectBuilder()
                 .add("url", url)
@@ -519,7 +519,7 @@ public class NetworkConfigTest {
                 .build();
     }
 
-    private static JsonObject createJsonPeer(String url, String eventUrl, JsonObject grpcOptions, JsonObject tlsCaCerts, JsonArray channels) {
+    private static JsonObject createJsonNode(String url, String eventUrl, JsonObject grpcOptions, JsonObject tlsCaCerts, JsonArray channels) {
 
         return Json.createObjectBuilder()
             .add("url", url)

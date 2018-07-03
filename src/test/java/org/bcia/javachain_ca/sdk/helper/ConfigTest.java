@@ -90,7 +90,7 @@ public class ConfigTest {
         Assert.assertNotNull(config.getCertificateFormat());
 
         // Arrays
-        Assert.assertNotNull(config.getPeerCACerts());
+        Assert.assertNotNull(config.getNodeCACerts());
     }
 
     @Test

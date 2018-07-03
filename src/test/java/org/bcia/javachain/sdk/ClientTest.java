@@ -51,10 +51,10 @@ public class ClientTest {
     }
 
     @Test
-    public void testNewChannel() {
+    public void testNewGroup() {
         try {
-            Channel testChannel = hfclient.newChannel(CHANNEL_NAME);
-            Assert.assertTrue(testChannel != null && CHANNEL_NAME.equalsIgnoreCase(testChannel.getName()));
+            Group testGroup = hfclient.newGroup(CHANNEL_NAME);
+            Assert.assertTrue(testGroup != null && CHANNEL_NAME.equalsIgnoreCase(testGroup.getName()));
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail("Unexpected Exception " + e.getMessage());
@@ -62,15 +62,15 @@ public class ClientTest {
     }
 
     @Test (expected = InvalidArgumentException.class)
-    public void testSetNullChannel() throws InvalidArgumentException {
-        hfclient.newChannel(null);
+    public void testSetNullGroup() throws InvalidArgumentException {
+        hfclient.newGroup(null);
         Assert.fail("Expected null channel to throw exception.");
     }
 
     @Test
-    public void testNewPeer() {
+    public void testNewNode() {
         try {
-            Peer peer = hfclient.newPeer("peer_", "grpc://localhost:7051");
+            Node peer = hfclient.newNode("peer_", "grpc://localhost:7051");
             Assert.assertTrue(peer != null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,14 +80,14 @@ public class ClientTest {
 
     @Test (expected = InvalidArgumentException.class)
     public void testBadURL() throws InvalidArgumentException {
-        hfclient.newPeer("peer_", " ");
+        hfclient.newNode("peer_", " ");
         Assert.fail("Expected peer with no channel throw exception");
     }
 
     @Test
-    public void testNewOrderer() {
+    public void testNewConsenter() {
         try {
-            Orderer orderer = hfclient.newOrderer("xx", "grpc://localhost:5005");
+            Consenter orderer = hfclient.newConsenter("xx", "grpc://localhost:5005");
             Assert.assertTrue(orderer != null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,15 +97,15 @@ public class ClientTest {
 
     @Test (expected = InvalidArgumentException.class)
     public void testBadAddress() throws InvalidArgumentException {
-        hfclient.newOrderer("xx", "xxxxxx");
-        Assert.fail("Orderer allowed setting bad URL.");
+        hfclient.newConsenter("xx", "xxxxxx");
+        Assert.fail("Consenter allowed setting bad URL.");
     }
 
     @Test (expected = InvalidArgumentException.class)
     public void testBadCryptoSuite() throws InvalidArgumentException {
         HFClient.createNewInstance()
-                .newOrderer("xx", "xxxxxx");
-        Assert.fail("Orderer allowed setting no cryptoSuite");
+                .newConsenter("xx", "xxxxxx");
+        Assert.fail("Consenter allowed setting no cryptoSuite");
     }
 
     @Test
@@ -113,7 +113,7 @@ public class ClientTest {
         HFClient client = HFClient.createNewInstance();
         client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
         client.setUserContext(TestUtils.getMockUser(USER_NAME, USER_MSP_ID));
-        Orderer orderer = hfclient.newOrderer("justMockme", "grpc://localhost:99"); // test mock should work.
+        Consenter orderer = hfclient.newConsenter("justMockme", "grpc://localhost:99"); // test mock should work.
         Assert.assertNotNull(orderer);
 
     }
