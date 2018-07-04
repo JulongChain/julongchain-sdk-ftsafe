@@ -42,7 +42,7 @@ enum EventType {
 //SmartcontractReg is used for registering smart_contract Interests
 //when EventType is SMART_CONTRACT
 message SmartContractReg {
-    string smart_contractt_id = 1;
+    string smart_contract_id = 1;
     string event_name = 2;
 }
 
@@ -80,7 +80,7 @@ message Unregister {
 //FilteredBlock is sent by producers and contains minimal information
 //about the block.
 message FilteredBlock {
-    string channel_id = 1;
+    string group_id = 1;
     uint64 number = 2; // The position in the blockchain
     repeated FilteredTransaction filtered_transactions = 4;
 }
