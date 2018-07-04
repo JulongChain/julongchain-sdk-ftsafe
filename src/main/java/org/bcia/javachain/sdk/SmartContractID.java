@@ -17,20 +17,20 @@ package org.bcia.javachain.sdk;
 /**
  * SmartContractID identifies smartContract.
  * 
- * modified for Node,SmartContract,Consenter,
+ * modified for Node,SmartContractPackage,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
 public final class SmartContractID {
 
-    private final org.bcia.javachain.protos.node.SmartContract.SmartContractID smartcontractID;
+    private final org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID smartcontractID;
 
-    public org.bcia.javachain.protos.node.SmartContract.SmartContractID getSmartContractID() {
+    public org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID getSmartContractID() {
         return smartcontractID;
     }
 
-    SmartContractID(org.bcia.javachain.protos.node.SmartContract.SmartContractID chaincodeID) {
+    SmartContractID(org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID chaincodeID) {
         this.smartcontractID = chaincodeID;
     }
 
@@ -58,13 +58,13 @@ public final class SmartContractID {
      */
 
     public static final class Builder {
-        private final org.bcia.javachain.protos.node.SmartContract.SmartContractID.Builder protoBuilder = org.bcia.javachain.protos.node.SmartContract.SmartContractID.newBuilder();
+        private final org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID.Builder protoBuilder = org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID.newBuilder();
 
         private Builder() {
         }
 
         /**
-         * @param name of the SmartContract
+         * @param name of the SmartContractPackage
          * @return Builder
          */
 
@@ -74,7 +74,7 @@ public final class SmartContractID {
         }
 
         /**
-         * Set the version of the SmartContract
+         * Set the version of the SmartContractPackage
          *
          * @param version of the chaincode
          * @return Builder
@@ -102,7 +102,7 @@ public final class SmartContractID {
     }
 
     /**
-     * SmartContract builder
+     * SmartContractPackage builder
      *
      * @return SmartContractID builder.
      */

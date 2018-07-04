@@ -32,8 +32,8 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractDeploymentSpec;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec.Type;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec.Type;
 import org.bcia.javachain.protos.node.ProposalPackage;
 
 import static java.lang.String.format;

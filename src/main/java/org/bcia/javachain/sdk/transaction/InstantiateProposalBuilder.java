@@ -29,8 +29,8 @@ import org.bcia.javachain.sdk.SmartContractEndorsementPolicy;
 import org.bcia.javachain.sdk.TransactionRequest;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.node.SmartContract;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractDeploymentSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
 import org.bcia.javachain.protos.node.ProposalPackage;
 
 /**
@@ -141,13 +141,13 @@ public class InstantiateProposalBuilder extends LSCCProposalBuilder {
 
         switch (chaincodeType) {
             case JAVA:
-                ccType(SmartContract.SmartContractSpec.Type.JAVA);
+                ccType(SmartContractPackage.SmartContractSpec.Type.JAVA);
                 break;
             case NODE:
-                ccType(SmartContract.SmartContractSpec.Type.NODE);
+                ccType(SmartContractPackage.SmartContractSpec.Type.NODE);
                 break;
             case GO_LANG:
-                ccType(SmartContract.SmartContractSpec.Type.GOLANG);
+                ccType(SmartContractPackage.SmartContractSpec.Type.GOLANG);
                 break;
             default:
                 throw new InvalidArgumentException("Requested chaincode type is not supported: " + chaincodeType);

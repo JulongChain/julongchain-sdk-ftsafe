@@ -14,7 +14,7 @@
 
 package org.bcia.javachain.sdk;
 
-import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.SmartContractPackage;
 
 /**
  * Request for getting information about the blockchain ledger.
@@ -39,7 +39,7 @@ public class QuerySCCRequest extends TransactionRequest {
     @Override
     public SmartContractID getSmartContractID() {
         return new SmartContractID(
-                SmartContract.SmartContractID.newBuilder().setName("qscc").build());
+        		SmartContractPackage.SmartContractID.newBuilder().setName("qscc").build());
     }
 
 }

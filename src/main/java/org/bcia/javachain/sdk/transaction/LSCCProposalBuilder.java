@@ -14,20 +14,20 @@
 package org.bcia.javachain.sdk.transaction;
 
 import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.SmartContractPackage;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 
 /**
- * modified for Node,SmartContract,Consenter,
+ * modified for Node,SmartContractPackage,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
 public class LSCCProposalBuilder extends ProposalBuilder {
     private static final String LSCC_CHAIN_NAME = "lscc";
-    private static final SmartContract.SmartContractID CHAINCODE_ID_LSCC =
-            SmartContract.SmartContractID.newBuilder().setName(LSCC_CHAIN_NAME).build();
+    private static final SmartContractPackage.SmartContractID CHAINCODE_ID_LSCC =
+            SmartContractPackage.SmartContractID.newBuilder().setName(LSCC_CHAIN_NAME).build();
 
     @Override
     public LSCCProposalBuilder context(TransactionContext context) {

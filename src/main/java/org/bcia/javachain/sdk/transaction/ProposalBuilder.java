@@ -29,10 +29,10 @@ import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.protos.common.Common;
 import org.bcia.javachain.protos.common.Common.HeaderType;
-import org.bcia.javachain.protos.node.SmartContract;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractInput;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractInvocationSpec;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInput;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInvocationSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec;
 import org.bcia.javachain.protos.node.ProposalPackage;
 import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
 import org.bcia.javachain.protos.node.ProposalPackage.SmartContractProposalPayload;
@@ -44,7 +44,7 @@ import static org.bcia.javachain.sdk.transaction.ProtoUtils.createGroupHeader;
 import static org.bcia.javachain.sdk.transaction.ProtoUtils.getSignatureHeaderAsByteString;
 
 /**
- * modified for Node,SmartContract,Consenter,
+ * modified for Node,SmartContractPackage,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
@@ -54,7 +54,7 @@ public class ProposalBuilder {
     private static final Log logger = LogFactory.getLog(ProposalBuilder.class);
     private static final boolean IS_DEBUG_LEVEL = logger.isDebugEnabled();
 
-    private SmartContract.SmartContractID smartContractID;
+    private SmartContractPackage.SmartContractID smartContractID;
     private List<ByteString> argList;
     protected TransactionContext context;
     protected TransactionRequest request;
@@ -71,7 +71,7 @@ public class ProposalBuilder {
         return new ProposalBuilder();
     }
 
-    public ProposalBuilder smartContractID(SmartContract.SmartContractID smartContractID) {
+    public ProposalBuilder smartContractID(SmartContractPackage.SmartContractID smartContractID) {
         this.smartContractID = smartContractID;
         return this;
     }
@@ -96,13 +96,13 @@ public class ProposalBuilder {
 
         switch (request.getSmartContractLanguage()) {
             case JAVA:
-                ccType(SmartContract.SmartContractSpec.Type.JAVA);
+                ccType(SmartContractPackage.SmartContractSpec.Type.JAVA);
                 break;
             case NODE:
-                ccType(SmartContract.SmartContractSpec.Type.NODE);
+                ccType(SmartContractPackage.SmartContractSpec.Type.NODE);
                 break;
             case GO_LANG:
-                ccType(SmartContract.SmartContractSpec.Type.GOLANG);
+                ccType(SmartContractPackage.SmartContractSpec.Type.GOLANG);
                 break;
             default:
                 throw new InvalidArgumentException("Requested chaincode type is not supported: " + request.getSmartContractLanguage());
@@ -120,7 +120,7 @@ public class ProposalBuilder {
         return createProposalPackage(channelID, smartContractID);
     }
 
-    private ProposalPackage.Proposal createProposalPackage(String channelID, SmartContract.SmartContractID smartContractID) {
+    private ProposalPackage.Proposal createProposalPackage(String channelID, SmartContractPackage.SmartContractID smartContractID) {
         if (null == transientMap) {
             transientMap = Collections.emptyMap();
         }
@@ -166,7 +166,7 @@ public class ProposalBuilder {
 
     }
 
-    private SmartContractInvocationSpec createSmartContractInvocationSpec(SmartContract.SmartContractID smartContractID, SmartContractSpec.Type langType) {
+    private SmartContractInvocationSpec createSmartContractInvocationSpec(SmartContractPackage.SmartContractID smartContractID, SmartContractSpec.Type langType) {
 
         List<ByteString> allArgs = new ArrayList<>();
 

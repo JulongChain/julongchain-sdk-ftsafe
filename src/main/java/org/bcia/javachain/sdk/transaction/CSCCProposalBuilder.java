@@ -14,10 +14,10 @@
 
 package org.bcia.javachain.sdk.transaction;
 
-import org.bcia.javachain.protos.node.SmartContract;
+import org.bcia.javachain.protos.node.SmartContractPackage;
 import org.bcia.javachain.protos.node.ProposalPackage;
 
-import static org.bcia.javachain.protos.node.SmartContract.SmartContractSpec.Type.GOLANG;
+import static org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec.Type.GOLANG;
 
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
@@ -30,8 +30,8 @@ import org.bcia.javachain.sdk.exception.ProposalException;
  */
 public class CSCCProposalBuilder extends ProposalBuilder {
     private static final String CSCC_CHAIN_NAME = "cscc";
-    private static final SmartContract.SmartContractID CHAINCODE_ID_CSCC =
-            SmartContract.SmartContractID.newBuilder().setName(CSCC_CHAIN_NAME).build();
+    private static final SmartContractPackage.SmartContractID CHAINCODE_ID_CSCC =
+    		SmartContractPackage.SmartContractID.newBuilder().setName(CSCC_CHAIN_NAME).build();
 
     @Override
     public CSCCProposalBuilder context(TransactionContext context) {

@@ -38,11 +38,11 @@ import org.bcia.javachain.protos.consenter.Ab.SeekInfo.SeekBehavior;
 import org.bcia.javachain.protos.consenter.Ab.SeekPosition;
 import org.bcia.javachain.protos.msp.Identities;
 import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
-import org.bcia.javachain.protos.node.SmartContract;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractDeploymentSpec;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractInput;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractSpec.Type;
+import org.bcia.javachain.protos.node.SmartContractPackage;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInput;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec.Type;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.security.CryptoPrimitives;
@@ -55,7 +55,7 @@ import com.google.protobuf.util.Timestamps;
 /**
  * Internal use only, not a public API.
  * 
- * modified for Node,SmartContract,Consenter,
+ * modified for Node,SmartContractPackage,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
@@ -124,12 +124,12 @@ public final class ProtoUtils {
                                                                String chaincodeVersion, List<String> args,
                                                                byte[] codePackage) {
 
-    	SmartContract.SmartContractID.Builder chaincodeIDBuilder = SmartContract.SmartContractID.newBuilder().setName(name).setVersion(chaincodeVersion);
+    	SmartContractPackage.SmartContractID.Builder chaincodeIDBuilder = SmartContractPackage.SmartContractID.newBuilder().setName(name).setVersion(chaincodeVersion);
         if (chaincodePath != null) {
             chaincodeIDBuilder = chaincodeIDBuilder.setPath(chaincodePath);
         }
 
-        SmartContract.SmartContractID chaincodeID = chaincodeIDBuilder.build();
+        SmartContractPackage.SmartContractID chaincodeID = chaincodeIDBuilder.build();
 
         // build chaincodeInput
         List<ByteString> argList = new ArrayList<>(args == null ? 0 : args.size());

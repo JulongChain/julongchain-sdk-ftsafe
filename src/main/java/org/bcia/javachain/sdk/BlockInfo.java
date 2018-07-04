@@ -27,7 +27,7 @@ import org.bcia.javachain.protos.common.Common;
 import org.bcia.javachain.protos.common.Common.Block;
 import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
 import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.node.SmartContract.SmartContractInput;
+import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInput;
 import org.bcia.javachain.protos.node.TransactionPackage;
 import org.bcia.javachain.protos.node.EventsPackage;
 import org.bcia.javachain.protos.node.EventsPackage.FilteredTransaction;
@@ -89,7 +89,7 @@ public class BlockInfo {
 
     public String getGroupId() throws InvalidProtocolBufferException {
 
-        return isFiltered() ? filteredBlock.getChannelId() : getEnvelopeInfo(0).getGroupId();
+        return isFiltered() ? filteredBlock.getGroupId() : getEnvelopeInfo(0).getGroupId();
     }
 
     /**
@@ -187,7 +187,7 @@ public class BlockInfo {
          */
         public String getGroupId() {
 
-            return BlockInfo.this.isFiltered() ? filteredBlock.getChannelId() : headerDeserializer.getGroupHeader().getGroupId();
+            return BlockInfo.this.isFiltered() ? filteredBlock.getGroupId() : headerDeserializer.getGroupHeader().getGroupId();
         }
 
         public class IdentitiesInfo {
