@@ -111,7 +111,7 @@ public class Config {
 //  configProps = new FileInputStream(loadFile);
         	configProps = Config.class.getResourceAsStream("/config_gm.properties");
             sdkProperties.load(configProps);
-            yamlMap = (LinkedHashMap<String, String>) new Yaml().load(this.getClass().getResourceAsStream("/config_gm.yaml"));
+            //yamlMap = (LinkedHashMap<String, String>) new Yaml().load(this.getClass().getResourceAsStream("/config_gm.yaml"));
         } catch (IOException e) {
         	e.printStackTrace();
             logger.warn(format("Failed to load any configuration from: %s. Using toolkit defaults",

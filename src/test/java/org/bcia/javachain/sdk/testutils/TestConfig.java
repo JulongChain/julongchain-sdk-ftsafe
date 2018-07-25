@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
 public class TestConfig {
     private static final Log logger = LogFactory.getLog(TestConfig.class);
 
-    private static final String DEFAULT_CONFIG = "src/test/java/org/hyperledger/fabric/sdk/testutils.properties";
+    private static final String DEFAULT_CONFIG = "src/test/java/org/bcia/javachain/sdk/testutils.properties";
     private static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdktest.configuration";
     private static final String ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST = "ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST";
     private static final String LOCALHOST = //Change test to reference another host .. easier config for my testing on Windows !
@@ -199,7 +199,6 @@ public class TestConfig {
         }
         return runningFabricTLS ?
                 location.replaceFirst("^grpc://", "grpcs://") : location;
-
     }
 
     private String httpTLSify(String location) {

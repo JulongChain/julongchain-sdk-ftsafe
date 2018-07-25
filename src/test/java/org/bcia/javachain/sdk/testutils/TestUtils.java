@@ -141,6 +141,7 @@ public class TestUtils {
             field.set(Config.class, null);
             Config.getConfig();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Cannot reset config", e);
         }
 
