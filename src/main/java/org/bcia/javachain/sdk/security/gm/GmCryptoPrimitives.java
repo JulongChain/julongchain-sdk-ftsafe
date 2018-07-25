@@ -891,8 +891,9 @@ public class GmCryptoPrimitives implements CryptoSuite {
      */
     // @Override
     public void init() throws CryptoException, InvalidArgumentException {
+    	System.out.println("_________________init invoke_______________" );
         if (inited.getAndSet(true)) {
-            throw new InvalidArgumentException("Crypto suite already initialized");
+            //throw new InvalidArgumentException("Crypto suite already initialized");
         } else {
             resetConfiguration();
         }

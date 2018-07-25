@@ -23,9 +23,9 @@ import java.util.WeakHashMap;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.Block;
-import org.bcia.javachain.protos.common.Common.BlockData;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.common.Common.BlockData;
 
 class BlockDeserializer {
     private final Block block;

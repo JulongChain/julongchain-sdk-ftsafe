@@ -32,9 +32,9 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec.Type;
-import org.bcia.javachain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec.Type;
+import org.bcia.julongchain.protos.node.ProposalPackage;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.transaction.ProtoUtils.createDeploymentSpec;
@@ -45,7 +45,7 @@ import static org.bcia.javachain.sdk.transaction.ProtoUtils.createDeploymentSpec
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
-public class InstallProposalBuilder extends LSCCProposalBuilder {
+public class InstallProposalBuilder extends LSSCProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(InstallProposalBuilder.class);
     private static final boolean IS_TRACE_LEVEL = logger.isTraceEnabled();

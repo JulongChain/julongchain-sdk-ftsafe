@@ -830,7 +830,7 @@ public class CryptoPrimitives implements CryptoSuite {
     // @Override
     public void init() throws CryptoException, InvalidArgumentException {
         if (inited.getAndSet(true)) {
-            throw new InvalidArgumentException("Crypto suite already initialized");
+            //throw new InvalidArgumentException("Crypto suite already initialized");//此处报错为毛？
         } else {
             resetConfiguration();
         }

@@ -26,7 +26,7 @@ import com.google.protobuf.ByteString;
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
-public class QueryNodeGroupsBuilder extends CSCCProposalBuilder {
+public class QueryNodeGroupsBuilder extends CSSCProposalBuilder {
 
     private QueryNodeGroupsBuilder() {
 

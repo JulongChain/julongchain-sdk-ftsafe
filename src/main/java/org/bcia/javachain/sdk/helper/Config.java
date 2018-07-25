@@ -236,7 +236,7 @@ public class Config {
      * @param property
      * @return String value for the property
      */
-    private String getProperty(String property) {
+    public String getProperty(String property) {
 
         String ret = sdkProperties.getProperty(property);
 

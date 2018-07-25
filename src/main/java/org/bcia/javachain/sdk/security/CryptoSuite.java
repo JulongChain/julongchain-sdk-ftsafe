@@ -13,8 +13,10 @@
  */
 package org.bcia.javachain.sdk.security;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.security.KeyPair;
+import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Collection;
@@ -22,6 +24,7 @@ import java.util.Properties;
 
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
+import org.bcia.javachain.sdk.security.gm.GmCryptoSuiteFactory;
 
 /**
  * All packages for PKI key creation/signing/verification implement this interface
@@ -141,7 +144,7 @@ public interface CryptoSuite {
         public static CryptoSuite getCryptoSuite() throws IllegalAccessException, InstantiationException,
                 ClassNotFoundException, CryptoException, InvalidArgumentException, NoSuchMethodException,
                 InvocationTargetException {
-            return CryptoSuiteFactory.getDefault().getCryptoSuite();
+            return GmCryptoSuiteFactory.getDefault().getCryptoSuite();
         }
 
         /**
@@ -165,4 +168,42 @@ public interface CryptoSuite {
         }
 
     }
+
+    //################################################################################################################################################################################
+
+    /**
+     * init初始化方法，从实现体提取到接口
+     * @throws CryptoException
+     * @throws InvalidArgumentException
+     */
+    public void init() throws CryptoException, InvalidArgumentException;
+    
+    /**
+     * 增加证书到指定位置文件
+     * @param caCertPem
+     * @param alias
+     * @throws CryptoException
+     * @throws InvalidArgumentException
+     */
+    public void addCACertificateToTrustStore(File caCertPem, String alias) throws CryptoException, InvalidArgumentException;
+    
+    /**
+     * 增加证书到指定byte数组
+     *
+     * @param caCertPem an X.509 certificate in PEM format
+     * @param alias     an alias associated with the certificate. Used as shorthand for the certificate during crypto operations
+     * @throws CryptoException
+     * @throws InvalidArgumentException
+     */
+    public void addCACertificateToTrustStore(byte[] bytes, String alias) throws CryptoException, InvalidArgumentException;
+    
+    /**
+     * getTrustStore returns the KeyStore object where we keep trusted certificates.
+     * If no trust store has been set, this method will create one.
+     *
+     * @return the trust store as a java.security.KeyStore object
+     * @throws CryptoException
+     * @see KeyStore
+     */
+    public KeyStore getTrustStore() throws CryptoException;
 }

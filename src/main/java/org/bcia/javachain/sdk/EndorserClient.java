@@ -23,9 +23,9 @@ import io.grpc.ManagedChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.NodeException;
-import org.bcia.javachain.protos.node.EndorserGrpc;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.node.EndorserGrpc;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 
 /**
  * Sample client code that makes gRPC calls to the server.

@@ -61,38 +61,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.protos.common.Common.Block;
-import org.bcia.javachain.protos.common.Common.BlockMetadata;
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.common.Common.GroupHeader;
-import org.bcia.javachain.protos.common.Common.Header;
-import org.bcia.javachain.protos.common.Common.HeaderType;
-import org.bcia.javachain.protos.common.Common.LastConfig;
-import org.bcia.javachain.protos.common.Common.Metadata;
-import org.bcia.javachain.protos.common.Common.Payload;
-import org.bcia.javachain.protos.common.Common.Status;
-import org.bcia.javachain.protos.common.Configtx.ConfigEnvelope;
-import org.bcia.javachain.protos.common.Configtx.ConfigTree;
-import org.bcia.javachain.protos.common.Configtx.ConfigSignature;
-import org.bcia.javachain.protos.common.Configtx.ConfigUpdateEnvelope;
-import org.bcia.javachain.protos.common.Configtx.ConfigValue;
-import org.bcia.javachain.protos.common.Ledger;
-import org.bcia.javachain.protos.consenter.Ab;
-import org.bcia.javachain.protos.consenter.Ab.BroadcastResponse;
-import org.bcia.javachain.protos.consenter.Ab.DeliverResponse;
-import org.bcia.javachain.protos.consenter.Ab.SeekInfo;
-import org.bcia.javachain.protos.consenter.Ab.SeekPosition;
-import org.bcia.javachain.protos.consenter.Ab.SeekSpecified;
-import org.bcia.javachain.protos.msp.MspConfigPackage;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalPackage.SignedProposal;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
-import org.bcia.javachain.protos.node.ProposalResponsePackage.Response;
-import org.bcia.javachain.protos.node.Query;
-import org.bcia.javachain.protos.node.Query.GroupQueryResponse;
-import org.bcia.javachain.protos.node.Query.SmartContractInfo;
-import org.bcia.javachain.protos.node.Query.SmartContractQueryResponse;
-import org.bcia.javachain.protos.node.TransactionPackage.ProcessedTransaction;
 import org.bcia.javachain.sdk.BlockEvent.TransactionEvent;
 import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.exception.CryptoException;
@@ -116,6 +84,43 @@ import org.bcia.javachain.sdk.transaction.QueryNodeGroupsBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
 import org.bcia.javachain.sdk.transaction.UpgradeProposalBuilder;
+import org.bcia.julongchain.common.localmsp.impl.LocalSigner;
+import org.bcia.julongchain.common.util.proto.EnvelopeHelper;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.common.Common.BlockMetadata;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.common.Common.GroupHeader;
+import org.bcia.julongchain.protos.common.Common.Header;
+import org.bcia.julongchain.protos.common.Common.HeaderType;
+import org.bcia.julongchain.protos.common.Common.LastConfig;
+import org.bcia.julongchain.protos.common.Common.Metadata;
+import org.bcia.julongchain.protos.common.Common.Payload;
+import org.bcia.julongchain.protos.common.Common.Status;
+import org.bcia.julongchain.protos.common.Configtx;
+import org.bcia.julongchain.protos.common.Configtx.ConfigEnvelope;
+import org.bcia.julongchain.protos.common.Configtx.ConfigSignature;
+import org.bcia.julongchain.protos.common.Configtx.ConfigTree;
+import org.bcia.julongchain.protos.common.Configtx.ConfigUpdateEnvelope;
+import org.bcia.julongchain.protos.common.Configtx.ConfigValue;
+import org.bcia.julongchain.protos.common.Ledger;
+import org.bcia.julongchain.protos.consenter.Ab;
+import org.bcia.julongchain.protos.consenter.Ab.BroadcastResponse;
+import org.bcia.julongchain.protos.consenter.Ab.DeliverResponse;
+import org.bcia.julongchain.protos.consenter.Ab.SeekInfo;
+import org.bcia.julongchain.protos.consenter.Ab.SeekPosition;
+import org.bcia.julongchain.protos.consenter.Ab.SeekSpecified;
+import org.bcia.julongchain.protos.msp.MspConfigPackage;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalPackage.SignedProposal;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage.Response;
+import org.bcia.julongchain.protos.node.Query;
+import org.bcia.julongchain.protos.node.Query.GroupQueryResponse;
+import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
+import org.bcia.julongchain.protos.node.Query.SmartContractQueryResponse;
+import org.bcia.julongchain.protos.node.TransactionPackage.ProcessedTransaction;
+import org.bcia.julongchain.tools.configtxgen.entity.GenesisConfigFactory;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -129,7 +134,10 @@ import io.grpc.StatusRuntimeException;
  * modified for Node,SmartContract,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * ＠version 1.0 TODO 目前存在joinNode时报Ledger already exists问题
  * by wangzhe in ftsafe 2018-07-02
+ * 1.将protos全面改为julongchain包
+ * 2.增加sendNewUpdateGroup方法新增群组配置之后发出去
  */
 public class Group implements Serializable {
     private static final long serialVersionUID = -3266164166893832538L;
@@ -149,6 +157,7 @@ public class Group implements Serializable {
     // final Set<Node> eventingNodes = Collections.synchronizedSet(new HashSet<>());
     private static final long DELTA_SWEEP = config.getTransactionListenerCleanUpTimeout();
     private static final String CHAINCODE_EVENTS_TAG = "CHAINCODE_EVENTS_HANDLE";
+    private static final String PROFILE_CREATE_GROUP = "SampleSingleMSPGroup";
     final Collection<Consenter> orderers = new LinkedList<>();
     final Collection<EventHub> eventHubs = new LinkedList<>();
     // Name of the channel is only meaningful to the client
@@ -188,6 +197,16 @@ public class Group implements Serializable {
         }
     }
 
+    /**
+     * 构造１
+     * @param name
+     * @param hfClient
+     * @param orderer
+     * @param channelConfiguration
+     * @param signers
+     * @throws InvalidArgumentException
+     * @throws TransactionException
+     */
     private Group(String name, HFClient hfClient, Consenter orderer, GroupConfiguration channelConfiguration, byte[][] signers) throws InvalidArgumentException, TransactionException {
         this(name, hfClient, false);
 
@@ -198,50 +217,41 @@ public class Group implements Serializable {
         try {
             addConsenter(orderer);
 
-            //-----------------------------------------
-            Envelope ccEnvelope = Envelope.parseFrom(channelConfiguration.getGroupConfigurationAsBytes());
-
-            final Payload ccPayload = Payload.parseFrom(ccEnvelope.getPayload());
-            final GroupHeader ccGroupHeader = GroupHeader.parseFrom(ccPayload.getHeader().getGroupHeader());
-
-            if (ccGroupHeader.getType() != HeaderType.CONFIG_UPDATE.getNumber()) {
-                throw new InvalidArgumentException(format("Creating channel; %s expected config block type %s, but got: %s",
-                        name,
-                        HeaderType.CONFIG_UPDATE.name(),
-                        HeaderType.forNumber(ccGroupHeader.getType())));
+            //增加groupConfiguration的为空的判断（基本上有配置是用于群组变更的场景暂时不考虑）
+            if ( channelConfiguration!= null ) {
+	            Envelope ccEnvelope = Envelope.parseFrom(channelConfiguration.getGroupConfigurationAsBytes());
+	
+	            final Payload ccPayload = Payload.parseFrom(ccEnvelope.getPayload());
+	            final GroupHeader ccGroupHeader = GroupHeader.parseFrom(ccPayload.getHeader().getGroupHeader());
+	
+	            if (ccGroupHeader.getType() != HeaderType.CONFIG_UPDATE.getNumber()) {
+	                throw new InvalidArgumentException(format("Creating channel; %s expected config block type %s, but got: %s",
+	                        name,
+	                        HeaderType.CONFIG_UPDATE.name(),
+	                        HeaderType.forNumber(ccGroupHeader.getType())));
+	            }
+	
+	            if (!name.equals(ccGroupHeader.getGroupId())) {
+	
+	                throw new InvalidArgumentException(format("Expected config block for channel: %s, but got: %s", name,
+	                        ccGroupHeader.getGroupId()));
+	            }
+	
+	            final ConfigUpdateEnvelope configUpdateEnv = ConfigUpdateEnvelope.parseFrom(ccPayload.getData());
+	            ByteString configUpdate = configUpdateEnv.getConfigUpdate();
+	
+	            sendUpdateGroup(configUpdate.toByteArray(), signers, orderer);
+	            //         final ConfigUpdateEnvelope.Builder configUpdateEnvBuilder = configUpdateEnv.toBuilder();`
+	
+	            //---------------------------------------
+	
+	            //          sendUpdateGroup(channelConfiguration, signers, orderer);
+            } else {
+            	
+            	sendNewUpdateGroup(name, new LocalSigner(), orderer);
+            	
             }
-
-            if (!name.equals(ccGroupHeader.getGroupId())) {
-
-                throw new InvalidArgumentException(format("Expected config block for channel: %s, but got: %s", name,
-                        ccGroupHeader.getGroupId()));
-            }
-
-            final ConfigUpdateEnvelope configUpdateEnv = ConfigUpdateEnvelope.parseFrom(ccPayload.getData());
-            ByteString configUpdate = configUpdateEnv.getConfigUpdate();
-
-            sendUpdateGroup(configUpdate.toByteArray(), signers, orderer);
-            //         final ConfigUpdateEnvelope.Builder configUpdateEnvBuilder = configUpdateEnv.toBuilder();`
-
-            //---------------------------------------
-
-            //          sendUpdateGroup(channelConfiguration, signers, orderer);
-
-            getGenesisBlock(orderer); // get Genesis block to make sure channel was created.
-            if (genesisBlock == null) {
-                throw new TransactionException(format("New channel %s error. Genesis bock returned null", name));
-            }
-
-            logger.debug(format("Created new channel %s on the Fabric done.", name));
-        } catch (TransactionException e) {
-
-            orderer.unsetGroup();
-            if (null != ordererGroup) {
-                orderer.setGroup(ordererGroup);
-            }
-
-            logger.error(format("Group %s error: %s", name, e.getMessage()), e);
-            throw e;
+                
         } catch (Exception e) {
             orderer.unsetGroup();
             if (null != ordererGroup) {
@@ -252,14 +262,20 @@ public class Group implements Serializable {
             logger.error(msg, e);
             throw new TransactionException(msg, e);
         }
-
     }
 
+    /**
+     * 构造２
+     * @param name
+     * @param client
+     * @throws InvalidArgumentException
+     */
     Group(String name, HFClient client) throws InvalidArgumentException {
         this(name, client, false);
     }
 
     /**
+     * 构造３
      * @param name
      * @param client
      * @throws InvalidArgumentException
@@ -433,7 +449,138 @@ public class Group implements Serializable {
         }
 
     }
+    
+    
+    /**
+     * 新建群组配置然后发出去
+     * @param configupdate
+     * @param signers
+     * @param orderer
+     * @throws TransactionException
+     * @throws InvalidArgumentException
+     */
+    private void sendNewUpdateGroup(String groupId, LocalSigner signer, Consenter orderer) throws TransactionException, InvalidArgumentException {
 
+        logger.debug(format("Group %s sendUpdateGroup", name));
+        checkConsenter(orderer);
+
+        try {
+
+            final long nanoTimeStart = System.nanoTime();
+            int statusCode = 0; 
+
+            do {
+
+                Configtx.ConfigUpdate configUpdate = EnvelopeHelper.buildConfigUpdate(groupId, null, GenesisConfigFactory.getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
+
+                Configtx.ConfigUpdateEnvelope.Builder envelopeBuilder = Configtx.ConfigUpdateEnvelope.newBuilder();
+                envelopeBuilder.setConfigUpdate(configUpdate.toByteString());
+                Configtx.ConfigUpdateEnvelope configUpdateEnvelope = envelopeBuilder.build();
+
+                if (signer != null) {
+                    configUpdateEnvelope = EnvelopeHelper.signConfigUpdateEnvelope(configUpdateEnvelope, signer);
+                }
+
+                Envelope payloadEnv = EnvelopeHelper.buildSignedEnvelope(Common.HeaderType.CONFIG_UPDATE_VALUE, 0, groupId, signer, configUpdateEnvelope, 0);
+//###################################################
+//
+//   原有逻辑
+//
+//###################################################
+//                for (byte[] signer : signers) {
+//                    configUpdateEnvBuilder.addSignatures(ConfigSignature.parseFrom(signer));
+//                }
+
+                //--------------
+                // Construct Payload Envelope.
+
+//                final ByteString sigHeaderByteString = getSignatureHeaderAsByteString(transactionContext);
+//
+//                final GroupHeader payloadGroupHeader = ProtoUtils.createGroupHeader(HeaderType.CONFIG_UPDATE,
+//                        transactionContext.getTxID(), name, transactionContext.getEpoch(), transactionContext.getFabricTimestamp(), null, null);
+//
+//                final Header payloadHeader = Header.newBuilder().setGroupHeader(payloadGroupHeader.toByteString())
+//                        .setSignatureHeader(sigHeaderByteString).build();
+//
+//                final ByteString payloadByteString = Payload.newBuilder()
+//                        .setHeader(payloadHeader)
+//                        .setData(configUpdateEnvBuilder.build().toByteString())
+//                        .build().toByteString();
+//
+//                ByteString payloadSignature = transactionContext.signByteStrings(payloadByteString);
+
+//                Envelope payloadEnv = Envelope.newBuilder()
+//                        .setSignature(payloadSignature)
+//                        .setPayload(payloadByteString).build();
+              //###################################################
+                //
+                //   原有逻辑
+                //
+                //###################################################
+                BroadcastResponse trxResult = orderer.sendTransaction(payloadEnv);
+
+                statusCode = trxResult.getStatusValue();
+
+                logger.debug(format("Group %s sendUpdateGroup %d", name, statusCode));
+                if (statusCode == 404 || statusCode == 503) {
+                    // these we can retry..
+                    final long duration = TimeUnit.MILLISECONDS.convert(System.nanoTime() - nanoTimeStart, TimeUnit.NANOSECONDS);
+
+                    if (duration > CHANNEL_CONFIG_WAIT_TIME) {
+                        //waited long enough .. throw an exception
+                        String info = trxResult.getInfo();
+                        if (null == info) {
+                            info = "";
+
+                        }
+
+                        throw new TransactionException(format("Group %s update error timed out after %d ms. Status value %d. Status %s. %s", name,
+                                duration, statusCode, trxResult.getStatus().name(), info));
+                    }
+
+                    try {
+                        Thread.sleep(ORDERER_RETRY_WAIT_TIME); //try again sleep
+                    } catch (InterruptedException e) {
+                        TransactionException te = new TransactionException("update thread Sleep", e);
+                        logger.warn(te.getMessage(), te);
+                    }
+
+                } else if (200 != statusCode) {
+                    // Can't retry.
+
+                    String info = trxResult.getInfo();
+                    if (null == info) {
+                        info = "";
+                    }
+
+                    throw new TransactionException(format("New channel %s error. StatusValue %d. Status %s. %s", name,
+                            statusCode, "" + trxResult.getStatus(), info));
+                }
+
+            } while (200 != statusCode); // try again
+
+        } catch (TransactionException e) {
+
+            logger.error(format("Group %s error: %s", name, e.getMessage()), e);
+            throw e;
+        } catch (Exception e) {
+            String msg = format("Group %s error: %s", name, e.getMessage());
+
+            logger.error(msg, e);
+            throw new TransactionException(msg, e);
+        }
+
+    }
+    
+
+    /**
+     * 发修改群组？
+     * @param configupdate
+     * @param signers
+     * @param orderer
+     * @throws TransactionException
+     * @throws InvalidArgumentException
+     */
     private void sendUpdateGroup(byte[] configupdate, byte[][] signers, Consenter orderer) throws TransactionException, InvalidArgumentException {
 
         logger.debug(format("Group %s sendUpdateGroup", name));
@@ -446,7 +593,7 @@ public class Group implements Serializable {
 
             do {
 
-                //Make sure we have fresh transaction context for each try just to be safe.
+                //为了安全起见，每次尝试都是新的交易上下文。
                 TransactionContext transactionContext = getTransactionContext();
 
                 ConfigUpdateEnvelope.Builder configUpdateEnvBuilder = ConfigUpdateEnvelope.newBuilder();
@@ -454,10 +601,7 @@ public class Group implements Serializable {
                 configUpdateEnvBuilder.setConfigUpdate(ByteString.copyFrom(configupdate));
 
                 for (byte[] signer : signers) {
-
-                    configUpdateEnvBuilder.addSignatures(
-                            ConfigSignature.parseFrom(signer));
-
+                    configUpdateEnvBuilder.addSignatures(ConfigSignature.parseFrom(signer));
                 }
 
                 //--------------
@@ -703,9 +847,9 @@ public class Group implements Serializable {
 
             genesisBlock = getGenesisBlock(orderer);
             logger.debug(format("Group %s got genesis block", name));
-
+            logger.info("____wangzhe.0724 step 0001");
             final Group systemGroup = newSystemGroup(client); //channel is not really created and this is targeted to system channel
-
+            logger.info("____wangzhe.0724 step 0002");
             TransactionContext transactionContext = systemGroup.getTransactionContext();
 
             ProposalPackage.Proposal joinProposal = JoinNodeProposalBuilder.newBuilder()
@@ -1049,6 +1193,12 @@ public class Group implements Serializable {
         logger.debug(format("Group %s loadCACertificates completed ", name));
     }
 
+    /**
+     * 得到创世区块
+     * @param orderer
+     * @return
+     * @throws TransactionException
+     */
     private Block getGenesisBlock(Consenter orderer) throws TransactionException {
         try {
             if (genesisBlock != null) {
@@ -1080,7 +1230,7 @@ public class Group implements Serializable {
                         .build();
 
                 ArrayList<DeliverResponse> deliverResponses = new ArrayList<>();
-
+                //寻找区块
                 seekBlock(seekInfo, deliverResponses, orderer);
 
                 DeliverResponse blockresp = deliverResponses.get(1);
@@ -1392,7 +1542,7 @@ public class Group implements Serializable {
 
         try {
 
-            do {
+            do {//如果返回吗不等于200则不停循环
 
                 statusRC = 404;
 
@@ -1400,6 +1550,7 @@ public class Group implements Serializable {
 
                 TransactionContext txContext = getTransactionContext();
 
+                //是个数组，[0]是状态
                 DeliverResponse[] deliver = orderer.sendDeliver(createSeekInfoEnvelope(txContext, seekInfo, orderer.getClientTLSCertificateDigest()));
 
                 if (deliver.length < 1) {
@@ -1434,7 +1585,7 @@ public class Group implements Serializable {
 
                 if (200 != statusRC) {
                     long duration = System.currentTimeMillis() - start;
-
+                    //超过创造区块等待时间
                     if (duration > config.getGenesisBlockWaitTime()) {
                         throw new TransactionException(format("Getting block time exceeded %s seconds for channel %s", Long.toString(TimeUnit.MILLISECONDS.toSeconds(duration)), name));
                     }
@@ -3416,6 +3567,13 @@ public class Group implements Serializable {
 
     }
 
+    /**
+     * 得到群组配置签名 
+     * @param channelConfiguration
+     * @param signer
+     * @return
+     * @throws InvalidArgumentException
+     */
     byte[] getGroupConfigurationSignature(GroupConfiguration channelConfiguration, User signer) throws InvalidArgumentException {
 
         userContextCheck(signer);

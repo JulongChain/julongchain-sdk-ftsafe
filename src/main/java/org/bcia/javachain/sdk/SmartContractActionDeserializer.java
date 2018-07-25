@@ -22,9 +22,9 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
+import org.bcia.julongchain.protos.ledger.rwset.Rwset.TxReadWriteSet;
 
-import static org.bcia.javachain.protos.node.ProposalPackage.SmartContractAction;
+import static org.bcia.julongchain.protos.node.ProposalPackage.SmartContractAction;
 
 /**
  * modified for Node,SmartContract,Consenter,

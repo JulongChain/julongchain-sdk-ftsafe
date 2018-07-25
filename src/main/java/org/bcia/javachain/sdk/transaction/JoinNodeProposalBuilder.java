@@ -22,7 +22,7 @@ import com.google.protobuf.ByteString;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.common.Common.Block;
 
 /**
  * modified for Node,SmartContract,Consenter,
@@ -30,7 +30,7 @@ import org.bcia.javachain.protos.common.Common.Block;
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
-public class JoinNodeProposalBuilder extends CSCCProposalBuilder {
+public class JoinNodeProposalBuilder extends CSSCProposalBuilder {
     private static final Log logger = LogFactory.getLog(JoinNodeProposalBuilder.class);
 
     public JoinNodeProposalBuilder genesisBlock(Block genesisBlock) throws ProposalException {
@@ -42,7 +42,7 @@ public class JoinNodeProposalBuilder extends CSCCProposalBuilder {
         }
 
         List<ByteString> argList = new ArrayList<>();
-        argList.add(ByteString.copyFrom("JoinChain", StandardCharsets.UTF_8));
+        argList.add(ByteString.copyFrom("JoinGroup", StandardCharsets.UTF_8));
         argList.add(genesisBlock.toByteString());
         args(argList);
         return this;

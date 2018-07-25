@@ -1,3 +1,5 @@
+org.bcia.javachain.sdk.crypto.id:
+   gm
 org.bcia.javachain.sdk.crypto.security_level:
    256
 org.bcia.javachain.sdk.crypto.default_signature_algorithm:

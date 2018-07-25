@@ -23,7 +23,7 @@ import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.protos.msp.Identities;
+import org.bcia.julongchain.protos.msp.Identities;
 
 /**
  * Internal class, not an public API.

@@ -23,9 +23,9 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 
-import static org.bcia.javachain.protos.node.TransactionPackage.SmartContractEndorsedAction;
+import static org.bcia.julongchain.protos.node.TransactionPackage.SmartContractEndorsedAction;
 
 /**
  * modified for Node,SmartContract,Consenter,

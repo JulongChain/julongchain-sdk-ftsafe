@@ -27,15 +27,15 @@ import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.TransactionRequest;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.HeaderType;
-import org.bcia.javachain.protos.node.SmartContractPackage;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInput;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInvocationSpec;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractSpec;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
-import org.bcia.javachain.protos.node.ProposalPackage.SmartContractProposalPayload;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.HeaderType;
+import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractInput;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractInvocationSpec;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalPackage.SmartContractHeaderExtension;
+import org.bcia.julongchain.protos.node.ProposalPackage.SmartContractProposalPayload;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -48,6 +48,7 @@ import static org.bcia.javachain.sdk.transaction.ProtoUtils.getSignatureHeaderAs
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
+ * modified by wangzhe 2018-07-18 SmartContractSpec.Type.JAVA默认
  */
 public class ProposalBuilder {
 
@@ -58,7 +59,7 @@ public class ProposalBuilder {
     private List<ByteString> argList;
     protected TransactionContext context;
     protected TransactionRequest request;
-    protected SmartContractSpec.Type ccType = SmartContractSpec.Type.GOLANG;
+    protected SmartContractSpec.Type ccType = SmartContractSpec.Type.JAVA;
     protected Map<String, byte[]> transientMap = null;
 
     // The channel that is being targeted . note blank string means no specific channel

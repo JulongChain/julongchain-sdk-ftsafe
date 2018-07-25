@@ -23,17 +23,17 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
 import org.bcia.javachain.sdk.transaction.ProtoUtils;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.Block;
-import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
-import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractInput;
-import org.bcia.javachain.protos.node.TransactionPackage;
-import org.bcia.javachain.protos.node.EventsPackage;
-import org.bcia.javachain.protos.node.EventsPackage.FilteredTransaction;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.ledger.rwset.Rwset.TxReadWriteSet;
+import org.bcia.julongchain.protos.msp.Identities;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractInput;
+import org.bcia.julongchain.protos.node.TransactionPackage;
+import org.bcia.julongchain.protos.node.EventsPackage;
+import org.bcia.julongchain.protos.node.EventsPackage.FilteredTransaction;
 
 import static java.lang.String.format;
-import static org.bcia.javachain.protos.node.ProposalResponsePackage.Endorsement;
+import static org.bcia.julongchain.protos.node.ProposalResponsePackage.Endorsement;
 
 /**
  * BlockInfo contains the data from a {@link Block}
@@ -100,7 +100,7 @@ public class BlockInfo {
     }
 
     /**
-     * @return the raw {@link org.bcia.javachain.protos.node.EventsPackage.FilteredBlock}
+     * @return the raw {@link org.bcia.julongchain.protos.node.EventsPackage.FilteredBlock}
      */
     public EventsPackage.FilteredBlock getFilteredBlock() {
         return !isFiltered() ? null : filteredBlock;

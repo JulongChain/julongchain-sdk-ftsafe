@@ -9,7 +9,7 @@ Modified java_package and other contents by Dingxuan on 2018-03-22
 syntax = "proto3";
 
 package protos;
-option java_package = "org.bcia.javachain.protos.node";
+option java_package = "org.bcia.julongchain.protos.node";
 option go_package = "github.com/hyperledger/fabric/protos/peer";
 import "node/smart_contract_event.proto";
 import "node/proposal.proto";
@@ -47,7 +47,7 @@ message SmartContractMessage {
 
     SignedProposal proposal = 5;
 
-    //event emitted by smart_contract. Used only with Init or Invoke.
+    //event emitted by smartContract. Used only with Init or Invoke.
     // This event is then stored (currently)
     //with Block.NonHashData.TransactionResult
     SmartContractEvent smart_contract_event = 6;
@@ -106,7 +106,7 @@ message QueryResponse {
 }
 
 
-// Interface that provides support to smart_contract execution. SmartContractContext
+// Interface that provides support to smartContract execution. SmartContractContext
 // provides the context necessary for the server to respond appropriately.
 service SmartContractSupport {
 

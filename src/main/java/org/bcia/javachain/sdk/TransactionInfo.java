@@ -13,9 +13,9 @@
  */
 package org.bcia.javachain.sdk;
 
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.node.TransactionPackage.ProcessedTransaction;
-import org.bcia.javachain.protos.node.TransactionPackage.TxValidationCode;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.node.TransactionPackage.ProcessedTransaction;
+import org.bcia.julongchain.protos.node.TransactionPackage.TxValidationCode;
 
 /**
  * TransactionInfo contains the data from a {@link ProcessedTransaction} message

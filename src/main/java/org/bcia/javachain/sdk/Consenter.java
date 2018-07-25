@@ -22,9 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.TransactionException;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.consenter.Ab;
-import org.bcia.javachain.protos.consenter.Ab.DeliverResponse;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.consenter.Ab;
+import org.bcia.julongchain.protos.consenter.Ab.DeliverResponse;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.helper.Utils.checkGrpcUrl;

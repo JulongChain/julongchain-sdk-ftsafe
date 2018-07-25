@@ -23,7 +23,7 @@ import "google/protobuf/timestamp.proto";
 import "node/smart_contract_event.proto";
 import "node/transaction.proto";
 
-option java_package = "org.bcia.javachain.protos.node";
+option java_package = "org.bcia.julongchain.protos.node";
 option java_outer_classname = "EventsPackage";
 option go_package = "github.com/hyperledger/fabric/protos/peer";
 
@@ -39,7 +39,7 @@ enum EventType {
     FILTEREDBLOCK = 4;
 }
 
-//SmartcontractReg is used for registering smart_contract Interests
+//SmartContractReg is used for registering smartcontract Interests
 //when EventType is SMART_CONTRACT
 message SmartContractReg {
     string smart_contract_id = 1;

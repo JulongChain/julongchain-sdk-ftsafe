@@ -23,7 +23,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Timestamp;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common.GroupHeader;
+import org.bcia.julongchain.protos.common.Common.GroupHeader;
 
 /**
  * modified for Node,SmartContract,Consenter,

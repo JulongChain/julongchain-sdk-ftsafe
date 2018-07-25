@@ -22,7 +22,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.node.SmartContractEventPackage;
+import org.bcia.julongchain.protos.node.SmartContractEventPackage;
 
 /**
  * Encapsulates a SmartContract event.

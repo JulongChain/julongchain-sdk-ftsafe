@@ -26,7 +26,7 @@ import com.google.protobuf.ByteString;
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
-public class QueryInstantiatedSmartContractsBuilder extends LSCCProposalBuilder {
+public class QueryInstantiatedSmartContractsBuilder extends LSSCProposalBuilder {
 
     private QueryInstantiatedSmartContractsBuilder() {
 

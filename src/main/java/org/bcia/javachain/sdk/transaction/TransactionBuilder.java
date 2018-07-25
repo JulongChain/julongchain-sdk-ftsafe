@@ -23,10 +23,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
-import org.bcia.javachain.protos.node.TransactionPackage;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.node.TransactionPackage;
 
 /**
  * modified for Node,SmartContract,Consenter,

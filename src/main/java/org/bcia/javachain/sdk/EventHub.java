@@ -38,8 +38,8 @@ import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.transaction.ProtoUtils;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
-import org.bcia.javachain.protos.node.EventsGrpc;
-import org.bcia.javachain.protos.node.EventsPackage;
+import org.bcia.julongchain.protos.node.EventsGrpc;
+import org.bcia.julongchain.protos.node.EventsPackage;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.helper.Utils.checkGrpcUrl;

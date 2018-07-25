@@ -22,7 +22,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common.Payload;
+import org.bcia.julongchain.protos.common.Common.Payload;
 
 
 /**

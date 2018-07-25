@@ -14,8 +14,8 @@
 
 package org.bcia.javachain.sdkintegration;
 
-import org.bcia.javachain.protos.common.Configtx;
-import org.bcia.javachain.protos.node.Query.SmartContractInfo;
+import org.bcia.julongchain.protos.common.Configtx;
+import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
 import org.bcia.javachain.sdk.*;
 import org.bcia.javachain.sdk.SmartContractResponse.Status;
 import org.bcia.javachain.sdk.Group.NodeOptions;

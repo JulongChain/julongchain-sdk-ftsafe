@@ -20,9 +20,9 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common.Block;
-import org.bcia.javachain.protos.node.EventsPackage;
-import org.bcia.javachain.protos.node.EventsPackage.Event;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.node.EventsPackage;
+import org.bcia.julongchain.protos.node.EventsPackage.Event;
 
 /**
  * A wrapper for the Block returned in an Event

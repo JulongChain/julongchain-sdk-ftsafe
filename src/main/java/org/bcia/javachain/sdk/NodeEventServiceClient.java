@@ -32,18 +32,18 @@ import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.consenter.Ab;
-import org.bcia.javachain.protos.consenter.Ab.SeekInfo;
-import org.bcia.javachain.protos.node.DeliverGrpc;
-import org.bcia.javachain.protos.node.EventsPackage.DeliverResponse;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.consenter.Ab;
+import org.bcia.julongchain.protos.consenter.Ab.SeekInfo;
+import org.bcia.julongchain.protos.node.DeliverGrpc;
+import org.bcia.julongchain.protos.node.EventsPackage.DeliverResponse;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.transaction.ProtoUtils.createSeekInfoEnvelope;
-import static org.bcia.javachain.protos.node.EventsPackage.DeliverResponse.TypeCase.BLOCK;
-import static org.bcia.javachain.protos.node.EventsPackage.DeliverResponse.TypeCase.FILTERED_BLOCK;
-import static org.bcia.javachain.protos.node.EventsPackage.DeliverResponse.TypeCase.STATUS;
+import static org.bcia.julongchain.protos.node.EventsPackage.DeliverResponse.TypeCase.BLOCK;
+import static org.bcia.julongchain.protos.node.EventsPackage.DeliverResponse.TypeCase.FILTERED_BLOCK;
+import static org.bcia.julongchain.protos.node.EventsPackage.DeliverResponse.TypeCase.STATUS;
 
 /**
  * Sample client code that makes gRPC calls to the server.

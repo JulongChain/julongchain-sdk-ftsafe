@@ -21,9 +21,9 @@ import java.lang.ref.WeakReference;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.Header;
-import org.bcia.javachain.protos.msp.Identities;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Header;
+import org.bcia.julongchain.protos.msp.Identities;
 
 
 /**

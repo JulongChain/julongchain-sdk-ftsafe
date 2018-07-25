@@ -29,9 +29,9 @@ import org.bcia.javachain.sdk.SmartContractEndorsementPolicy;
 import org.bcia.javachain.sdk.TransactionRequest;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.node.SmartContractPackage;
-import org.bcia.javachain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
-import org.bcia.javachain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
+import org.bcia.julongchain.protos.node.ProposalPackage;
 
 /**
  * modified for Node,SmartContract,Consenter,
@@ -39,7 +39,7 @@ import org.bcia.javachain.protos.node.ProposalPackage;
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
  */
-public class InstantiateProposalBuilder extends LSCCProposalBuilder {
+public class InstantiateProposalBuilder extends LSSCProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(InstantiateProposalBuilder.class);
 

@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
-import org.bcia.javachain.protos.node.Query.SmartContractInfo;
+import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
 import org.bcia.javachain.sdk.BlockEvent;
 import org.bcia.javachain.sdk.BlockEvent.TransactionEvent;
 import org.bcia.javachain.sdk.Consenter;

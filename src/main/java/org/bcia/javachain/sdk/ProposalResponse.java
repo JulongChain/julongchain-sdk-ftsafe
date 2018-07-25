@@ -19,13 +19,13 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.Header;
-import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
-import org.bcia.javachain.protos.msp.Identities;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalPackage.SmartContractHeaderExtension;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.Header;
+import org.bcia.julongchain.protos.ledger.rwset.Rwset.TxReadWriteSet;
+import org.bcia.julongchain.protos.msp.Identities;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalPackage.SmartContractHeaderExtension;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 
 /**
  * modified for Node,SmartContract,Consenter,

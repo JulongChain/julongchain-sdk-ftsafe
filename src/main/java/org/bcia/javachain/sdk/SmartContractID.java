@@ -24,13 +24,13 @@ package org.bcia.javachain.sdk;
  */
 public final class SmartContractID {
 
-    private final org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID smartcontractID;
+    private final org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractID smartcontractID;
 
-    public org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID getSmartContractID() {
+    public org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractID getSmartContractID() {
         return smartcontractID;
     }
 
-    SmartContractID(org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID chaincodeID) {
+    SmartContractID(org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractID chaincodeID) {
         this.smartcontractID = chaincodeID;
     }
 
@@ -58,7 +58,7 @@ public final class SmartContractID {
      */
 
     public static final class Builder {
-        private final org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID.Builder protoBuilder = org.bcia.javachain.protos.node.SmartContractPackage.SmartContractID.newBuilder();
+        private final org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractID.Builder protoBuilder = org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractID.newBuilder();
 
         private Builder() {
         }

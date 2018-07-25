@@ -15,7 +15,7 @@
 package org.bcia.javachain.sdkintegration;
 
 import org.apache.commons.codec.binary.Hex;
-import org.bcia.javachain.protos.ledger.rwset.kvrwset.KvRwset;
+import org.bcia.julongchain.protos.ledger.rwset.kvrwset.KvRwset;
 import org.bcia.javachain.sdk.*;
 import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.TransactionRequest.Type;

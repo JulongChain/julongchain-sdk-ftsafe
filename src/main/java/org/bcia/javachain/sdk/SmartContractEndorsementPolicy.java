@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
 import io.netty.util.internal.StringUtil;
 import org.apache.commons.io.IOUtils;
 import org.bcia.javachain.sdk.exception.SmartContractEndorsementPolicyParseException;
-import org.bcia.javachain.protos.common.MspPrincipal.MSPPrincipal;
-import org.bcia.javachain.protos.common.MspPrincipal.MSPRole;
-import org.bcia.javachain.protos.common.Policies;
-import org.bcia.javachain.protos.common.Policies.SignaturePolicy;
+import org.bcia.julongchain.protos.common.MspPrincipal.MSPPrincipal;
+import org.bcia.julongchain.protos.common.MspPrincipal.MSPRole;
+import org.bcia.julongchain.protos.common.Policies;
+import org.bcia.julongchain.protos.common.Policies.SignaturePolicy;
 import org.yaml.snakeyaml.Yaml;
 
 import static java.lang.String.format;

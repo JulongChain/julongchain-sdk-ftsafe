@@ -32,8 +32,8 @@ import org.bcia.javachain.sdk.exception.NodeException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
-import org.bcia.javachain.protos.node.ProposalPackage;
-import org.bcia.javachain.protos.node.ProposalResponsePackage;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.helper.Utils.checkGrpcUrl;

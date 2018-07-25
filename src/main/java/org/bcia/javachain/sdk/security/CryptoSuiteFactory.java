@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory;
 
 /**
  * Factory to produce a set of crypto suite implementations offering differing cryptographic algorithms and strengths.
@@ -73,8 +74,9 @@ public interface CryptoSuiteFactory {
      */
 
     static CryptoSuiteFactory getDefault() throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-
-        return HLSDKJCryptoSuiteFactory.getDefault();
+    	Config config = Config.getConfig();
+    	String cryptoId = config.getProperty("org.bcia.javachain.sdk.crypto.id");
+    	return GmHLSDKJCryptoSuiteFactory.getDefault();
 
     }
 

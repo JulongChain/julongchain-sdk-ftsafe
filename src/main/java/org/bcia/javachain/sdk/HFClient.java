@@ -40,7 +40,7 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.protos.node.Query.SmartContractInfo;
+import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.User.userContextCheck;
@@ -182,7 +182,7 @@ public class HFClient {
     }
 
     /**
-     * Create a new channel
+     * 创建群组
      *
      * @param name                           The channel's name
      * @param orderer                        Consenter to create the channel with.
@@ -210,8 +210,7 @@ public class HFClient {
 
             logger.trace("Creating channel :" + name);
 
-            Group newGroup = Group.createNewInstance(name, this, orderer, channelConfiguration,
-                    channelConfigurationSignatures);
+            Group newGroup = Group.createNewInstance(name, this, orderer, channelConfiguration, channelConfigurationSignatures);
 
             channels.put(name, newGroup);
             return newGroup;
@@ -596,8 +595,8 @@ public class HFClient {
     }
 
     /**
-     * Get signature for channel configuration
-     *
+     * Get signature for group configuration
+     *　得到群组配置的签名,通过group对象来调用
      * @param channelConfiguration
      * @param signer
      * @return byte array with the signature
@@ -606,7 +605,10 @@ public class HFClient {
 
     public byte[] getGroupConfigurationSignature(GroupConfiguration channelConfiguration, User signer)
             throws InvalidArgumentException {
-
+    	//群组配置文件为空则签名也空
+    	if ( channelConfiguration==null ) {
+    		return null;
+    	}
         clientCheck();
 
         Group systemGroup = Group.newSystemGroup(this);
@@ -616,7 +618,7 @@ public class HFClient {
 
     /**
      * Get signature for update channel configuration
-     *
+     * 获取更新通道配置的签名
      * @param updateGroupConfiguration
      * @param signer
      * @return byte array with the signature

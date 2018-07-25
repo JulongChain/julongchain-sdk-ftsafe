@@ -14,6 +14,9 @@
 
 package org.bcia.javachain_ca.sdk;
 
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -107,9 +110,6 @@ import org.bcia.javachain_ca.sdk.helper.Config;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.Extension;
-
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
 /**
  * HFCAClient Hyperledger Fabric Certificate Authority Client.
  */
@@ -327,7 +327,7 @@ public class HFCAClient {
             logger.debug(format("register  url: %s, registrar: %s done.", url, registrar));
             return secret;
         } catch (Exception e) {
-
+        	e.printStackTrace();
             RegistrationException registrationException = new RegistrationException(format("Error while registering the user %s url: %s  %s ", registrar, url, e.getMessage()), e);
             logger.error(registrar);
             throw registrationException;
@@ -401,11 +401,11 @@ public class HFCAClient {
                 req.setCAName(caName);
             }
             String body = req.toJson();
-
+            System.err.println("request:" + body);
             String responseBody = httpPost(url + HFCA_ENROLL, body,
                     new UsernamePasswordCredentials(user, secret));
 
-            logger.debug("response:" + responseBody);
+            System.err.println("response:" + responseBody);
 
             JsonReader reader = Json.createReader(new StringReader(responseBody));
             JsonObject jsonst = (JsonObject) reader.read();
@@ -441,6 +441,7 @@ public class HFCAClient {
             logger.error(format("url:%s, user:%s  error:%s", url, user, ee.getMessage()), ee);
             throw ee;
         } catch (Exception e) {
+        	e.printStackTrace();
             EnrollmentException ee = new EnrollmentException(format("Url:%s, Failed to enroll user %s ", url, user), e);
             logger.error(e.getMessage(), e);
             throw ee;
@@ -505,6 +506,7 @@ public class HFCAClient {
             return new HFCAInfo(caName, caChain, version);
 
         } catch (Exception e) {
+        	e.printStackTrace();
             InfoException ee = new InfoException(format("Url:%s, Failed to get info", url), e);
             logger.error(e.getMessage(), e);
             throw ee;
@@ -1266,15 +1268,16 @@ public class HFCAClient {
 
     private Registry<ConnectionSocketFactory> registry = null;
     //Only use crypto primitives for reuse of its truststore on TLS
-    CryptoPrimitives cryptoPrimitives = null;
+    CryptoSuite cryptoPrimitives = null;
 
     private void setUpSSL() throws InvalidArgumentException {
 
         if (cryptoPrimitives == null) {
             try {
-                cryptoPrimitives = new CryptoPrimitives();
+                cryptoPrimitives = CryptoSuite.Factory.getCryptoSuite();
                 cryptoPrimitives.init();
             } catch (Exception e) {
+            	e.printStackTrace();
                 throw new InvalidArgumentException(e);
             }
         }

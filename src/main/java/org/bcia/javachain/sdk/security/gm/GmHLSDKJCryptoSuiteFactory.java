@@ -48,7 +48,7 @@ public class GmHLSDKJCryptoSuiteFactory implements GmCryptoSuiteFactory {
             try {
                 GmCryptoPrimitives cp = new GmCryptoPrimitives();
                 cp.setProperties(properties);
-                cp.init();
+                //cp.init();
                 ret = cp;
             } catch (Exception e) {
                 throw new CryptoException(e.getMessage(), e);

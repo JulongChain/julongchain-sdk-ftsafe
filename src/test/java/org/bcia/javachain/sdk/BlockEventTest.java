@@ -13,21 +13,31 @@
  */
 package org.bcia.javachain.sdk;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.bcia.javachain.protos.common.Common.*;
-import org.bcia.javachain.protos.node.TransactionPackage.TxValidationCode;
-import org.bcia.javachain.protos.node.EventsPackage;
-import org.bcia.javachain.sdk.BlockEvent;
-import org.bcia.javachain.sdk.EventHub;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bcia.javachain.protos.common.Common.*;
-import static org.junit.Assert.*;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.common.Common.BlockData;
+import org.bcia.julongchain.protos.common.Common.BlockHeader;
+import org.bcia.julongchain.protos.common.Common.BlockMetadata;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.common.Common.GroupHeader;
+import org.bcia.julongchain.protos.common.Common.Header;
+import org.bcia.julongchain.protos.common.Common.HeaderType;
+import org.bcia.julongchain.protos.common.Common.Payload;
+import org.bcia.julongchain.protos.node.EventsPackage;
+import org.bcia.julongchain.protos.node.TransactionPackage.TxValidationCode;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 public class BlockEventTest {
     private static Block block, badBlock;
