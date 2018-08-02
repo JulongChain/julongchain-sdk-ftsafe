@@ -77,6 +77,11 @@ public class GmCspConfig implements IFactoryOpts {
     }
 
     @Override
+    public String getKeyStore() {
+        return null;
+    }
+
+
     public boolean isDefaultCsp() {
         return false;
     }

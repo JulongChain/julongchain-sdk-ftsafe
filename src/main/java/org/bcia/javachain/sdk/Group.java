@@ -71,6 +71,7 @@ import org.bcia.javachain.sdk.exception.TransactionEventException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
+import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdk.transaction.GetConfigBlockBuilder;
 import org.bcia.javachain.sdk.transaction.InstallProposalBuilder;
@@ -84,8 +85,11 @@ import org.bcia.javachain.sdk.transaction.QueryNodeGroupsBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
 import org.bcia.javachain.sdk.transaction.UpgradeProposalBuilder;
+import org.bcia.julongchain.common.exception.NodeException;
 import org.bcia.julongchain.common.localmsp.impl.LocalSigner;
+import org.bcia.julongchain.common.util.FileUtils;
 import org.bcia.julongchain.common.util.proto.EnvelopeHelper;
+import org.bcia.julongchain.msp.mgmt.Msp;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Common.Block;
 import org.bcia.julongchain.protos.common.Common.BlockMetadata;
@@ -97,7 +101,6 @@ import org.bcia.julongchain.protos.common.Common.LastConfig;
 import org.bcia.julongchain.protos.common.Common.Metadata;
 import org.bcia.julongchain.protos.common.Common.Payload;
 import org.bcia.julongchain.protos.common.Common.Status;
-import org.bcia.julongchain.protos.common.Configtx;
 import org.bcia.julongchain.protos.common.Configtx.ConfigEnvelope;
 import org.bcia.julongchain.protos.common.Configtx.ConfigSignature;
 import org.bcia.julongchain.protos.common.Configtx.ConfigTree;
@@ -134,7 +137,7 @@ import io.grpc.StatusRuntimeException;
  * modified for Node,SmartContract,Consenter,
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
- * ＠version 1.0 TODO 目前存在joinNode时报Ledger already exists问题
+ * ＠version 1.0
  * by wangzhe in ftsafe 2018-07-02
  * 1.将protos全面改为julongchain包
  * 2.增加sendNewUpdateGroup方法新增群组配置之后发出去
@@ -169,6 +172,16 @@ public class Group implements Serializable {
     private final boolean systemGroup;
     private final LinkedHashMap<String, SmartContractEventListenerEntry> chainCodeListeners = new LinkedHashMap<>();
     transient HFClient client;
+
+    @Override
+    public String toString() {
+        return super.toString() +"Group{" +
+                "\n name='" + name + '\'' +
+                ",\n initialized=" + initialized +
+                ",\n shutdown=" + shutdown +
+                "\n}";
+    }
+
     /**
      * Runs processing events from event hubs.
      */
@@ -177,7 +190,7 @@ public class Group implements Serializable {
     private transient volatile boolean initialized = false;
     private transient boolean shutdown = false;
     private transient Block genesisBlock;
-    private transient Map<String, MSP> msps = new HashMap<>();
+    private transient Map<String, Msp> msps = new HashMap<>();
     /**
      * A queue each eventing hub will write events to.
      */
@@ -322,7 +335,7 @@ public class Group implements Serializable {
      * @param name
      * @return A new channel
      */
-    static Group createNewInstance(String name, HFClient clientContext) throws InvalidArgumentException {
+    public static Group createNewInstance(String name, HFClient clientContext) throws InvalidArgumentException {
         return new Group(name, clientContext);
     }
 
@@ -453,13 +466,13 @@ public class Group implements Serializable {
     
     /**
      * 新建群组配置然后发出去
-     * @param configupdate
-     * @param signers
+     * @param groupId
+     * @param signer
      * @param orderer
      * @throws TransactionException
      * @throws InvalidArgumentException
      */
-    private void sendNewUpdateGroup(String groupId, LocalSigner signer, Consenter orderer) throws TransactionException, InvalidArgumentException {
+    public void sendNewUpdateGroup(String groupId, LocalSigner signer, Consenter orderer) throws TransactionException, InvalidArgumentException {
 
         logger.debug(format("Group %s sendUpdateGroup", name));
         checkConsenter(orderer);
@@ -467,60 +480,27 @@ public class Group implements Serializable {
         try {
 
             final long nanoTimeStart = System.nanoTime();
-            int statusCode = 0; 
+            int statusCode = 0;
 
             do {
 
-                Configtx.ConfigUpdate configUpdate = EnvelopeHelper.buildConfigUpdate(groupId, null, GenesisConfigFactory.getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
+                Common.Envelope envelope = null;
 
-                Configtx.ConfigUpdateEnvelope.Builder envelopeBuilder = Configtx.ConfigUpdateEnvelope.newBuilder();
-                envelopeBuilder.setConfigUpdate(configUpdate.toByteString());
-                Configtx.ConfigUpdateEnvelope configUpdateEnvelope = envelopeBuilder.build();
-
-                if (signer != null) {
-                    configUpdateEnvelope = EnvelopeHelper.signConfigUpdateEnvelope(configUpdateEnvelope, signer);
+                try {
+                    logger.info("EnvelopeHelper.makeGroupCreateTx begin");
+                    envelope = EnvelopeHelper.makeGroupCreateTx(groupId, signer, null, GenesisConfigFactory
+                            .getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
+                    logger.info("EnvelopeHelper.makeGroupCreateTx end");
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                    throw new NodeException(e);
                 }
 
-                Envelope payloadEnv = EnvelopeHelper.buildSignedEnvelope(Common.HeaderType.CONFIG_UPDATE_VALUE, 0, groupId, signer, configUpdateEnvelope, 0);
-//###################################################
-//
-//   原有逻辑
-//
-//###################################################
-//                for (byte[] signer : signers) {
-//                    configUpdateEnvBuilder.addSignatures(ConfigSignature.parseFrom(signer));
-//                }
+                logger.info("EnvelopeHelper.sanityCheckAndSignConfigTx begin");
+                Common.Envelope signedEnvelope = EnvelopeHelper.sanityCheckAndSignConfigTx(envelope, groupId, signer);
 
-                //--------------
-                // Construct Payload Envelope.
-
-//                final ByteString sigHeaderByteString = getSignatureHeaderAsByteString(transactionContext);
-//
-//                final GroupHeader payloadGroupHeader = ProtoUtils.createGroupHeader(HeaderType.CONFIG_UPDATE,
-//                        transactionContext.getTxID(), name, transactionContext.getEpoch(), transactionContext.getFabricTimestamp(), null, null);
-//
-//                final Header payloadHeader = Header.newBuilder().setGroupHeader(payloadGroupHeader.toByteString())
-//                        .setSignatureHeader(sigHeaderByteString).build();
-//
-//                final ByteString payloadByteString = Payload.newBuilder()
-//                        .setHeader(payloadHeader)
-//                        .setData(configUpdateEnvBuilder.build().toByteString())
-//                        .build().toByteString();
-//
-//                ByteString payloadSignature = transactionContext.signByteStrings(payloadByteString);
-
-//                Envelope payloadEnv = Envelope.newBuilder()
-//                        .setSignature(payloadSignature)
-//                        .setPayload(payloadByteString).build();
-              //###################################################
-                //
-                //   原有逻辑
-                //
-                //###################################################
-                BroadcastResponse trxResult = orderer.sendTransaction(payloadEnv);
-
+                BroadcastResponse trxResult = orderer.sendTransaction(signedEnvelope);
                 statusCode = trxResult.getStatusValue();
-
                 logger.debug(format("Group %s sendUpdateGroup %d", name, statusCode));
                 if (statusCode == 404 || statusCode == 503) {
                     // these we can retry..
@@ -726,6 +706,7 @@ public class Group implements Serializable {
      * @throws InvalidArgumentException
      */
     public Group addNode(Node peer, NodeOptions peerOptions) throws InvalidArgumentException {
+        logger.info("group: "+ this.getName() +".addNode: "+ peer.getName());
         if (shutdown) {
             throw new InvalidArgumentException(format("Group %s has been shutdown.", name));
         }
@@ -746,7 +727,6 @@ public class Group implements Serializable {
             throw new InvalidArgumentException("Node is invalid can not be null.");
         }
         peer.setGroup(this);
-
         peers.add(peer);
         peerOptionsMap.put(peer, peerOptions.clone());
 
@@ -816,29 +796,26 @@ public class Group implements Serializable {
     }
 
     /**
-     * Join peer to channel
+     * Join node to channel
      *
      * @param orderer     The orderer to get the genesis block.
-     * @param peer        the peer to join the channel.
-     * @param peerOptions see {@link NodeOptions}
+     * @param peer        the node to join the channel.
+     * @param nodeOptions see {@link NodeOptions}
      * @return
      * @throws ProposalException
      */
 
-    public Group joinNode(Consenter orderer, Node peer, NodeOptions peerOptions) throws ProposalException {
+    public Group joinNode(Consenter orderer, Node peer, NodeOptions nodeOptions) throws ProposalException {
 
-        logger.debug(format("Group %s joining peer %s, url: %s", name, peer.getName(), peer.getUrl()));
-
+        logger.debug(format("Group %s joining node %s, url: %s", name, peer.getName(), peer.getUrl()));
         if (shutdown) {
             throw new ProposalException(format("Group %s has been shutdown.", name));
         }
-
-        Group peerGroup = peer.getGroup();
-        if (null != peerGroup && peerGroup != this) {
-            throw new ProposalException(format("Can not add peer %s to channel %s because it already belongs to channel %s.", peer.getName(), name, peerGroup.getName()));
+        Group nodeGroup = peer.getGroup();
+        if (null != nodeGroup && nodeGroup != this) {
+            throw new ProposalException(format("Can not add node %s to channel %s because it already belongs to channel %s.", peer.getName(), name, nodeGroup.getName()));
 
         }
-
         if (genesisBlock == null && orderers.isEmpty()) {
             ProposalException e = new ProposalException("Group missing genesis block and no orderers configured");
             logger.error(e.getMessage(), e);
@@ -847,35 +824,30 @@ public class Group implements Serializable {
 
             genesisBlock = getGenesisBlock(orderer);
             logger.debug(format("Group %s got genesis block", name));
-            logger.info("____wangzhe.0724 step 0001");
             final Group systemGroup = newSystemGroup(client); //channel is not really created and this is targeted to system channel
-            logger.info("____wangzhe.0724 step 0002");
             TransactionContext transactionContext = systemGroup.getTransactionContext();
-
             ProposalPackage.Proposal joinProposal = JoinNodeProposalBuilder.newBuilder()
                     .context(transactionContext)
                     .genesisBlock(genesisBlock)
                     .build();
-
-            logger.debug("Getting signed proposal.");
             SignedProposal signedProposal = getSignedProposal(transactionContext, joinProposal);
-            logger.debug("Got signed proposal.");
-
-            addNode(peer, peerOptions); //need to add peer.
-
-            Collection<ProposalResponse> resp = sendProposalToNodes(new ArrayList<>(Collections.singletonList(peer)),
-                    signedProposal, transactionContext);
-
+            addNode(peer, nodeOptions); //need to add peer.
+            Collection<ProposalResponse> resp = sendProposalToNodes(new ArrayList<>(Collections.singletonList(peer)), signedProposal, transactionContext);
             ProposalResponse pro = resp.iterator().next();
-
             if (pro.getStatus() == ProposalResponse.Status.SUCCESS) {
                 logger.info(format("Node %s joined into channel %s", peer.getName(), name));
             } else {
                 removeNodeInternal(peer);
-                throw new ProposalException(format("Join peer to channel %s failed.  Status %s, details: %s",
+                throw new ProposalException(format("Join node to channel %s failed.  Status %s, details: %s",
                         name, pro.getStatus().toString(), pro.getMessage()));
 
             }
+            String blockPath = Config.getConfig().getBlockPath()+ this.name +".block";
+            logger.info("blockFilePath: "+ blockPath);
+            FileUtils.writeFileBytes(blockPath, genesisBlock.toByteArray());
+            File file = new File(blockPath);
+            logger.info("file is generated-----$" + file.getCanonicalPath());
+
         } catch (ProposalException e) {
             removeNodeInternal(peer);
             logger.error(e);
@@ -1098,7 +1070,7 @@ public class Group implements Serializable {
      */
 
     public Group initialize() throws InvalidArgumentException, TransactionException {
-
+        logger.info("########### Group initialize ###########");
         logger.debug(format("Group %s initialize shutdown %b", name, shutdown));
 
         if (shutdown) {
@@ -1116,11 +1088,11 @@ public class Group implements Serializable {
 
         userContextCheck(client.getUserContext());
 
-        try {
-            loadCACertificates();  // put all MSP certs into cryptoSuite if this fails here we'll try again later.
-        } catch (Exception e) {
-            logger.warn(format("Group %s could not load peer CA certificates from any peers.", name));
-        }
+//        try {
+//            loadCACertificates();  // put all MSP certs into cryptoSuite if this fails here we'll try again later.
+//        } catch (Exception e) {
+//            logger.warn(format("Group %s could not load peer CA certificates from any peers.", name));
+//        }
 
         try {
 
@@ -1165,18 +1137,19 @@ public class Group implements Serializable {
      * @throws CryptoException
      */
     protected synchronized void loadCACertificates() throws InvalidArgumentException, CryptoException, TransactionException {
+//
+//        if (msps != null && !msps.isEmpty()) {
+//            return;
+//        }
+//        logger.debug(format("Group %s loadCACertificates", name));
+//
+//        //parseConfigBlock();
+//
+//        if (msps == null || msps.isEmpty()) {
+//            throw new InvalidArgumentException("Unable to load CA certificates. Group " + name + " does not have any MSPs.");
+//        }
 
-        if (msps != null && !msps.isEmpty()) {
-            return;
-        }
-        logger.debug(format("Group %s loadCACertificates", name));
-
-        parseConfigBlock();
-
-        if (msps == null || msps.isEmpty()) {
-            throw new InvalidArgumentException("Unable to load CA certificates. Group " + name + " does not have any MSPs.");
-        }
-
+        /*
         List<byte[]> certList;
         for (MSP msp : msps.values()) {
             logger.debug("loading certificates for MSP : " + msp.getID());
@@ -1191,6 +1164,7 @@ public class Group implements Serializable {
             // not adding admin certs. Admin certs should be signed by the CA
         }
         logger.debug(format("Group %s loadCACertificates completed ", name));
+        */
     }
 
     /**
@@ -1332,7 +1306,7 @@ public class Group implements Serializable {
 
     protected void parseConfigBlock() throws TransactionException {
 
-        Map<String, MSP> lmsps = msps;
+        Map<String, Msp> lmsps = msps;
 
         if (lmsps != null && !lmsps.isEmpty()) {
             return;
@@ -1351,7 +1325,7 @@ public class Group implements Serializable {
             Payload payload = Payload.parseFrom(envelope.getPayload());
             ConfigEnvelope configEnvelope = ConfigEnvelope.parseFrom(payload.getData());
             ConfigTree channelGroup = configEnvelope.getConfig().getGroupTree();
-            Map<String, MSP> newMSPS = traverseConfigTreesMSP("", channelGroup, new HashMap<>(20));
+            Map<String, Msp> newMSPS = traverseConfigTreesMSP("", channelGroup, new HashMap<>(20));
 
             msps = Collections.unmodifiableMap(newMSPS);
 
@@ -1362,7 +1336,7 @@ public class Group implements Serializable {
 
     }
 
-    private Map<String, MSP> traverseConfigTreesMSP(String name, ConfigTree configGroup, Map<String, MSP> msps) throws InvalidProtocolBufferException {
+    private Map<String, Msp> traverseConfigTreesMSP(String name, ConfigTree configGroup, Map<String, Msp> msps) throws InvalidProtocolBufferException {
 
         ConfigValue mspv = configGroup.getValuesMap().get("MSP");
         if (null != mspv) {
@@ -1372,7 +1346,7 @@ public class Group implements Serializable {
 
                 MspConfigPackage.FabricMSPConfig fabricMSPConfig = MspConfigPackage.FabricMSPConfig.parseFrom(mspConfig.getConfig());
 
-                msps.put(name, new MSP(name, fabricMSPConfig));
+                msps.put(name, MspStore.getInstance().getMsp());
 
             }
         }
@@ -1755,7 +1729,7 @@ public class Group implements Serializable {
             installProposalbuilder.context(transactionContext);
             installProposalbuilder.setSmartContractLanguage(installProposalRequest.getSmartContractLanguage());
             installProposalbuilder.chaincodeName(installProposalRequest.getSmartContractName());
-            installProposalbuilder.chaincodePath(installProposalRequest.getSmartContractPath());
+            //installProposalbuilder.chaincodePath(installProposalRequest.getSmartContractPath());
             installProposalbuilder.chaincodeVersion(installProposalRequest.getSmartContractVersion());
             installProposalbuilder.setSmartContractSource(installProposalRequest.getSmartContractSourceLocation());
             installProposalbuilder.setSmartContractInputStream(installProposalRequest.getSmartContractInputStream());
@@ -2848,7 +2822,9 @@ public class Group implements Serializable {
                 throw new ProposalException(e);
             }
         }
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("__________ transactionContext start >>> ____________\n" + transactionContext + "\n__________ <<< transactionContext end ____________");
+        }
         class Pair {
             private final Node peer;
             private final Future<ProposalResponsePackage.ProposalResponse> future;
@@ -3559,12 +3535,18 @@ public class Group implements Serializable {
     }
 
     private Envelope createTransactionEnvelope(Payload transactionPayload, User user) throws CryptoException {
-
-        return Envelope.newBuilder()
-                .setPayload(transactionPayload.toByteString())
-                .setSignature(ByteString.copyFrom(client.getCryptoSuite().sign(user.getEnrollment().getKey(), transactionPayload.toByteArray())))
-                .build();
-
+        Msp msp = null;
+        try {
+            msp = MspStore.getInstance().getMsp();
+            return Envelope.newBuilder()
+                    .setPayload(transactionPayload.toByteString())
+                    .setSignature(ByteString.copyFrom(msp.getSigner().sign(transactionPayload.toByteArray())))
+                    .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("init fail", e);
+        }
+        return null;
     }
 
     /**
@@ -4002,7 +3984,7 @@ public class Group implements Serializable {
      */
 
     public synchronized void shutdown(boolean force) {
-
+        logger.info("########### Group shutdown ###########");
         if (shutdown) {
             return;
         }
@@ -4311,87 +4293,6 @@ public class Group implements Serializable {
                 throw new RuntimeException(e);
             }
 
-        }
-
-    }
-
-    /**
-     * MSPs
-     */
-
-    class MSP {
-        final String orgName;
-        final MspConfigPackage.FabricMSPConfig fabricMSPConfig;
-        byte[][] adminCerts;
-        byte[][] rootCerts;
-        byte[][] intermediateCerts;
-
-        MSP(String orgName, MspConfigPackage.FabricMSPConfig fabricMSPConfig) {
-            this.orgName = orgName;
-            this.fabricMSPConfig = fabricMSPConfig;
-        }
-
-        /**
-         * Known as the MSPID internally
-         *
-         * @return
-         */
-
-        String getID() {
-            return fabricMSPConfig.getName();
-
-        }
-
-        /**
-         * AdminCerts
-         *
-         * @return array of admin certs in PEM bytes format.
-         */
-        byte[][] getAdminCerts() {
-
-            if (null == adminCerts) {
-                adminCerts = new byte[fabricMSPConfig.getAdminsList().size()][];
-                int i = 0;
-                for (ByteString cert : fabricMSPConfig.getAdminsList()) {
-                    adminCerts[i++] = cert.toByteArray();
-                }
-            }
-            return adminCerts;
-        }
-
-        /**
-         * RootCerts
-         *
-         * @return array of admin certs in PEM bytes format.
-         */
-        byte[][] getRootCerts() {
-
-            if (null == rootCerts) {
-                rootCerts = new byte[fabricMSPConfig.getRootCertsList().size()][];
-                int i = 0;
-                for (ByteString cert : fabricMSPConfig.getRootCertsList()) {
-                    rootCerts[i++] = cert.toByteArray();
-                }
-            }
-
-            return rootCerts;
-        }
-
-        /**
-         * IntermediateCerts
-         *
-         * @return array of intermediate certs in PEM bytes format.
-         */
-        byte[][] getIntermediateCerts() {
-
-            if (null == intermediateCerts) {
-                intermediateCerts = new byte[fabricMSPConfig.getIntermediateCertsList().size()][];
-                int i = 0;
-                for (ByteString cert : fabricMSPConfig.getIntermediateCertsList()) {
-                    intermediateCerts[i++] = cert.toByteArray();
-                }
-            }
-            return intermediateCerts;
         }
 
     }

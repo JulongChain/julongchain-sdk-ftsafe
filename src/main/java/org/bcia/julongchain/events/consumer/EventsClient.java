@@ -104,9 +104,9 @@ public class EventsClient {
      */
     private void sendChat(EventsPackage.SignedEvent signedEvent, StreamObserver<EventsPackage.Event> responseObserver) {
         //TODO：去明文
-        ManagedChannel managedChannel = null;
-//                NettyChannelBuilder.forAddress(host, port).maxInboundMessageSize(CommConstant.MAX_GRPC_MESSAGE_SIZE)
-//                        .usePlaintext().build();
+        ManagedChannel managedChannel =
+                NettyChannelBuilder.forAddress(host, port).maxInboundMessageSize(CommConstant.MAX_GRPC_MESSAGE_SIZE)
+                        .usePlaintext().build();
         EventsGrpc.EventsStub stub = EventsGrpc.newStub(managedChannel);
         StreamObserver<EventsPackage.SignedEvent> streamObserver = stub.chat(responseObserver);
         //调用服务器对端的onNext方法
@@ -124,7 +124,7 @@ public class EventsClient {
 
         ISigningIdentity signingIdentity = localMsp.getDefaultSigningIdentity();
 
-        byte[] creator = signingIdentity.serialize();
+        byte[] creator = signingIdentity.getIdentity().serialize();
 
         EventsPackage.Event.Builder eventBuilder = EventsPackage.Event.newBuilder(event);
         eventBuilder.setCreator(ByteString.copyFrom(creator));
@@ -164,7 +164,7 @@ public class EventsClient {
     public void registerAsync(RegistrationConfig config) {
         IMsp localMsp = GlobalMspManagement.getLocalMsp();
         ISigningIdentity signingIdentity = localMsp.getDefaultSigningIdentity();
-        byte[] creator = signingIdentity.serialize();
+        byte[] creator = signingIdentity.getIdentity().serialize();
 
         EventsPackage.Register.Builder registerBuilder = EventsPackage.Register.newBuilder();
         registerBuilder.addAllEvents(config.getInterestedEvents()).build();
@@ -228,7 +228,7 @@ public class EventsClient {
     public void unRegisterAsync(RegistrationConfig config) {
         IMsp localMsp = GlobalMspManagement.getLocalMsp();
         ISigningIdentity signingIdentity = localMsp.getDefaultSigningIdentity();
-        byte[] creator = signingIdentity.serialize();
+        byte[] creator = signingIdentity.getIdentity().serialize();
 
         EventsPackage.Unregister.Builder unregisterBuilder = EventsPackage.Unregister.newBuilder();
         unregisterBuilder.addAllEvents(config.getInterestedEvents()).build();

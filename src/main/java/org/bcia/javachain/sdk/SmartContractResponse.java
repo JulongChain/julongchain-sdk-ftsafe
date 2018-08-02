@@ -48,7 +48,8 @@ public class SmartContractResponse {
     }
 
     public boolean isInvalid() {
-        return status != Status.SUCCESS;
+        return status != Status.SUCCESS
+                && status != Status.UNDEFINED;//TODO 200和０暂时都算返回成功，等julongchain返回码统一
     }
 
     public SmartContractResponse(String transactionID, String chaincodeID, int istatus, String message) {

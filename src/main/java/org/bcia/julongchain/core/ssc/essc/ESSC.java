@@ -26,6 +26,7 @@ import org.bcia.julongchain.msp.ISigningIdentity;
 import org.bcia.julongchain.msp.mgmt.GlobalMspManagement;
 import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ import java.util.List;
  * @date 3/5/18
  * @company Dingxuan
  */
-//@Component
+@Component
 public class ESSC extends SystemSmartContractBase {
     private static JavaChainLog log = JavaChainLogFactory.getLog(ESSC.class);
 

@@ -29,6 +29,7 @@ import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Ledger;
 import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.TransactionPackage;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ import java.util.List;
  * @date 3/5/18
  * @company Dingxuan
  */
-//@Component
+@Component
 public class QSSC extends SystemSmartContractBase {
     private static JavaChainLog log = JavaChainLogFactory.getLog(QSSC.class);
     // These are function names from Invoke first parameter

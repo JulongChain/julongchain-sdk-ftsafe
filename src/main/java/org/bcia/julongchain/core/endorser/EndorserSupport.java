@@ -39,6 +39,8 @@ import org.bcia.julongchain.core.ssc.lssc.LSSC;
 import org.bcia.julongchain.node.common.helper.SpecHelper;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.node.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * 背书能力支持对象(隔离对其他模块的依赖)
@@ -47,14 +49,14 @@ import org.bcia.julongchain.protos.node.*;
  * @date 2018/3/15
  * @company Dingxuan
  */
-//@Component
+@Component
 public class EndorserSupport implements IEndorserSupport {
     private static JavaChainLog log = JavaChainLogFactory.getLog(EndorserSupport.class);
 
-    //@Autowired
+    @Autowired
     private ISystemSmartContractManager sysSmartContractManager;
 
-    //@Autowired
+    @Autowired
     private SmartContractExecutor smartContractExecutor;
 
     @Override

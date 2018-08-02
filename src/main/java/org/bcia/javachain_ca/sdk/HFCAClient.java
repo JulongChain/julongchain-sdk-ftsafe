@@ -95,7 +95,6 @@ import org.apache.http.util.EntityUtils;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.sdk.security.CryptoPrimitives;
 import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain_ca.sdk.exception.AffiliationException;
 import org.bcia.javachain_ca.sdk.exception.EnrollmentException;
@@ -361,92 +360,92 @@ public class HFCAClient {
      */
 
     public Enrollment enroll(String user, String secret, EnrollmentRequest req) throws EnrollmentException, InvalidArgumentException {
-
-        logger.debug(format("url:%s enroll user: %s", url, user));
-
-        if (Utils.isNullOrEmpty(user)) {
-            throw new InvalidArgumentException("enrollment user is not set");
-        }
-        if (Utils.isNullOrEmpty(secret)) {
-            throw new InvalidArgumentException("enrollment secret is not set");
-        }
-
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
-        setUpSSL();
-
-        try {
-            String pem = req.getCsr();
-            KeyPair keypair = req.getKeyPair();
-            if (null != pem && keypair == null) {
-                throw new InvalidArgumentException("If certificate signing request is supplied the key pair needs to be supplied too.");
-            }
-            if (keypair == null) {
-                logger.debug("[HFCAClient.enroll] Generating keys...");
-
-                // generate ECDSA keys: signing and encryption keys
-                keypair = cryptoSuite.keyGen();
-
-                logger.debug("[HFCAClient.enroll] Generating keys...done!");
-            }
-
-            if (pem == null) {
-                String csr = cryptoSuite.generateCertificationRequest(user, keypair);
-                req.setCSR(csr);
-            }
-
-            if (caName != null && !caName.isEmpty()) {
-                req.setCAName(caName);
-            }
-            String body = req.toJson();
-            System.err.println("request:" + body);
-            String responseBody = httpPost(url + HFCA_ENROLL, body,
-                    new UsernamePasswordCredentials(user, secret));
-
-            System.err.println("response:" + responseBody);
-
-            JsonReader reader = Json.createReader(new StringReader(responseBody));
-            JsonObject jsonst = (JsonObject) reader.read();
-
-            boolean success = jsonst.getBoolean("success");
-            logger.debug(format("[HFCAClient] enroll success:[%s]", success));
-
-            if (!success) {
-                throw new EnrollmentException(format("FabricCA failed enrollment for user %s response success is false.", user));
-            }
-
-            JsonObject result = jsonst.getJsonObject("result");
-            if (result == null) {
-                throw new EnrollmentException(format("FabricCA failed enrollment for user %s - response did not contain a result", user));
-            }
-
-            Base64.Decoder b64dec = Base64.getDecoder();
-
-            String signedPem = new String(b64dec.decode(result.getString("Cert").getBytes(UTF_8)));
-            logger.debug(format("[HFCAClient] enroll returned pem:[%s]", signedPem));
-
-            JsonArray messages = jsonst.getJsonArray("messages");
-            if (messages != null && !messages.isEmpty()) {
-                JsonObject jo = messages.getJsonObject(0);
-                String message = format("Enroll request response message [code %d]: %s", jo.getInt("code"), jo.getString("message"));
-                logger.info(message);
-            }
-            logger.debug("Enrollment done.");
-
-            return new HFCAEnrollment(keypair, signedPem);
-
-        } catch (EnrollmentException ee) {
-            logger.error(format("url:%s, user:%s  error:%s", url, user, ee.getMessage()), ee);
-            throw ee;
-        } catch (Exception e) {
-        	e.printStackTrace();
-            EnrollmentException ee = new EnrollmentException(format("Url:%s, Failed to enroll user %s ", url, user), e);
-            logger.error(e.getMessage(), e);
-            throw ee;
-        }
-
+//
+//        logger.debug(format("url:%s enroll user: %s", url, user));
+//
+//        if (Utils.isNullOrEmpty(user)) {
+//            throw new InvalidArgumentException("enrollment user is not set");
+//        }
+//        if (Utils.isNullOrEmpty(secret)) {
+//            throw new InvalidArgumentException("enrollment secret is not set");
+//        }
+//
+//        if (cryptoSuite == null) {
+//            throw new InvalidArgumentException("Crypto primitives not set.");
+//        }
+//
+//        setUpSSL();
+//
+//        try {
+//            String pem = req.getCsr();
+//            KeyPair keypair = req.getKeyPair();
+//            if (null != pem && keypair == null) {
+//                throw new InvalidArgumentException("If certificate signing request is supplied the key pair needs to be supplied too.");
+//            }
+//            if (keypair == null) {
+//                logger.debug("[HFCAClient.enroll] Generating keys...");
+//
+//                // generate ECDSA keys: signing and encryption keys
+//                keypair = cryptoSuite.keyGen();
+//
+//                logger.debug("[HFCAClient.enroll] Generating keys...done!");
+//            }
+//
+//            if (pem == null) {
+//                String csr = cryptoSuite.generateCertificationRequest(user, keypair);
+//                req.setCSR(csr);
+//            }
+//
+//            if (caName != null && !caName.isEmpty()) {
+//                req.setCAName(caName);
+//            }
+//            String body = req.toJson();
+//            System.err.println("request:" + body);
+//            String responseBody = httpPost(url + HFCA_ENROLL, body,
+//                    new UsernamePasswordCredentials(user, secret));
+//
+//            System.err.println("response:" + responseBody);
+//
+//            JsonReader reader = Json.createReader(new StringReader(responseBody));
+//            JsonObject jsonst = (JsonObject) reader.read();
+//
+//            boolean success = jsonst.getBoolean("success");
+//            logger.debug(format("[HFCAClient] enroll success:[%s]", success));
+//
+//            if (!success) {
+//                throw new EnrollmentException(format("FabricCA failed enrollment for user %s response success is false.", user));
+//            }
+//
+//            JsonObject result = jsonst.getJsonObject("result");
+//            if (result == null) {
+//                throw new EnrollmentException(format("FabricCA failed enrollment for user %s - response did not contain a result", user));
+//            }
+//
+//            Base64.Decoder b64dec = Base64.getDecoder();
+//
+//            String signedPem = new String(b64dec.decode(result.getString("Cert").getBytes(UTF_8)));
+//            logger.debug(format("[HFCAClient] enroll returned pem:[%s]", signedPem));
+//
+//            JsonArray messages = jsonst.getJsonArray("messages");
+//            if (messages != null && !messages.isEmpty()) {
+//                JsonObject jo = messages.getJsonObject(0);
+//                String message = format("Enroll request response message [code %d]: %s", jo.getInt("code"), jo.getString("message"));
+//                logger.info(message);
+//            }
+//            logger.debug("Enrollment done.");
+//
+//            return new HFCAEnrollment(keypair, signedPem);
+//
+//        } catch (EnrollmentException ee) {
+//            logger.error(format("url:%s, user:%s  error:%s", url, user, ee.getMessage()), ee);
+//            throw ee;
+//        } catch (Exception e) {
+//        	e.printStackTrace();
+//            EnrollmentException ee = new EnrollmentException(format("Url:%s, Failed to enroll user %s ", url, user), e);
+//            logger.error(e.getMessage(), e);
+//            throw ee;
+//        }
+        return null;
     }
 
     /**
@@ -538,57 +537,58 @@ public class HFCAClient {
 
     public Enrollment reenroll(User user, EnrollmentRequest req) throws EnrollmentException, InvalidArgumentException {
 
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
-        if (user == null) {
-            throw new InvalidArgumentException("reenrollment user is missing");
-        }
-        if (user.getEnrollment() == null) {
-            throw new InvalidArgumentException("reenrollment user is not a valid user object");
-        }
-
-        logger.debug(format("re-enroll user: %s, url: %s", user.getName(), url));
-
-        try {
-            setUpSSL();
-
-            PublicKey publicKey = cryptoSuite.bytesToCertificate(user.getEnrollment().getCert()
-                    .getBytes(StandardCharsets.UTF_8)).getPublicKey();
-
-            KeyPair keypair = new KeyPair(publicKey, user.getEnrollment().getKey());
-
-            // generate CSR
-
-            String pem = cryptoSuite.generateCertificationRequest(user.getName(), keypair);
-
-            // build request body
-            req.setCSR(pem);
-            if (caName != null && !caName.isEmpty()) {
-                req.setCAName(caName);
-            }
-            String body = req.toJson();
-
-            // build authentication header
-            JsonObject result = httpPost(url + HFCA_REENROLL, body, user);
-
-            // get new cert from response
-            Base64.Decoder b64dec = Base64.getDecoder();
-            String signedPem = new String(b64dec.decode(result.getString("Cert").getBytes(UTF_8)));
-            logger.debug(format("[HFCAClient] re-enroll returned pem:[%s]", signedPem));
-
-            logger.debug(format("reenroll user %s done.", user.getName()));
-            return new HFCAEnrollment(keypair, signedPem);
-
-        } catch (EnrollmentException ee) {
-            logger.error(ee.getMessage(), ee);
-            throw ee;
-        } catch (Exception e) {
-            EnrollmentException ee = new EnrollmentException(format("Failed to re-enroll user %s", user), e);
-            logger.error(e.getMessage(), e);
-            throw ee;
-        }
+//        if (cryptoSuite == null) {
+//            throw new InvalidArgumentException("Crypto primitives not set.");
+//        }
+//
+//        if (user == null) {
+//            throw new InvalidArgumentException("reenrollment user is missing");
+//        }
+//        if (user.getEnrollment() == null) {
+//            throw new InvalidArgumentException("reenrollment user is not a valid user object");
+//        }
+//
+//        logger.debug(format("re-enroll user: %s, url: %s", user.getName(), url));
+//
+//        try {
+//            setUpSSL();
+//
+//            PublicKey publicKey = null;//cryptoSuite.bytesToCertificate(user.getEnrollment().getCert()
+//                    //.getBytes(StandardCharsets.UTF_8)).getPublicKey();
+//
+//            KeyPair keypair = null;//new KeyPair(publicKey, user.getEnrollment().getKey());
+//
+//            // generate CSR
+//
+//            String pem = cryptoSuite.generateCertificationRequest(user.getName(), keypair);
+//
+//            // build request body
+//            req.setCSR(pem);
+//            if (caName != null && !caName.isEmpty()) {
+//                req.setCAName(caName);
+//            }
+//            String body = req.toJson();
+//
+//            // build authentication header
+//            JsonObject result = httpPost(url + HFCA_REENROLL, body, user);
+//
+//            // get new cert from response
+//            Base64.Decoder b64dec = Base64.getDecoder();
+//            String signedPem = new String(b64dec.decode(result.getString("Cert").getBytes(UTF_8)));
+//            logger.debug(format("[HFCAClient] re-enroll returned pem:[%s]", signedPem));
+//
+//            logger.debug(format("reenroll user %s done.", user.getName()));
+//            return new HFCAEnrollment(keypair, signedPem);
+//
+//        } catch (EnrollmentException ee) {
+//            logger.error(ee.getMessage(), ee);
+//            throw ee;
+//        } catch (Exception e) {
+//            EnrollmentException ee = new EnrollmentException(format("Failed to re-enroll user %s", user), e);
+//            logger.error(e.getMessage(), e);
+//            throw ee;
+//        }
+        return null;
     }
 
     /**
@@ -639,7 +639,7 @@ public class HFCAClient {
             setUpSSL();
 
             // get cert from to-be-revoked enrollment
-            BufferedInputStream pem = new BufferedInputStream(new ByteArrayInputStream(enrollment.getCert().getBytes()));
+            BufferedInputStream pem = null;//new BufferedInputStream(new ByteArrayInputStream(enrollment.getCert().getBytes()));
             CertificateFactory certFactory = CertificateFactory.getInstance(Config.getConfig().getCertificateFormat());
             X509Certificate certificate = (X509Certificate) certFactory.generateCertificate(pem);
 
@@ -1259,18 +1259,18 @@ public class HFCAClient {
 
     String getHTTPAuthCertificate(Enrollment enrollment, String body) throws Exception {
         Base64.Encoder b64 = Base64.getEncoder();
-        String cert = b64.encodeToString(enrollment.getCert().getBytes(UTF_8));
+        String cert = null;//b64.encodeToString(enrollment.getCert().getBytes(UTF_8));
         body = b64.encodeToString(body.getBytes(UTF_8));
         String signString = body + "." + cert;
-        byte[] signature = cryptoSuite.sign(enrollment.getKey(), signString.getBytes(UTF_8));
-        return cert + "." + b64.encodeToString(signature);
+        //byte[] signature = cryptoSuite.sign(enrollment.getKey(), signString.getBytes(UTF_8));
+        return cert + ".";// + b64.encodeToString(signature);
     }
 
     private Registry<ConnectionSocketFactory> registry = null;
     //Only use crypto primitives for reuse of its truststore on TLS
     CryptoSuite cryptoPrimitives = null;
 
-    private void setUpSSL() throws InvalidArgumentException {
+    private void setUpSSL() throws InvalidArgumentException {/*
 
         if (cryptoPrimitives == null) {
             try {
@@ -1293,13 +1293,13 @@ public class HFCAClient {
                 if (properties.containsKey("pemBytes")) {
                     byte[] pemBytes = (byte[]) properties.get("pemBytes");
 
-                    cryptoPrimitives.addCACertificateToTrustStore(pemBytes, pemBytes.toString());
+                    //cryptoPrimitives.addCACertificateToTrustStore(pemBytes, pemBytes.toString());
 
                 } else {
                     String pemFile = properties.getProperty("pemFile");
                     if (pemFile != null) {
 
-                        cryptoPrimitives.addCACertificateToTrustStore(new File(pemFile), pemFile);
+                        //cryptoPrimitives.addCACertificateToTrustStore(new File(pemFile), pemFile);
 
                     }
 
@@ -1330,7 +1330,7 @@ public class HFCAClient {
             }
         }
 
-    }
+    */}
 
     private class AllHostsSSLSocketFactory extends SSLSocketFactory {
         final SSLContext sslContext = SSLContext.getInstance("TLS");

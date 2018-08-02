@@ -42,6 +42,7 @@ import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 import org.bcia.julongchain.protos.node.SmartContractEventPackage;
 import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ import java.util.List;
  * @date 2018/3/13
  * @company Dingxuan
  */
-//@Component
+@Component
 public class Endorser implements IEndorserServer {
     private static JavaChainLog log = JavaChainLogFactory.getLog(Endorser.class);
 
@@ -424,7 +425,7 @@ public class Endorser implements IEndorserServer {
     public Object[] callSmartContract(String groupId, String scName, String scVersion, String txId, ProposalPackage
             .SignedProposal signedProposal, ProposalPackage.Proposal proposal, SmartContractPackage
                                               .SmartContractInvocationSpec spec) throws NodeException {
-        log.info("begin callSmartContract-----" + scName);
+        log.info("Begin callSmartContract: " + scName);
 
         boolean isSysSmartContract = endorserSupport.isSysSmartContract(scName);
 

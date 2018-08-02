@@ -42,24 +42,8 @@ public class GmHLSDKJCryptoSuiteFactory implements GmCryptoSuiteFactory {
 
     @Override
     public CryptoSuite getCryptoSuite(Properties properties) throws CryptoException, InvalidArgumentException {
-
-        CryptoSuite ret = cache.get(properties);
-        if (ret == null) {
-            try {
-                GmCryptoPrimitives cp = new GmCryptoPrimitives();
-                cp.setProperties(properties);
-                //cp.init();
-                ret = cp;
-            } catch (Exception e) {
-                throw new CryptoException(e.getMessage(), e);
-            }
-
-            cache.put(properties, ret);
-
-        }
-
-        return ret;
-
+        GmCryptoPrimitives cp = new GmCryptoPrimitives();
+        return cp;
     }
 
     @Override
@@ -86,8 +70,7 @@ public class GmHLSDKJCryptoSuiteFactory implements GmCryptoSuiteFactory {
         if (null == theFACTORY) {
 
             String cf = config.getDefaultCryptoSuiteFactory();
-            System.err.println("________________"+ cf);
-            if (null == cf || cf.isEmpty() || cf.equals(GmHLSDKJCryptoSuiteFactory.class.getName())) { // Use this class as the factory.
+             if (null == cf || cf.isEmpty() || cf.equals(GmHLSDKJCryptoSuiteFactory.class.getName())) { // Use this class as the factory.
 
                 theFACTORY = GmHLSDKJCryptoSuiteFactory.instance();
 

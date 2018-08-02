@@ -34,6 +34,7 @@ import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Policies;
 import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.Query;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ import java.util.List;
  * @date 3/13/18
  * @company Dingxuan
  */
-//@Component
+@Component
 public class LsscSupport {
     /**
      * putSmartcontractToLocalStorage stores the supplied smartcontract

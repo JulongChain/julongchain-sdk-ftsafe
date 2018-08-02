@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 节点对应证书的相关信息数据类
+ *
  * @author chenhao, liuxifeng
  * @date 2018/4/4
  * @company Excelsecu
@@ -101,11 +103,11 @@ public class NodeSpec {
         this.postalCode = postalCode;
     }
 
-    public List<String> getSANS() {
+    public List<String> getSans() {
         return sans;
     }
 
-    public void setSANS(List<String> sans) {
+    public void setSans(List<String> sans) {
         this.sans = sans;
     }
 }

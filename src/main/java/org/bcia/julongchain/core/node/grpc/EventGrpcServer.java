@@ -97,9 +97,6 @@ public class EventGrpcServer {
         EventGrpcServer server = new EventGrpcServer(7053);
         server.start();
         server.blockUntilShutdown();
-        EventGrpcServer server2 = new EventGrpcServer(8053);
-        server2.start();
-        server2.blockUntilShutdown();
     }
 
     private class EventServerImpl extends EventsGrpc.EventsImplBase {

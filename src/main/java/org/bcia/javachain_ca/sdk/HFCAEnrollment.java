@@ -19,23 +19,31 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 
 import org.bcia.javachain.sdk.Enrollment;
+import org.bcia.julongchain.csp.intfs.IKey;
+import org.bcia.julongchain.msp.IIdentity;
 
 // Enrollment metadata
 public class HFCAEnrollment implements Enrollment, Serializable {
     private static final long serialVersionUID = 550416591376968096L;
-    private KeyPair key;
-    private String cert;
+    private IKey key;
+    private byte[] cert;
 
-    HFCAEnrollment(KeyPair signingKeyPair, String signedPem) {
-        key = signingKeyPair;
+//    HFCAEnrollment(KeyPair signingKeyPair, String signedPem) {
+//        key = signingKeyPair;
+//        this.cert = signedPem;
+//    }
+
+    HFCAEnrollment(IKey signingKey, byte[] signedPem) {
+        key = signingKey;
         this.cert = signedPem;
     }
 
-    public PrivateKey getKey() {
-        return key.getPrivate();
+    public IKey getKey() {
+//        return key.getPrivate();
+        return key;
     }
 
-    public String getCert() {
+    public byte[] getCert() {
         return cert;
     }
 

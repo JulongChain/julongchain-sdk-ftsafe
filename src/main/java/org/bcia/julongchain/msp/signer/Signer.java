@@ -49,7 +49,7 @@ public class Signer implements ISigner {
     }
 
     @Override
-    public byte[] Sign(Reader reader, byte[] digest, ISignerOpts opts) {
+    public byte[] sign(IKey key, byte[] digest, ISignerOpts opts) {
         try {
             return this.csp.sign(this.key,digest,opts);
         } catch (JavaChainException e) {

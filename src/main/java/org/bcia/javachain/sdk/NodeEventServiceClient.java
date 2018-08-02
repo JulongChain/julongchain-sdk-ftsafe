@@ -85,6 +85,7 @@ class NodeEventServiceClient {
         this.peer = peer;
         name = peer.getName();
         url = peer.getUrl();
+
         channelName = peer.getGroup().getName();
         this.peerOptions = peerOptions;
         clientTLSCertificateDigest = endpoint.getClientTLSCertificateDigest();
@@ -204,12 +205,14 @@ class NodeEventServiceClient {
 
                     final DeliverResponse.TypeCase typeCase = resp.getTypeCase();
 
-                    if (typeCase == STATUS) {
+                    if (typeCase == STATUS
+                            ||typeCase==STATUS.TYPE_NOT_SET) {//TODO 200和０暂时都算返回成功，等julongchain返回码统一
 
                         logger.debug(format("DeliverResponse channel %s peer %s setting done.",
                                 channelName, peer.getName()));
-
-                        if (resp.getStatus() == Common.Status.SUCCESS) { // unlike you may think this only happens when all blocks are fetched.
+                        //if (resp.getStatus() == Common.Status.SUCCESS){// unlike you may think this only happens when all blocks are fetched.
+                        if (resp.getStatus() == Common.Status.SUCCESS
+                                || resp.getStatus() == Common.Status.UNKNOWN) { //TODO 200和０暂时都算返回成功，等julongchain返回码统一
                             peer.setLastConnectTime(System.currentTimeMillis());
                             peer.resetReconnectCount();
                         } else {
@@ -255,6 +258,7 @@ class NodeEventServiceClient {
 
                 @Override
                 public void onError(Throwable t) {
+                    t.printStackTrace();
                     ManagedChannel llmanagedGroup = managedGroup;
                     if (llmanagedGroup != null) {
                         llmanagedGroup.shutdownNow();
@@ -308,6 +312,7 @@ class NodeEventServiceClient {
                     managedGroup = null;
                 }
                 Throwable throwable = throwableList.get(0);
+                throwable.printStackTrace();
                 peer.reconnectNodeEventServiceClient(this, throwable);
 
             }
@@ -315,6 +320,7 @@ class NodeEventServiceClient {
         } catch (InterruptedException e) {
             ManagedChannel llmanagedGroup = managedGroup;
             if (llmanagedGroup != null) {
+                e.printStackTrace();
                 llmanagedGroup.shutdownNow();
                 managedGroup = null;
             }

@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -38,23 +39,26 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+
 import javax.crypto.KeyGenerator;
+
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.commons.codec.binary.Base64;
 import org.bcia.julongchain.common.exception.JavaChainException;
 import org.bcia.julongchain.csp.intfs.IKey;
 import org.bcia.julongchain.csp.pkcs11.ecdsa.EcdsaKeyOpts;
 import org.bcia.julongchain.csp.pkcs11.rsa.RsaKeyOpts;
+
 import org.bcia.julongchain.csp.pkcs11.util.SymmetryKey;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
@@ -65,6 +69,7 @@ import sun.security.util.DerOutputStream;
 import sun.security.util.ECUtil;
 
 
+import org.springframework.util.Base64Utils;
 
 /**
  * Class description
@@ -210,7 +215,7 @@ public class GenerateKeyImpl {
 
     public static void savePublicKeyAsPEM(byte[] encode, String path) throws JavaChainException {
         try {
-            String content = new Base64().encode(encode).toString();
+            String content = Base64Utils.encode(encode).toString();
             File file = new File(path + "/public.pem");
             if ( file.isFile() && file.exists() )
                 throw new IOException("file already exists");
@@ -240,7 +245,7 @@ public class GenerateKeyImpl {
 
     public static void savePrivateKeyAsPEM(byte[] encode, String path) throws JavaChainException {
         try {
-            String content = new Base64().encode(encode).toString();
+            String content = Base64Utils.encode(encode).toString();
             File file = new File(path + "/private.pem");
             if ( file.isFile() && file.exists() )
                 throw new JavaChainException("file already exists");
@@ -286,7 +291,7 @@ public class GenerateKeyImpl {
 
         String privateKeyPEM = content.replace("-----BEGIN PRIVATE KEY-----\n", "")
                 .replace("-----END PRIVATE KEY-----", "").replace("\n", "");
-        byte[] asBytes = new Base64().decode(privateKeyPEM.getBytes());
+        byte[] asBytes = Base64Utils.decode(privateKeyPEM.getBytes());
         PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(asBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
         return keyFactory.generatePrivate(spec);
@@ -309,7 +314,7 @@ public class GenerateKeyImpl {
 
         String strPublicKey = content.replace("-----BEGIN PUBLIC KEY-----\n", "")
                 .replace("-----END PUBLIC KEY-----", "").replace("\n", "");
-        byte[] asBytes = new Base64().decode(strPublicKey.getBytes());
+        byte[] asBytes = Base64Utils.decode(strPublicKey.getBytes());
         X509EncodedKeySpec spec = new X509EncodedKeySpec(asBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
         return keyFactory.generatePublic(spec);

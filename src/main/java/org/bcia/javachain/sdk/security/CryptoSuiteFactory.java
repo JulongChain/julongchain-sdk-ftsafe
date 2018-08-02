@@ -74,8 +74,9 @@ public interface CryptoSuiteFactory {
      */
 
     static CryptoSuiteFactory getDefault() throws ClassNotFoundException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-    	Config config = Config.getConfig();
-    	String cryptoId = config.getProperty("org.bcia.javachain.sdk.crypto.id");
+        //加密类库标识
+    	//String cryptoId = Config.getConfig().getCryptoId();
+        //TODO 暂时直接国密
     	return GmHLSDKJCryptoSuiteFactory.getDefault();
 
     }

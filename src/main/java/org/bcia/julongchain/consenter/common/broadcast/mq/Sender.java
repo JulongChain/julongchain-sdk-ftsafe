@@ -15,6 +15,12 @@
  */
 package org.bcia.julongchain.consenter.common.broadcast.mq;
 
+import org.apache.activemq.ActiveMQConnection;
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.command.ActiveMQObjectMessage;
+
+import javax.jms.*;
+
 /**
  * @author zhangmingyang
  * @Date: 2018/3/13
@@ -93,33 +99,33 @@ public class Sender {
 
 
     public static  void sendMessage(byte[] data){
-//        ConnectionFactory connectionFactory;
-//        Connection connection = null;
-//        Session session;
-//        Destination destination;
-//        MessageProducer producer;
-//        connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, "tcp://192.168.1.107:61616");
-//        try {
-//            connection = connectionFactory.createConnection();
-//            connection.start();
-//            session = connection.createSession(Boolean.TRUE, Session.AUTO_ACKNOWLEDGE);
-//            destination = session.createQueue("FirstQueue");
-//            producer = session.createProducer(destination);
-//            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-//            ActiveMQObjectMessage message = (ActiveMQObjectMessage) session.createObjectMessage();
-//            message.setObject(data);
-//            // 发送消息到目的地方
-//            producer.send(message);
-//            session.commit();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                if (null != connection) {
-//                    connection.close();
-//                }
-//            } catch (Throwable ignore) {
-//            }
-//        }
+        ConnectionFactory connectionFactory;
+        Connection connection = null;
+        Session session;
+        Destination destination;
+        MessageProducer producer;
+        connectionFactory = new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_USER, ActiveMQConnection.DEFAULT_PASSWORD, "tcp://192.168.1.107:61616");
+        try {
+            connection = connectionFactory.createConnection();
+            connection.start();
+            session = connection.createSession(Boolean.TRUE, Session.AUTO_ACKNOWLEDGE);
+            destination = session.createQueue("FirstQueue");
+            producer = session.createProducer(destination);
+            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            ActiveMQObjectMessage message = (ActiveMQObjectMessage) session.createObjectMessage();
+            message.setObject(data);
+            // 发送消息到目的地方
+            producer.send(message);
+            session.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (null != connection) {
+                    connection.close();
+                }
+            } catch (Throwable ignore) {
+            }
+        }
     }
 }

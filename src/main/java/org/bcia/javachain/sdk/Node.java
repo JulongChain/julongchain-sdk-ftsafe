@@ -85,7 +85,7 @@ public class Node implements Serializable {
     }
 
     static Node createNewInstance(String name, String grpcURL, Properties properties) throws InvalidArgumentException {
-
+        logger.info("new Node");
         return new Node(name, grpcURL, properties);
     }
 
@@ -155,7 +155,7 @@ public class Node implements Serializable {
      */
 
     void setGroup(Group channel) throws InvalidArgumentException {
-
+        logger.info("Node set Group ");
         if (null != this.channel) {
             throw new InvalidArgumentException(format("Can not add peer %s to channel %s because it already belongs to channel %s.",
                     name, channel.getName(), this.channel.getName()));
@@ -504,16 +504,29 @@ public class Node implements Serializable {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Node " + name + " url: " + url;
-
-    }
-
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 
         in.defaultReadObject();
         disconnectedHandler = getDefaultDisconnectHandler();
 
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "Node{" +
+                "\nshutdown=" + shutdown +
+                ",\n name='" + name + '\'' +
+                ",\n url='" + url + '\'' +
+                ",\n endorserClent=" + endorserClent +
+                ",\n peerEventingClient=" + peerEventingClient +
+                ",\n channel=" + channel +
+                ",\n transactionContext=" + transactionContext +
+                ",\n lastConnectTime=" + lastConnectTime +
+                ",\n reconnectCount=" + reconnectCount +
+                ",\n lastBlockEvent=" + lastBlockEvent +
+                ",\n lastBlockNumber=" + lastBlockNumber +
+                ",\n disconnectedHandler=" + disconnectedHandler +
+                "\nproperties=" + properties +
+                "\n}";
     }
 } // end Node

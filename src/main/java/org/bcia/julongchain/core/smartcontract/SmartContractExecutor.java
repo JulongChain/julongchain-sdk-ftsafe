@@ -25,6 +25,7 @@ import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 import org.bcia.julongchain.protos.node.SmartContractPackage;
 import org.bcia.julongchain.protos.node.SmartContractShim;
+import org.springframework.stereotype.Component;
 
 /**
  * 智能合约执行器
@@ -33,7 +34,7 @@ import org.bcia.julongchain.protos.node.SmartContractShim;
  * @date 2018/3/22
  * @company Dingxuan
  */
-//@Component
+@Component
 public class SmartContractExecutor {
     private static JavaChainLog log = JavaChainLogFactory.getLog(SmartContractExecutor.class);
 
@@ -105,6 +106,7 @@ public class SmartContractExecutor {
                 ProposalResponsePackage.Response response = null;
                 try {
                     response = ProposalResponsePackage.Response.parseFrom(responseMessage.getPayload());
+                    log.info(response.getMessage());
                 } catch (InvalidProtocolBufferException e) {
                     log.error(e.getMessage(), e);
                     throw new SmartContractException("Wrong Response");

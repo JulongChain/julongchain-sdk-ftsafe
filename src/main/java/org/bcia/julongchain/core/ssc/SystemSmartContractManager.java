@@ -36,6 +36,8 @@ import org.bcia.julongchain.core.ssc.lssc.LSSC;
 import org.bcia.julongchain.core.ssc.qssc.QSSC;
 import org.bcia.julongchain.core.ssc.vssc.VSSC;
 import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -56,25 +58,25 @@ import java.util.*;
  * @company Dingxuan
  */
 
-//@Component
+@Component
 public class SystemSmartContractManager implements ISystemSmartContractManager {
     private SystemSmartContractDescriptor[] embedContractDescriptors = new SystemSmartContractDescriptor[5];
     private Map<String, ISystemSmartContract> sysSCMap = new HashMap<String, ISystemSmartContract>();
     private static JavaChainLog log = JavaChainLogFactory.getLog(SystemSmartContractManager.class);
-    //@Autowired
+    @Autowired
     private CSSC cssc;
-    //@Autowired
+    @Autowired
     private ESSC essc;
-    //@Autowired
+    @Autowired
     private LSSC lssc;
-    //@Autowired
+    @Autowired
     private QSSC qssc;
-    //@Autowired
+    @Autowired
     private VSSC vssc;
-    //@Autowired
+    @Autowired
     private InprocController controller;
 
-    //@Autowired
+    @Autowired
     public SystemSmartContractManager() {
         log.debug("Construct systemSmartContractManager");
     }
@@ -165,7 +167,7 @@ public class SystemSmartContractManager implements ISystemSmartContractManager {
         }
 
         String contractID = contract.getSmartContractID();
-        log.info("Register system contract [%s]", contractID);
+        log.info("Register system contract {}", contractID);
         sysSCMap.put(contractID, contract);
         return true;
     }

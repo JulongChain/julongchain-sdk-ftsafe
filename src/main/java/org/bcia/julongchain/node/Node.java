@@ -15,19 +15,9 @@
  */
 package org.bcia.julongchain.node;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.cli.ParseException;
-import org.bcia.julongchain.common.exception.CommitterException;
-import org.bcia.julongchain.common.exception.LedgerException;
-import org.bcia.julongchain.common.exception.MspException;
-import org.bcia.julongchain.common.exception.NodeException;
-import org.bcia.julongchain.common.exception.PolicyException;
-import org.bcia.julongchain.common.exception.ValidateException;
+import org.bcia.julongchain.common.exception.*;
 import org.bcia.julongchain.common.genesis.GenesisBlockFactory;
 import org.bcia.julongchain.common.groupconfig.GroupConfigBundle;
 import org.bcia.julongchain.common.groupconfig.IGroupConfigBundle;
@@ -41,11 +31,7 @@ import org.bcia.julongchain.common.log.JavaChainLogFactory;
 import org.bcia.julongchain.common.resourceconfig.IResourcesConfigBundle;
 import org.bcia.julongchain.common.resourceconfig.ResourcesConfigBundle;
 import org.bcia.julongchain.common.util.proto.BlockUtils;
-import org.bcia.julongchain.core.commiter.Committer;
-import org.bcia.julongchain.core.commiter.CommitterSupport;
-import org.bcia.julongchain.core.commiter.CommitterValidator;
-import org.bcia.julongchain.core.commiter.ICommitter;
-import org.bcia.julongchain.core.commiter.ICommitterValidator;
+import org.bcia.julongchain.core.commiter.*;
 import org.bcia.julongchain.core.ledger.INodeLedger;
 import org.bcia.julongchain.core.ledger.customtx.IProcessor;
 import org.bcia.julongchain.core.ledger.ledgermgmt.LedgerManager;
@@ -66,7 +52,11 @@ import org.bcia.julongchain.protos.common.Ledger;
 import org.bcia.julongchain.tools.configtxgen.entity.GenesisConfig;
 import org.bcia.julongchain.tools.configtxgen.entity.GenesisConfigFactory;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 节点对象
@@ -75,7 +65,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
  * @date 2018/2/23
  * @company Dingxuan
  */
-//@Repository
 public class Node {
     private static JavaChainLog log = JavaChainLogFactory.getLog(Node.class);
 
@@ -155,14 +144,14 @@ public class Node {
         log.info("Node Command Start");
 
         if (args.length <= 0) {
-            log.warn("Node command need more args-----");
+            log.warn("Node command need more args");
             return null;
         }
 
         int cmdWordCount;//记录命令单词数量
         String command = args[0];
         if (args.length == 1 && !NodeConstant.VERSION.equalsIgnoreCase(command)) {
-            log.warn("Node " + command + " need more args-----");
+            log.warn("Node " + command + " need more args");
             return null;
         } else if (args.length == 1 && NodeConstant.VERSION.equalsIgnoreCase(command)) {
             //只有version命令只有一个单词，其余都是"命令+子命令"的形式,如"node server start"
@@ -191,7 +180,7 @@ public class Node {
      * 初始化
      */
     private void init() throws NodeException {
-        log.info("Node init-----");
+        log.info("Node init");
 
         try {
             //初始化本地Msp
@@ -222,7 +211,7 @@ public class Node {
             List<String> ledgerIDs = LedgerManager.getLedgerIDs();
             if (ledgerIDs != null && ledgerIDs.size() > 0) {
                 for (String ledgerId : ledgerIDs) {
-                    log.info("ledgerId-----$" + ledgerId);
+                    log.info("LedgerId: " + ledgerId);
 
                     try {
                         INodeLedger nodeLedger = LedgerManager.openLedger(ledgerId);
@@ -231,7 +220,7 @@ public class Node {
 
                         Group group = createGroup(ledgerId, nodeLedger, configBlock);
                         groupMap.put(ledgerId, group);
-                        log.info("group-----$" + ledgerId);
+                        log.info("Group: " + ledgerId);
 
                         if (callback != null) {
                             callback.onGroupInitialized(ledgerId);

@@ -172,7 +172,7 @@ public class TransactionContext {
     }
 
     byte[] sign(byte[] b) throws CryptoException {
-        return cryptoPrimitives.sign(getUser().getEnrollment().getKey(), b);
+        return cryptoPrimitives.sign(b);
     }
 
     public ByteString signByteString(byte[] b) throws CryptoException {
@@ -220,7 +220,7 @@ public class TransactionContext {
 
         int i = -1;
         for (User user : users) {
-            ret[++i] = ByteString.copyFrom(cryptoPrimitives.sign(user.getEnrollment().getKey(), signbytes));
+            ret[++i] = ByteString.copyFrom(cryptoPrimitives.sign(signbytes));
         }
         return ret;
     }
@@ -231,4 +231,18 @@ public class TransactionContext {
 
     }
 
+    @Override
+    public String toString() {
+        return "TransactionContext{" +
+                "nonce=" + nonce +
+                ", cryptoPrimitives=" + cryptoPrimitives +
+                ", user=" + user +
+                ", channel=" + channel +
+                ", txID='" + txID + '\'' +
+                ", identity=" + identity +
+                ", currentTimeStamp=" + currentTimeStamp +
+                ", verify=" + verify +
+                ", proposalWaitTime=" + proposalWaitTime +
+                '}';
+    }
 }  // end TransactionContext

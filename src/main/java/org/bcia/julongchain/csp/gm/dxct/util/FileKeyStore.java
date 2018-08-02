@@ -84,7 +84,7 @@ public class FileKeyStore implements IKeyStore {
         System.out.println(suffix);
         switch (suffix) {
             case "pk":
-                //IKey key= (IKey) loadPrivateKey(suffix);
+                //IKey key= (IKey) loadServerPrivateKey(suffix);
                 //return  key;
             case "sk":
                 IKey key= loadPrivateKey(Hex.toHexString(ski));

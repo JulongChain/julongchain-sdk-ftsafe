@@ -16,6 +16,7 @@
 package org.bcia.julongchain.consenter.util;
 
 import com.google.protobuf.ByteString;
+import org.apache.commons.lang.ArrayUtils;
 import org.bcia.julongchain.common.exception.JavaChainException;
 import org.bcia.julongchain.common.log.JavaChainLog;
 import org.bcia.julongchain.common.log.JavaChainLogFactory;
@@ -31,9 +32,9 @@ import static org.bcia.julongchain.csp.factory.CspManager.getDefaultCsp;
  */
 public class BlockHelper {
     private static JavaChainLog log = JavaChainLogFactory.getLog(BlockHelper.class);
-    byte[] previousHash;
-    byte[] dataHash;
-    long number;
+    private  byte[] previousHash;
+    private byte[] dataHash;
+    private long number;
 
 
     public BlockHelper(byte[] previousHash, byte[] dataHash, long number) {

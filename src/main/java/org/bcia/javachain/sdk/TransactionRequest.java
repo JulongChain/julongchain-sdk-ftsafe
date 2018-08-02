@@ -54,7 +54,7 @@ public class TransactionRequest {
     protected ArrayList<byte[]> argBytes;
 
     // SmartContract language
-    protected Type chaincodeLanguage = Type.GO_LANG;
+    protected Type chaincodeLanguage = Type.JAVA;
     // The endorsementPolicy associated with this chaincode
     private SmartContractEndorsementPolicy endorsementPolicy = null;
     // The timeout for a single proposal request to endorser in milliseconds

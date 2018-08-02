@@ -69,7 +69,7 @@ public class SystemGroup  implements IProcessor {
            }
        }
         RuleSet ruleSet=new RuleSet(new IRule[]{new EmptyRejectRule(),new ExpirationRejectRule(filterSupport),new SizeFilter(consenterConfig),
-               new SigFilter(PolicyConstant.GROUP_WRITERS,filterSupport.getPolicyManager()),
+               new SigFilter(PolicyConstant.GROUP_APP_WRITERS,filterSupport.getPolicyManager()),
                new SystemGroupFilter(chainCreator,filterSupport.getGroupConfig())
        });
 
@@ -104,11 +104,11 @@ public class SystemGroup  implements IProcessor {
 
         Configtx.ConfigEnvelope newGroupConfigEnv = bundle.getConfigtxValidator().proposeConfigUpdate(envConfigUpdate);
 
-        Common.Envelope newChannelEnvConfig = TxUtils.createSignedEnvelope(Common.HeaderType.CONFIG_VALUE, groupId, standardGroup.getSupport().signer(), newGroupConfigEnv, Constant.MSGVERSION, Constant.EPOCH);
+        Common.Envelope newChannelEnvConfig = TxUtils.createSignedEnvelope(Common.HeaderType.CONFIG_VALUE, groupId, standardGroup.getSupport().getSigner(), newGroupConfigEnv, Constant.MSGVERSION, Constant.EPOCH);
 
         Common.Envelope wrappedOrdererTransaction =
                 TxUtils.createSignedEnvelope(Common.HeaderType.CONSENTER_TRANSACTION_VALUE,
-                        standardGroup.getSupport().getGroupId(), standardGroup.getSupport().signer(), newChannelEnvConfig,
+                        standardGroup.getSupport().getGroupId(), standardGroup.getSupport().getSigner(), newChannelEnvConfig,
                         Constant.MSGVERSION, Constant.EPOCH);
 //       new RuleSet(standardGroup.getFilters().getRules()).apply(wrappedOrdererTransaction);
 

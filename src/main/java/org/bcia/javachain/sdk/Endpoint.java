@@ -22,8 +22,6 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,19 +37,21 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NegotiationType;
 import io.grpc.netty.NettyChannelBuilder;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
+import io.netty.handler.ssl.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.security.CryptoPrimitives;
+import org.bcia.javachain.sdk.helper.MspStore;
+import org.bcia.javachain.sdk.security.gm.CertificateUtils;
+import org.bcia.javachain.sdk.security.gm.GmCryptoPrimitives;
+import org.bcia.julongchain.common.exception.JavaChainException;
+import org.bcia.julongchain.csp.intfs.IKey;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 
@@ -83,8 +83,8 @@ class Endpoint {
         String sslp = null;
         String nt = null;
         byte[] pemBytes = null;
-        X509Certificate[] clientCert = null;
-        PrivateKey clientKey = null;
+        Certificate[] clientCert = null;
+        IKey clientKey = null;
         Properties purl = parseGrpcUrl(url);
         String protocol = purl.getProperty("protocol");
         this.addr = purl.getProperty("host");
@@ -92,9 +92,9 @@ class Endpoint {
 
         if (properties != null) {
             if ("grpcs".equals(protocol)) {
-                CryptoPrimitives cp;
+                GmCryptoPrimitives cp = null;
                 try {
-                    cp = new CryptoPrimitives();
+                    cp = new GmCryptoPrimitives();
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
@@ -118,8 +118,8 @@ class Endpoint {
                             final String cnKey = new String(pemBytes, UTF_8);
                             cn = CN_CACHE.get(cnKey);
                             if (cn == null) {
-                                X500Name x500name = new JcaX509CertificateHolder(
-                                        (X509Certificate) cp.bytesToCertificate(pemBytes)).getSubject();
+                                Certificate cert = null;
+                                X500Name x500name = CertificateUtils.bytesToX509Certificate(pemBytes).getSubject();
                                 RDN rdn = x500name.getRDNs(BCStyle.CN)[0];
                                 cn = IETFUtils.valueToString(rdn.getFirst().getValue());
                                 CN_CACHE.put(cnKey, cn);
@@ -134,41 +134,50 @@ class Endpoint {
                 }
                 // check for mutual TLS - both clientKey and clientCert must be present
                 byte[] ckb = null, ccb = null;
-                if (properties.containsKey("clientKeyFile") && properties.containsKey("clientKeyBytes")) {
-                    throw new RuntimeException("Properties \"clientKeyFile\" and \"clientKeyBytes\" must cannot both be set");
-                } else if (properties.containsKey("clientCertFile") && properties.containsKey("clientCertBytes")) {
-                    throw new RuntimeException("Properties \"clientCertFile\" and \"clientCertBytes\" must cannot both be set");
-                } else if (properties.containsKey("clientKeyFile") || properties.containsKey("clientCertFile")) {
-                    if ((properties.getProperty("clientKeyFile") != null) && (properties.getProperty("clientCertFile") != null)) {
-                        try {
-                            ckb = Files.readAllBytes(Paths.get(properties.getProperty("clientKeyFile")));
-                            ccb = Files.readAllBytes(Paths.get(properties.getProperty("clientCertFile")));
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to parse TLS client key and/or cert", e);
-                        }
-                    } else {
-                        throw new RuntimeException("Properties \"clientKeyFile\" and \"clientCertFile\" must both be set or both be null");
-                    }
-                } else if (properties.containsKey("clientKeyBytes") || properties.containsKey("clientCertBytes")) {
-                    ckb = (byte[]) properties.get("clientKeyBytes");
-                    ccb = (byte[]) properties.get("clientCertBytes");
-                    if ((ckb == null) || (ccb == null)) {
-                        throw new RuntimeException("Properties \"clientKeyBytes\" and \"clientCertBytes\" must both be set or both be null");
-                    }
-                }
+
+                ckb = MspStore.getInstance().getClientKeys().get(0);
+                ccb = MspStore.getInstance().getClientCerts().get(0);
+
+//                if (properties.containsKey("clientKeyFile") && properties.containsKey("clientKeyBytes")) {
+//                    throw new RuntimeException("Properties \"clientKeyFile\" and \"clientKeyBytes\" must cannot both be set");
+//                } else if (properties.containsKey("clientCertFile") && properties.containsKey("clientCertBytes")) {
+//                    throw new RuntimeException("Properties \"clientCertFile\" and \"clientCertBytes\" must cannot both be set");
+//                } else if (properties.containsKey("clientKeyFile") || properties.containsKey("clientCertFile")) {
+//                    if ((properties.getProperty("clientKeyFile") != null) && (properties.getProperty("clientCertFile") != null)) {
+//                        try {
+//                            ckb = Files.readAllBytes(Paths.get(properties.getProperty("clientKeyFile")));
+//                            ccb = Files.readAllBytes(Paths.get(properties.getProperty("clientCertFile")));
+//                        } catch (IOException e) {
+//                            throw new RuntimeException("Failed to parse TLS client key and/or cert", e);
+//                        }
+//                    } else {
+//                        throw new RuntimeException("Properties \"clientKeyFile\" and \"clientCertFile\" must both be set or both be null");
+//                    }
+//                } else if (properties.containsKey("clientKeyBytes") || properties.containsKey("clientCertBytes")) {
+//                    ckb = (byte[]) properties.get("clientKeyBytes");
+//                    ccb = (byte[]) properties.get("clientCertBytes");
+//                    if ((ckb == null) || (ccb == null)) {
+//                        throw new RuntimeException("Properties \"clientKeyBytes\" and \"clientCertBytes\" must both be set or both be null");
+//                    }
+//                }
 
                 if ((ckb != null) && (ccb != null)) {
                     String what = "private key";
                     try {
                         logger.trace("client TLS private key bytes size:" + ckb.length);
-                        clientKey = cp.bytesToPrivateKey(ckb);
+                        try {
+                            clientKey = CertificateUtils.bytesToPrivateKey(ckb);
+                        } catch (JavaChainException e) {
+                            e.printStackTrace();
+                        }
                         logger.trace("converted TLS key.");
                         what = "certificate";
                         logger.trace("client TLS certificate bytes:" + Hex.encodeHexString(ccb));
-                        clientCert = new X509Certificate[] {(X509Certificate) cp.bytesToCertificate(ccb)};
+                        //clientCert = new X509Certificate[] {(X509Certificate) cp.bytesToCertificate(ccb)};
+                        clientCert = new Certificate[]{CertificateUtils.bytesToX509Certificate(ccb)};
                         logger.trace("converted client TLS certificate.");
                         tlsClientCertificatePEMBytes = ccb; // Save this away it's the exact pem we used.
-                    } catch (CryptoException e) {
+                    } catch (JavaChainException e) {
                         throw new RuntimeException("Failed to parse TLS client " + what, e);
                     }
                 }
@@ -207,13 +216,27 @@ class Endpoint {
                         NegotiationType ntype = nt.equals("TLS") ? NegotiationType.TLS : NegotiationType.PLAINTEXT;
 
                         InputStream myInputStream = new ByteArrayInputStream(pemBytes);
-                        SslContextBuilder clientContextBuilder = GrpcSslContexts.configure(SslContextBuilder.forClient(), sslprovider);
-                        if (clientKey != null && clientCert != null) {
-                            clientContextBuilder = clientContextBuilder.keyManager(clientKey, clientCert);
-                        }
-                        SslContext sslContext = clientContextBuilder
-                            .trustManager(myInputStream)
-                            .build();
+//                        SslContextBuilder clientContextBuilder = GrpcSslContexts.configure(SslContextBuilder.forClient(), sslprovider);
+//                        if (clientKey != null && clientCert != null) {
+//                            clientContextBuilder = clientContextBuilder.keyManager(clientKey, clientCert);
+//                        }
+
+                        String strClientCert = new String(MspStore.getInstance().getClientCerts().get(0));
+                        String strPrivateKey = new String(MspStore.getInstance().getServerKeys().get(0));
+                        String strSignCert = new String(MspStore.getInstance().getSignCerts().get(0));
+                        String strPassword = "123456";
+
+                        //MspStore.getInstance().getClientKeys();
+                        final SslContext sslContext = SslContextGMBuilder
+                                    /* 默认协商出来的是ECDHE_SM4_SM3算法，所以必须是双向SSL，并且客户端和服务端必须要有加密证书和签名证书 */
+                                    .forServer(strClientCert, strPrivateKey, strSignCert, strPrivateKey, strPassword)
+                                    .clientAuth(ClientAuth.REQUIRE)
+                                    .build();
+
+
+//                        SslContext sslContext = clientContextBuilder
+//                            .trustManager(myInputStream)
+//                            .build();
                         this.channelBuilder = NettyChannelBuilder
                             .forAddress(addr, port)
                             .sslContext(sslContext)

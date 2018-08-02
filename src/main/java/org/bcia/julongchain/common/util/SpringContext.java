@@ -15,6 +15,9 @@
  */
 package org.bcia.julongchain.common.util;
 
+import org.springframework.beans.BeansException;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 /**
  * Spring支持
  *
@@ -30,13 +33,13 @@ public class SpringContext {
      */
     private static SpringContext instance;
 
-    //private ClassPathXmlApplicationContext applicationContext;
+    private ClassPathXmlApplicationContext applicationContext;
 
     /**
      * 私有化构造函数
      */
     private SpringContext() {
-        //applicationContext = new ClassPathXmlApplicationContext(SPRING_CONFIG_PATH);
+        applicationContext = new ClassPathXmlApplicationContext(SPRING_CONFIG_PATH);
     }
 
     public static SpringContext getInstance() {
@@ -52,16 +55,15 @@ public class SpringContext {
     }
 
     /**
-     * 调用方式：如SpringContext.getInstance().getBean(Node.class);
+     * 调用方式：如SpringContext.getInstance().getBean(PolicyNode.class);
      *
      * @param requiredType
      * @param <T>
      * @return
      * @throws BeansException
      */
-    public <T> T getBean(Class<T> requiredType) {
-//        return applicationContext.getBean(requiredType);
-    	return null;
+    public <T> T getBean(Class<T> requiredType) throws BeansException {
+        return applicationContext.getBean(requiredType);
     }
 
 }

@@ -18,6 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bcia.javachain.sdk.helper.Utils.logString;
 import static org.bcia.javachain.sdk.helper.Utils.toHexString;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +29,11 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.sdk.helper.MspStore;
+import org.bcia.javachain.sdk.security.gm.CertificateUtils;
+import org.bcia.javachain.sdk.security.gm.GmCryptoPrimitives;
+import org.bcia.julongchain.common.exception.JavaChainException;
+import org.bcia.julongchain.msp.mgmt.Msp;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Common.Envelope;
 import org.bcia.julongchain.protos.common.Common.GroupHeader;
@@ -45,12 +52,12 @@ import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec;
 import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec.Type;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.security.CryptoPrimitives;
 import org.bcia.javachain.sdk.security.CryptoSuite;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 import com.google.protobuf.util.Timestamps;
+import org.bouncycastle.asn1.x509.Certificate;
 
 /**
  * Internal use only, not a public API.
@@ -187,18 +194,36 @@ public final class ProtoUtils {
     }
 
     public static ByteString getSignatureHeaderAsByteString(TransactionContext transactionContext) {
-
-        return getSignatureHeaderAsByteString(transactionContext.getUser(), transactionContext);
+        try {
+            return getSignatureHeaderAsByteString(transactionContext.getUser(), transactionContext);
+        } catch (JavaChainException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public static ByteString getSignatureHeaderAsByteString(User user, TransactionContext transactionContext) {
+
+    /**
+     *　得到用戶的交互證書放入bytestring
+     * @param user
+     * @param transactionContext
+     * @return
+     */
+    public static ByteString getSignatureHeaderAsByteString(User user, TransactionContext transactionContext) throws JavaChainException {
+
+        logger.info(format(" STEP A1> 得到用戶的交互證書放入bytestring"));
 
         final Identities.SerializedIdentity identity = ProtoUtils.createSerializedIdentity(user);
 
         if (isDebugLevel) {
 
-            String cert = user.getEnrollment().getCert();
-            // logger.debug(format(" User: %s Certificate:\n%s", user.getName(), cert));
+            String cert = null;
+            try {
+                cert = new String(user.getEnrollment().getCert(),"utf-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            logger.debug(format(" User: %s Certificate:\n%s", user.getName(), cert));
 
             if (null == suite) {
 
@@ -209,10 +234,10 @@ public final class ProtoUtils {
                 }
 
             }
-            if (null != suite && suite instanceof CryptoPrimitives) {
+            if (null != suite && suite instanceof GmCryptoPrimitives) {
 
-                CryptoPrimitives cp = (CryptoPrimitives) suite;
-                byte[] der = cp.certificateToDER(cert);
+                GmCryptoPrimitives cp = (GmCryptoPrimitives) suite;
+                byte[] der = CertificateUtils.certificateToDER(cert);
                 if (null != der && der.length > 0) {
 
                     cert = toHexString(suite.hash(der));
@@ -236,10 +261,21 @@ public final class ProtoUtils {
     }
 
     public static Identities.SerializedIdentity createSerializedIdentity(User user) {
+        try {
+            byte[] byteCert = MspStore.getInstance().getClientCerts().get(0);
+            Certificate certificate = CertificateUtils.bytesToX509Certificate(byteCert);
+            Identities.SerializedIdentity.Builder serializedIdentity = Identities.SerializedIdentity.newBuilder();
+            serializedIdentity.setMspid(user.getMspId());
+            serializedIdentity.setIdBytes(ByteString.copyFrom(certificate.getEncoded()));
+            return serializedIdentity.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        return Identities.SerializedIdentity.newBuilder()
-                .setIdBytes(ByteString.copyFromUtf8(user.getEnrollment().getCert()))
-                .setMspid(user.getMspId()).build();
+//        return Identities.SerializedIdentity.newBuilder()
+//                .setIdBytes(ByteString.copyFromUtf8(user.getEnrollment().getCert()[0].getIdentifier()))
+//                .setMspid(user.getMspId()).build();
+        return null;
     }
 
     public static Timestamp getCurrentFabricTimestamp() {
@@ -296,5 +332,16 @@ public final class ProtoUtils {
                 .setBehavior(seekBehavior)
                 .build(), tlsCertHash);
 
+    }
+
+
+
+    public static void main(String[] args) {
+        Msp msp = MspStore.getInstance().getMsp();
+        logger.info(msp.getIntermediateCerts()[0].getIdentifier());
+//        Identities.SerializedIdentity serial = null;
+//        Identities.SerializedIdentity.newBuilder()
+//                .setIdBytes(ByteString.copyFromUtf8(msp.getIntermediateCerts()[0].getIdentifier()))
+//                .setMspid(user.getMspId()).build();
     }
 }

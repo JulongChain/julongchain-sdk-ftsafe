@@ -17,7 +17,6 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Collection;
 import java.util.Properties;
@@ -25,6 +24,7 @@ import java.util.Properties;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.security.gm.GmCryptoSuiteFactory;
+import org.bcia.julongchain.common.exception.JavaChainException;
 
 /**
  * All packages for PKI key creation/signing/verification implement this interface
@@ -39,56 +39,31 @@ public interface CryptoSuite {
 
     CryptoSuiteFactory getCryptoSuiteFactory();
 
-    /**
-     * @return the {@link Properties} object containing implementation specific key generation properties
-     */
-    Properties getProperties();
-
-    /**
-     * Set the Certificate Authority certificates to be used when validating a certificate chain of trust
-     *
-     * @param certificates A collection of {@link Certificate}s
-     * @throws CryptoException
-     */
-    void loadCACertificates(Collection<Certificate> certificates) throws CryptoException;
-
-    /**
-     * Set the Certificate Authority certificates to be used when validating a certificate chain of trust.
-     *
-     * @param certificates a collection of certificates in PEM format
-     * @throws CryptoException
-     */
-    void loadCACertificatesAsBytes(Collection<byte[]> certificates) throws CryptoException;
-
-    /**
-     * Generate a key.
-     *
-     * @return the generated key.
-     * @throws CryptoException
-     */
-    KeyPair keyGen() throws CryptoException;
+//    /**
+//     * @return the {@link Properties} object containing implementation specific key generation properties
+//     */
+//    Properties getProperties();
 
     /**
      * Sign the specified byte string.
      *
-     * @param key       the {@link PrivateKey} to be used for signing
      * @param plainText the byte string to sign
      * @return the signed data.
      * @throws CryptoException
      */
-    byte[] sign(PrivateKey key, byte[] plainText) throws CryptoException;
+    //byte[] sign(PrivateKey key, byte[] plainText) throws CryptoException;
+    byte[] sign(byte[] plainText) throws CryptoException;
 
     /**
      * Verify the specified signature
      *
      * @param certificate        the certificate of the signer as the contents of the PEM file
-     * @param signatureAlgorithm the algorithm used to create the signature.
      * @param signature          the signature to verify
      * @param plainText          the original text that is to be verified
      * @return {@code true} if the signature is successfully verified; otherwise {@code false}.
      * @throws CryptoException
      */
-    boolean verify(byte[] certificate, String signatureAlgorithm, byte[] signature, byte[] plainText) throws CryptoException;
+    boolean verify(byte[] certificate, byte[] signature, byte[] plainText) throws CryptoException, JavaChainException;
 
     /**
      * Hash the specified text byte data.
@@ -97,25 +72,6 @@ public interface CryptoSuite {
      * @return the hashed data.
      */
     byte[] hash(byte[] plainText);
-
-    /**
-     * Generates a CertificationRequest
-     *
-     * @param user
-     * @param keypair
-     * @return String in PEM format for certificate request.
-     * @throws InvalidArgumentException
-     */
-    String generateCertificationRequest(String user, KeyPair keypair) throws InvalidArgumentException;
-
-    /**
-     * Convert bytes in PEM format to Certificate.
-     *
-     * @param certBytes
-     * @return Certificate
-     * @throws CryptoException
-     */
-    Certificate bytesToCertificate(byte[] certBytes) throws CryptoException;
 
     /**
      * The CryptoSuite factory. Currently {@link #getCryptoSuite} will always
@@ -178,32 +134,32 @@ public interface CryptoSuite {
      */
     public void init() throws CryptoException, InvalidArgumentException;
     
-    /**
-     * 增加证书到指定位置文件
-     * @param caCertPem
-     * @param alias
-     * @throws CryptoException
-     * @throws InvalidArgumentException
-     */
-    public void addCACertificateToTrustStore(File caCertPem, String alias) throws CryptoException, InvalidArgumentException;
+//    /**
+//     * 增加证书到指定位置文件
+//     * @param caCertPem
+//     * @param alias
+//     * @throws CryptoException
+//     * @throws InvalidArgumentException
+//     */
+//    public void addCACertificateToTrustStore(File caCertPem, String alias) throws CryptoException, InvalidArgumentException;
     
-    /**
-     * 增加证书到指定byte数组
-     *
-     * @param caCertPem an X.509 certificate in PEM format
-     * @param alias     an alias associated with the certificate. Used as shorthand for the certificate during crypto operations
-     * @throws CryptoException
-     * @throws InvalidArgumentException
-     */
-    public void addCACertificateToTrustStore(byte[] bytes, String alias) throws CryptoException, InvalidArgumentException;
+//    /**
+//     * 增加证书到指定byte数组
+//     *
+//     * @param caCertPem an X.509 certificate in PEM format
+//     * @param alias     an alias associated with the certificate. Used as shorthand for the certificate during crypto operations
+//     * @throws CryptoException
+//     * @throws InvalidArgumentException
+//     */
+//    public void addCACertificateToTrustStore(byte[] bytes, String alias) throws CryptoException, InvalidArgumentException;
     
-    /**
-     * getTrustStore returns the KeyStore object where we keep trusted certificates.
-     * If no trust store has been set, this method will create one.
-     *
-     * @return the trust store as a java.security.KeyStore object
-     * @throws CryptoException
-     * @see KeyStore
-     */
-    public KeyStore getTrustStore() throws CryptoException;
+//    /**
+//     * getTrustStore returns the KeyStore object where we keep trusted certificates.
+//     * If no trust store has been set, this method will create one.
+//     *
+//     * @return the trust store as a java.security.KeyStore object
+//     * @throws CryptoException
+//     * @see KeyStore
+//     */
+//    public KeyStore getTrustStore() throws CryptoException;
 }

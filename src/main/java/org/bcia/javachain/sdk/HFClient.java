@@ -400,7 +400,6 @@ public class HFClient {
      * @return the old user context. Maybe null if never set!
      * @throws InvalidArgumentException
      */
-
     public User setUserContext(User userContext) throws InvalidArgumentException {
 
         if (null == cryptoSuite) {

@@ -105,7 +105,6 @@ public class KvLedgerProvider implements INodeLedgerProvider {
             logger.error("Got error when creating kvledger provider");
             throw new LedgerException(e);
         }
-        System.out.println("特别关注___________________"+ ledgerID);
         //账本以存在,抛出异常
         if(idStore.ledgerIDExists(ledgerID)) {
             throw ERR_LEDGER_ID_EXISTS;

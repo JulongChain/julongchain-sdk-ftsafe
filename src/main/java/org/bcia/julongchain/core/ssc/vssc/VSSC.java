@@ -15,11 +15,8 @@
  */
 package org.bcia.julongchain.core.ssc.vssc;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.bcia.julongchain.common.exception.JavaChainException;
 import org.bcia.julongchain.common.exception.LedgerException;
 import org.bcia.julongchain.common.exception.PolicyException;
@@ -34,10 +31,7 @@ import org.bcia.julongchain.common.util.BytesHexStrTranslate;
 import org.bcia.julongchain.common.util.Utils;
 import org.bcia.julongchain.common.util.proto.ProtoUtils;
 import org.bcia.julongchain.common.util.proto.SignedData;
-import org.bcia.julongchain.core.common.privdata.CollectionStoreFactory;
-import org.bcia.julongchain.core.common.privdata.CollectionStoreSupport;
-import org.bcia.julongchain.core.common.privdata.ICollectionStore;
-import org.bcia.julongchain.core.common.privdata.IPrivDataSupport;
+import org.bcia.julongchain.core.common.privdata.*;
 import org.bcia.julongchain.core.common.sysscprovider.ISystemSmartContractProvider;
 import org.bcia.julongchain.core.common.sysscprovider.SystemSmartContractFactory;
 import org.bcia.julongchain.core.ledger.IQueryExecutor;
@@ -47,13 +41,10 @@ import org.bcia.julongchain.msp.IMspManager;
 import org.bcia.julongchain.msp.mgmt.GlobalMspManagement;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.msp.Identities;
-import org.bcia.julongchain.protos.node.ProposalPackage;
-import org.bcia.julongchain.protos.node.ProposalResponsePackage;
-import org.bcia.julongchain.protos.node.SmartContractDataPackage;
-import org.bcia.julongchain.protos.node.TransactionPackage;
+import org.bcia.julongchain.protos.node.*;
+import org.springframework.stereotype.Component;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.*;
 
 /**
  * 验证系统智能合约　Validator System Smart Contract,VSSC
@@ -65,7 +56,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
  * @date 3/5/18
  * @company Dingxuan
  */
-//@Component
+@Component
 public class VSSC extends SystemSmartContractBase {
     private static JavaChainLog log = JavaChainLogFactory.getLog(VSSC.class);
 

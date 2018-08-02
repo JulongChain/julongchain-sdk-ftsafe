@@ -88,7 +88,8 @@ public interface User {
             throw new InvalidArgumentException(format("UserContext for user %s  has user's MSPID missing.", userName));
         }
 
-        if (Utils.isNullOrEmpty(enrollment.getCert())) {
+        //if (Utils.isNullOrEmpty(enrollment.getCert())) {
+        if ( enrollment.getCert()==null ) {
             throw new InvalidArgumentException(format("UserContext for user %s enrollment missing user certificate.", userName));
         }
         if (null == enrollment.getKey()) {

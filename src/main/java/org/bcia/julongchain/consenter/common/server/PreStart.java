@@ -31,10 +31,11 @@ import org.bcia.julongchain.common.util.proto.BlockUtils;
 import org.bcia.julongchain.consenter.common.bootstrap.file.BootStrapHelper;
 import org.bcia.julongchain.consenter.common.localconfig.ConsenterConfig;
 import org.bcia.julongchain.consenter.common.multigroup.Registrar;
-import org.bcia.julongchain.consenter.consensus.IConsensue;
+import org.bcia.julongchain.consenter.consensus.IConsensusPlugin;
 import org.bcia.julongchain.consenter.consensus.singleton.Singleton;
 import org.bcia.julongchain.core.common.grpc.GrpcServerConfig;
 import org.bcia.julongchain.core.common.grpc.SecureOptions;
+import org.bcia.julongchain.msp.mgmt.GlobalMspManagement;
 import org.bcia.julongchain.node.common.helper.ConfigTreeHelper;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Configtx;
@@ -89,7 +90,7 @@ public class PreStart {
             } else {
                 log.info("Not bootstrapping because of existing chains");
             }
-            Map<String, IConsensue> consenters = new HashMap<>();
+            Map<String, IConsensusPlugin> consenters = new HashMap<>();
             consenters.put("Singleton", new Singleton());
            defaultRegistrar=new Registrar().newRegistrar(lf, consenters, signer);
            return defaultRegistrar;
@@ -108,7 +109,7 @@ public class PreStart {
                 genesisBlock = new GenesisBlockFactory(groupTree).getGenesisBlock("systemGroup");
                 break;
             case "file":
-                genesisBlock = new BootStrapHelper(consenterConfig.getGeneral().getGenesisFile()).genesisBlock();
+                genesisBlock = new BootStrapHelper(consenterConfig.getGeneral().getGenesisFile()).getGenesisBlock();
                 break;
             default:
         }
@@ -145,13 +146,6 @@ public class PreStart {
             //TODO clientRootClient String[]
         }
         return new GrpcServerConfig();
-    }
-
-    public static void main(String[] args) throws IOException, JavaChainException {
-        LocalSigner localSigner = new LocalSigner();
-
-       // Registrar registrar = initializeMultichannelRegistrar(loadConsenterConfig(), localSigner);
-
     }
 
     public static ConsenterConfig getDefaultConsenterConfig() {

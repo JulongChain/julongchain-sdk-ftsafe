@@ -69,7 +69,6 @@ public class LevelDBWindow {
 			if (valueBytes > 0) {
 				WindowUtil.soutByte(entry.getValue(), valueBytes);
 			}
-			System.out.println("_____________________________________");
 		}
 	}
 

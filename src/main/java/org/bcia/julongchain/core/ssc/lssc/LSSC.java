@@ -50,6 +50,7 @@ import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.Query;
 import org.bcia.julongchain.protos.node.SmartContractDataPackage;
 import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -75,7 +76,7 @@ import java.util.regex.Pattern;
  * @date 3/5/18
  * @company Dingxuan
  */
-//@Component
+@Component
 public class LSSC  extends SystemSmartContractBase {
     private static JavaChainLog log = JavaChainLogFactory.getLog(LSSC.class);
     //INSTALL install command

@@ -47,6 +47,7 @@ import org.bcia.julongchain.protos.common.Configtx;
 import org.bcia.julongchain.protos.node.ProposalPackage;
 import org.bcia.julongchain.protos.node.Query;
 import org.bcia.julongchain.protos.node.ResourcesPackage;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -63,7 +64,7 @@ import java.util.List;
  * @company Dingxuan
  */
 
-//@Component
+@Component
 public class CSSC extends SystemSmartContractBase {
     private static JavaChainLog log = JavaChainLogFactory.getLog(CSSC.class);
 

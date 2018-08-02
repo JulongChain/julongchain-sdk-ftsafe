@@ -15,23 +15,28 @@
  */
 package org.bcia.julongchain.common.deliver;
 
-import java.util.Date;
-import java.util.Map;
-
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.bcia.julongchain.common.exception.ConsenterException;
+import org.bcia.julongchain.common.exception.GossipException;
 import org.bcia.julongchain.common.exception.LedgerException;
 import org.bcia.julongchain.common.exception.ValidateException;
 import org.bcia.julongchain.common.ledger.blockledger.IIterator;
 import org.bcia.julongchain.common.ledger.blockledger.file.FileLedgerIterator;
 import org.bcia.julongchain.common.log.JavaChainLog;
 import org.bcia.julongchain.common.log.JavaChainLogFactory;
+import org.bcia.julongchain.common.util.Expiration;
+import org.bcia.julongchain.common.util.proto.ProtoUtils;
+import org.bcia.julongchain.consenter.common.cmd.impl.StartCmd;
 import org.bcia.julongchain.consenter.common.multigroup.ChainSupport;
 import org.bcia.julongchain.consenter.util.CommonUtils;
 import org.bcia.julongchain.core.ledger.kvledger.txmgmt.statedb.QueryResult;
+import org.bcia.julongchain.gossip.GossipServiceUtil;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.consenter.Ab;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * @author zhangmingyang
@@ -95,7 +100,6 @@ public class DeliverHandler implements IHandler {
             log.error(e.getMessage());
         }
         ChainSupport chain = sm.getChain(chdr.getGroupId());
-        log.info(String.format("__１__wangzhe.0720　groupId[%s]>>chain[%s]", chdr.getGroupId(), chain));
         if (chain == null) {
             log.debug(String.format("Rejecting deliver  channel %s not found", chdr.getGroupId()));
             try {
@@ -131,7 +135,7 @@ public class DeliverHandler implements IHandler {
         if (seekInfo.getStart() == null || seekInfo.getStop() == null) {
             sendStatusReply(server, Common.Status.BAD_REQUEST);
         }
-        log.info(String.format("__０__wangzhe.0720　chain[%s]", chain));
+
         IIterator cursor = chain.getLedgerResources().getReadWriteBase().iterator(seekInfo.getStart());
         if (cursor instanceof FileLedgerIterator) {
             FileLedgerIterator fileLedgerIterator = (FileLedgerIterator) cursor;
@@ -151,6 +155,7 @@ public class DeliverHandler implements IHandler {
                         log.warn(String.format("[channel: %s] Received invalid seekInfo message from %s: start number %d greater than stop number %d", chdr.getGroupId(), number, stopNumber));
                         sendStatusReply(server, Common.Status.BAD_REQUEST);
                     }
+                    default:
             }
             {
                 if (seekInfo.getBehavior() == Ab.SeekInfo.SeekBehavior.FAIL_IF_NOT_READY) {
@@ -165,7 +170,7 @@ public class DeliverHandler implements IHandler {
                 Common.Status status = block.getValue();
                 blockData.getHeader().getNumber();
                 if (status != Common.Status.SUCCESS) {
-                    log.error(String.format("[channel: %s] Error reading from channel, cause was: %v", chdr.getGroupId(), status));
+                    log.error(String.format("[channel: %s] Error reading from channel, cause was: %s", chdr.getGroupId(), status));
                     sendStatusReply(server, status);
                 }
                 number++;

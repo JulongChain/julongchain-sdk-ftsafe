@@ -66,6 +66,7 @@ public class Config {
     /**
      * Crypto configuration settings
      **/
+    public static final String CRYPTO_ID = "org.bcia.javachain.sdk.crypto.id";
     public static final String DEFAULT_CRYPTO_SUITE_FACTORY = "org.bcia.javachain.sdk.crypto.default_crypto_suite_factory";
     public static final String SECURITY_LEVEL = "org.bcia.javachain.sdk.security_level";
     public static final String SECURITY_PROVIDER_CLASS_NAME = "org.bcia.javachain.sdk.security_provider_class_name";
@@ -86,6 +87,8 @@ public class Config {
      * Miscellaneous settings
      **/
     public static final String PROPOSAL_CONSISTENCY_VALIDATION = "org.bcia.javachain.sdk.proposal.consistency_validation";
+
+    public static final String BLOCK_PATH = "org.bcia.javachain.sdk.block_path";
 
     private static Config config;
     private static final Properties sdkProperties = new Properties();
@@ -122,11 +125,11 @@ public class Config {
             /**
              * Timeout settings
              **/
-            defaultProperty(PROPOSAL_WAIT_TIME, "20000");
-            defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "15000");
+            defaultProperty(PROPOSAL_WAIT_TIME, "200000");
+            defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "1500000");
             defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
             // defaultProperty(ORDERER_WAIT_TIME, "10000");
-            defaultProperty(ORDERER_WAIT_TIME, "30000");
+            defaultProperty(ORDERER_WAIT_TIME, "300000");
             defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
             defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
             defaultProperty(EVENTHUB_CONNECTION_WAIT_TIME, "1000");
@@ -171,7 +174,10 @@ public class Config {
             /**
              * Miscellaneous settings
              */
-            defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "true");
+            defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "false");//TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
+
+            defaultProperty(BLOCK_PATH, "/home/bcia/julongchain");
+
 
             final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
 
@@ -236,7 +242,7 @@ public class Config {
      * @param property
      * @return String value for the property
      */
-    public String getProperty(String property) {
+    private String getProperty(String property) {
 
         String ret = sdkProperties.getProperty(property);
 
@@ -416,8 +422,17 @@ public class Config {
         return getProperty(SIGNATURE_ALGORITHM);
     }
 
+    public String getCryptoId() {
+        return getProperty(CRYPTO_ID);
+    }
+
     public String getDefaultCryptoSuiteFactory() {
         return getProperty(DEFAULT_CRYPTO_SUITE_FACTORY);
+    }
+
+    //区块文件路径
+    public String getBlockPath() {
+        return getProperty(BLOCK_PATH);
     }
 
     public int maxLogStringLength() {

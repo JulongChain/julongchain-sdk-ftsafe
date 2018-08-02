@@ -100,7 +100,7 @@ public class NodeGrpcServer {
             public void run() {
                 log.info("shutting down NodeGrpcServer since JVM is shutting down");
                 NodeGrpcServer.this.stop();
-                log.error("NodeGrpcServer shut down");
+                log.info("NodeGrpcServer shut down");
             }
         });
     }
@@ -123,9 +123,6 @@ public class NodeGrpcServer {
         NodeGrpcServer server = new NodeGrpcServer(7051);
         server.start();
         server.blockUntilShutdown();
-        NodeGrpcServer server2 = new NodeGrpcServer(8051);
-        server2.start();
-        server2.blockUntilShutdown();
     }
 
 

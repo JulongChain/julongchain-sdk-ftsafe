@@ -119,27 +119,9 @@ public class ProposalResponse extends SmartContractResponse {
                     .parseFrom(endorsement.getEndorser());
             ByteString plainText = proposalResponse.getPayload().concat(endorsement.getEndorser());
 
-            if (config.extraLogLevel(10)) {
-
-                if (null != diagnosticFileDumper) {
-                    StringBuilder sb = new StringBuilder(10000);
-                    sb.append("payload TransactionBuilderbytes in hex: " + DatatypeConverter.printHexBinary(proposalResponse.getPayload().toByteArray()));
-                    sb.append("\n");
-                    sb.append("endorser bytes in hex: "
-                            + DatatypeConverter.printHexBinary(endorsement.getEndorser().toByteArray()));
-                    sb.append("\n");
-                    sb.append("plainText bytes in hex: " + DatatypeConverter.printHexBinary(plainText.toByteArray()));
-
-                    logger.trace("payload TransactionBuilderbytes:  " +
-                            diagnosticFileDumper.createDiagnosticFile(sb.toString()));
-                }
-
-            }
-
-            this.isVerified = crypto.verify(endorser.getIdBytes().toByteArray(), config.getSignatureAlgorithm(),
-                    sig.toByteArray(), plainText.toByteArray()
-            );
-        } catch (InvalidProtocolBufferException | CryptoException e) {
+            //TODO 沒搞清楚ｓｅｒｉａｌｉｚｅ和ｓｉｇｎ的區別，先注視掉不驗證
+            //this.isVerified = crypto.verify(endorser.getIdBytes().toByteArray(), sig.toByteArray(), plainText.toByteArray());
+        } catch (InvalidProtocolBufferException e) {
             logger.error("verify: Cannot retrieve peer identity from ProposalResponse. Error is: " + e.getMessage(), e);
             this.isVerified = false;
         }
@@ -303,4 +285,15 @@ public class ProposalResponse extends SmartContractResponse {
 
     }
 
+    @Override
+    public String toString() {
+        return "ProposalResponse{" +
+                "isVerified=" + isVerified +
+                ", proposalResponsePayload=" + proposalResponsePayload +
+                ", proposal=" +"太多..." + //proposal +
+                ", proposalResponse=" + proposalResponse +
+                ", peer=" + peer +
+                ", chaincodeID=" + chaincodeID +
+                '}';
+    }
 }
