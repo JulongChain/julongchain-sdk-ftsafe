@@ -56,13 +56,13 @@ public class TestHFClient {
         //src/test/fixture/sdkintegration/e2e-2Orgs/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/
 
         //SampleUser someTestUSER = sampleStore.getMember("someTestUSER", "someTestORG");
-        SampleUser someTestUSER = sampleStore.getMember("someTestUSER", "someTestORG", "mspid",
-                findFileSk("src/test/fixture/sdkintegration/e2e-2Orgs/" + TestConfig.FAB_CONFIG_GEN_VERS + "/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore"),
-                new File("src/test/fixture/sdkintegration/e2e-2Orgs/" + TestConfig.FAB_CONFIG_GEN_VERS + "/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem"));
-        someTestUSER.setMspId("testMSPID?");
+//        SampleUser someTestUSER = sampleStore.getMember("someTestUSER", "someTestORG", "mspid",
+//                findFileSk("src/test/fixture/sdkintegration/e2e-2Orgs/" + TestConfig.FAB_CONFIG_GEN_VERS + "/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore"),
+//                new File("src/test/fixture/sdkintegration/e2e-2Orgs/" + TestConfig.FAB_CONFIG_GEN_VERS + "/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem"));
+//        someTestUSER.setMspId("testMSPID?");
 
-        hfclient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
-        hfclient.setUserContext(someTestUSER);
+//        hfclient.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
+//        hfclient.setUserContext(someTestUSER);
     }
 
     static File findFileSk(String directorys) {

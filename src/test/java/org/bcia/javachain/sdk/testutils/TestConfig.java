@@ -15,6 +15,7 @@ package org.bcia.javachain.sdk.testutils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdkintegration.SampleOrg;
 
@@ -46,7 +47,6 @@ import java.util.regex.Pattern;
 public class TestConfig {
     private static final Log logger = LogFactory.getLog(TestConfig.class);
 
-    private static final String DEFAULT_CONFIG = "src/test/java/org/bcia/javachain/sdk/testutils.properties";
     private static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdktest.configuration";
     private static final String ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST = "ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST";
     private static final String LOCALHOST = //Change test to reference another host .. easier config for my testing on Windows !
@@ -61,7 +61,6 @@ public class TestConfig {
     private static final String INTEGRATIONTESTS_ORG = PROPBASE + "integrationTests.org.";
     private static final Pattern orgPat = Pattern.compile("^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$");
 
-    private static final String INTEGRATIONTESTSTLS = PROPBASE + "integrationtests.tls";
     // location switching between fabric cryptogen and configtxgen artifacts for v1.0 and v1.1 in src/test/fixture/sdkintegration/e2e-2Orgs
     public static final String FAB_CONFIG_GEN_VERS =
             Objects.equals(System.getenv("ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION"), "1.0.0") ? "v1.0" : "v1.1";
@@ -69,31 +68,28 @@ public class TestConfig {
     private static TestConfig config;
     private static final Properties sdkProperties = new Properties();
     private final boolean runningTLS;
-    private final boolean runningFabricCATLS;
-
     public boolean isRunningFabricTLS() {
-        return runningFabricTLS;
+        return runningTLS;
     }
-
-    private final boolean runningFabricTLS;
     private static final HashMap<String, SampleOrg> sampleOrgs = new HashMap<>();
 
     private TestConfig() {
-        File loadFile;
-        FileInputStream configProps;
-
-        try {
-            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
-                    .getAbsoluteFile();
-            logger.debug(String.format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-                    loadFile.exists()));
-            configProps = new FileInputStream(loadFile);
-            sdkProperties.load(configProps);
-
-        } catch (IOException e) { // if not there no worries just use defaults
-//            logger.warn(String.format("Failed to load any test configuration from: %s. Using toolkit defaults",
-//                    DEFAULT_CONFIG));
-        } finally {
+//        File loadFile;
+        //没来得及改
+//        FileInputStream configProps;
+//        try {
+//            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
+//                    .getAbsoluteFile();
+//            logger.debug(String.format("Loading configuration from %s and it is present: %b", loadFile.toString(),
+//                    loadFile.exists()));
+//            configProps = new FileInputStream(loadFile);
+//            sdkProperties.load(configProps);
+//
+//        } catch (IOException e) { // if not there no worries just use defaults
+////            logger.warn(String.format("Failed to load any test configuration from: %s. Using toolkit defaults",
+////                    DEFAULT_CONFIG));
+//        } finally
+        {
 
             // Default values
 
@@ -102,25 +98,22 @@ public class TestConfig {
             defaultProperty(PROPOSALWAITTIME, "120000");
 
             //////
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.mspid", "Org1MSP");
+            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.mspid", "DEFAULT");
             defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.domname", "org1.example.com");
             defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.ca_location", "http://" + LOCALHOST + ":7054");
             defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.caName", "ca0");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.peer_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7051, peer1.org1.example.com@grpc://" + LOCALHOST + ":7051");
+            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.peer_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7051");//, peer1.org1.example.com@grpc://" + LOCALHOST + ":7051
             defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.orderer_locations", "orderer.example.com@grpc://" + LOCALHOST + ":7050");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.eventhub_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7053,peer1.org1.example.com@grpc://" + LOCALHOST + ":7058");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.mspid", "Org2MSP");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.domname", "org2.example.com");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.ca_location", "http://" + LOCALHOST + ":8054");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.caName", "ca0");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.peer_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8051,peer1.org2.example.com@grpc://" + LOCALHOST + ":8051");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.orderer_locations", "orderer.example.com@grpc://" + LOCALHOST + ":7050");
-            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.eventhub_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8053, peer1.org2.example.com@grpc://" + LOCALHOST + ":8058");
+            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.eventhub_locations", "peer0.org1.example.com@grpc://" + LOCALHOST + ":7053");//,peer1.org1.example.com@grpc://" + LOCALHOST + ":7058
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.mspid", "Org2MSP");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.domname", "org2.example.com");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.ca_location", "http://" + LOCALHOST + ":8054");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.caName", "ca0");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.peer_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8051,peer1.org2.example.com@grpc://" + LOCALHOST + ":8051");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.orderer_locations", "orderer.example.com@grpc://" + LOCALHOST + ":7050");
+//            defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg2.eventhub_locations", "peer0.org2.example.com@grpc://" + LOCALHOST + ":8053, peer1.org2.example.com@grpc://" + LOCALHOST + ":8058");
 
-            defaultProperty(INTEGRATIONTESTSTLS, null);
-            runningTLS = null != sdkProperties.getProperty(INTEGRATIONTESTSTLS, null);
-            runningFabricCATLS = runningTLS;
-            runningFabricTLS = runningTLS;
+            runningTLS = false;
 
             for (Map.Entry<Object, Object> x : sdkProperties.entrySet()) {
                 final String key = x.getKey() + "";
@@ -171,7 +164,8 @@ public class TestConfig {
 
                 sampleOrg.setCAName(sdkProperties.getProperty((INTEGRATIONTESTS_ORG + org.getKey() + ".caName")));
 
-                if (runningFabricCATLS) {
+                if (runningTLS) {
+                    //没来得及改
                     String cert = "src/test/fixture/sdkintegration/e2e-2Orgs/FAB_CONFIG_GEN_VERS/crypto-config/peerOrganizations/DNAME/ca/ca.DNAME-cert.pem"
                             .replaceAll("DNAME", domainName).replaceAll("FAB_CONFIG_GEN_VERS", FAB_CONFIG_GEN_VERS);
                     File cf = new File(cert);
@@ -197,14 +191,14 @@ public class TestConfig {
         if (e != null) {
             throw new RuntimeException(String.format("Bad TEST parameters for grpc url %s", location), e);
         }
-        return runningFabricTLS ?
+        return runningTLS ?
                 location.replaceFirst("^grpc://", "grpcs://") : location;
     }
 
     private String httpTLSify(String location) {
         location = location.trim();
 
-        return runningFabricCATLS ?
+        return runningTLS ?
                 location.replaceFirst("^http://", "https://") : location;
     }
 
@@ -293,20 +287,21 @@ public class TestConfig {
     private Properties getEndPointProperties(final String type, final String name) {
 
         final String domainName = getDomainName(name);
-
-        File cert = Paths.get(getTestGroupPath(), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
-                name, "tls/server.crt").toFile();
-        if (!cert.exists()) {
-            throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", name,
-                    cert.getAbsolutePath()));
-        }
+        //得到证书
+        byte[] permBytes = MspStore.getInstance().getClientCerts().get(0);
+//        File cert = Paths.get(getTestGroupPath(), "crypto-config/ordererOrganizations".replace("orderer", type), domainName, type + "s",
+//                name, "tls/server.crt").toFile();
+//        if (!cert.exists()) {
+//            throw new RuntimeException(String.format("Missing cert file for: %s. Could not find at location: %s", name,
+//                    cert.getAbsolutePath()));
+//        }
 
         Properties ret = new Properties();
-        ret.setProperty("pemFile", cert.getAbsolutePath());
+        ret.put("pemBytes", permBytes);
         //      ret.setProperty("trustServerCertificate", "true"); //testing environment only NOT FOR PRODUCTION!
         ret.setProperty("hostnameOverride", name);
         ret.setProperty("sslProvider", "openSSL");
-        ret.setProperty("negotiationType", "TLS");
+        ret.setProperty("negotiationType", "plainText");//先不TLS
 
         return ret;
     }
@@ -314,12 +309,6 @@ public class TestConfig {
     public Properties getEventHubProperties(String name) {
 
         return getEndPointProperties("peer", name); //uses same as named peer
-
-    }
-
-    public String getTestGroupPath() {
-
-        return "src/test/fixture/sdkintegration/e2e-2Orgs/" + FAB_CONFIG_GEN_VERS;
 
     }
 
