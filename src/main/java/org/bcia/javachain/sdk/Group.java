@@ -549,7 +549,17 @@ public class Group implements Serializable {
             logger.error(msg, e);
             throw new TransactionException(msg, e);
         }
+        String blockPath = Config.getConfig().getBlockPath() +"/"+ this.name +".block";
+        logger.info("blockFilePath: "+ blockPath);
 
+        genesisBlock = getGenesisBlock(orderer);
+        try {
+            FileUtils.writeFileBytes(blockPath, genesisBlock.toByteArray());
+            File file = new File(blockPath);
+            logger.info("file is generated-----$" + file.getCanonicalPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     
 
@@ -842,7 +852,7 @@ public class Group implements Serializable {
                         name, pro.getStatus().toString(), pro.getMessage()));
 
             }
-            String blockPath = Config.getConfig().getBlockPath()+ this.name +".block";
+            String blockPath = Config.getConfig().getBlockPath() +"/"+ this.name +".block";
             logger.info("blockFilePath: "+ blockPath);
             FileUtils.writeFileBytes(blockPath, genesisBlock.toByteArray());
             File file = new File(blockPath);

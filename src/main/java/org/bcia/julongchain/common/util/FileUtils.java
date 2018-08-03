@@ -73,6 +73,7 @@ public class FileUtils {
         try {
             os = new FileOutputStream(filePath);
             os.write(bytes);
+            os.flush();
         } catch (FileNotFoundException e) {
             log.error(e.getMessage(), e);
             throw e;
