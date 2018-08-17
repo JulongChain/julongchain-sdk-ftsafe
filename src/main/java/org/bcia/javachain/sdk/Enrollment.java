@@ -14,8 +14,8 @@
 
 package org.bcia.javachain.sdk;
 
-import org.bcia.julongchain.csp.intfs.IKey;
-import org.bcia.julongchain.msp.IIdentity;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentity;
 
 /**
  * Interface which is the contract between the Certificate Authority provider and the SDK.

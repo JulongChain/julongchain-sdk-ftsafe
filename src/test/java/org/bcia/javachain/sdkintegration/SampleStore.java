@@ -22,9 +22,9 @@ import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
-import org.bcia.julongchain.common.exception.JavaChainException;
-import org.bcia.julongchain.csp.intfs.IKey;
-import org.bcia.julongchain.msp.IIdentity;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentity;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -40,7 +40,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import org.bcia.julongchain.msp.mgmt.Msp;
+import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
 
 /**
  * A local file-based key value store.
@@ -154,9 +154,9 @@ public class SampleStore {
 
             // Create the SampleUser and try to restore it's state from the key value store (if found).
             sampleUser = new SampleUser(name, org, this);
-            sampleUser.setMspId(MspStore.getMspId());
+            sampleUser.setMspId(MspStore.getInstance().getMspId());
 
-            Msp msp = MspStore.getInstance().getMsp();
+            Msp msp = (Msp) MspStore.getInstance().getMsp();
 
             byte[] identities = MspStore.getInstance().getClientCerts().get(0);
 

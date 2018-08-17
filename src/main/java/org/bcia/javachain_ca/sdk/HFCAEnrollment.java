@@ -19,8 +19,8 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 
 import org.bcia.javachain.sdk.Enrollment;
-import org.bcia.julongchain.csp.intfs.IKey;
-import org.bcia.julongchain.msp.IIdentity;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentity;
 
 // Enrollment metadata
 public class HFCAEnrollment implements Enrollment, Serializable {

@@ -85,11 +85,11 @@ import org.bcia.javachain.sdk.transaction.QueryNodeGroupsBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionBuilder;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
 import org.bcia.javachain.sdk.transaction.UpgradeProposalBuilder;
-import org.bcia.julongchain.common.exception.NodeException;
-import org.bcia.julongchain.common.localmsp.impl.LocalSigner;
-import org.bcia.julongchain.common.util.FileUtils;
-import org.bcia.julongchain.common.util.proto.EnvelopeHelper;
-import org.bcia.julongchain.msp.mgmt.Msp;
+import org.bcia.javachain.common.exception.NodeException;
+import org.bcia.javachain.common.localmsp.impl.LocalSigner;
+import org.bcia.javachain.common.util.FileUtils;
+import org.bcia.javachain.common.util.proto.EnvelopeHelper;
+import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Common.Block;
 import org.bcia.julongchain.protos.common.Common.BlockMetadata;
@@ -123,7 +123,7 @@ import org.bcia.julongchain.protos.node.Query.GroupQueryResponse;
 import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
 import org.bcia.julongchain.protos.node.Query.SmartContractQueryResponse;
 import org.bcia.julongchain.protos.node.TransactionPackage.ProcessedTransaction;
-import org.bcia.julongchain.tools.configtxgen.entity.GenesisConfigFactory;
+//import org.bcia.javachain.tools.configtxgen.entity.GenesisConfigFactory;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -488,8 +488,9 @@ public class Group implements Serializable {
 
                 try {
                     logger.info("EnvelopeHelper.makeGroupCreateTx begin");
-                    envelope = EnvelopeHelper.makeGroupCreateTx(groupId, signer, null, GenesisConfigFactory
-                            .getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
+                    envelope = null;
+//                    envelope = EnvelopeHelper.makeGroupCreateTx(groupId, signer, null, GenesisConfigFactory
+//                            .getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
                     logger.info("EnvelopeHelper.makeGroupCreateTx end");
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
@@ -1356,7 +1357,7 @@ public class Group implements Serializable {
 
                 MspConfigPackage.FabricMSPConfig fabricMSPConfig = MspConfigPackage.FabricMSPConfig.parseFrom(mspConfig.getConfig());
 
-                msps.put(name, MspStore.getInstance().getMsp());
+                msps.put(name, (Msp) MspStore.getInstance().getMsp());
 
             }
         }
@@ -3547,7 +3548,7 @@ public class Group implements Serializable {
     private Envelope createTransactionEnvelope(Payload transactionPayload, User user) throws CryptoException {
         Msp msp = null;
         try {
-            msp = MspStore.getInstance().getMsp();
+            msp = (Msp) MspStore.getInstance().getMsp();
             return Envelope.newBuilder()
                     .setPayload(transactionPayload.toByteString())
                     .setSignature(ByteString.copyFrom(msp.getSigner().sign(transactionPayload.toByteArray())))

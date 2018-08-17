@@ -449,7 +449,7 @@
                 <version>2.10.4</version>
                 <configuration>
                     <excludePackageNames>
-                        org.bcia.javachain_ca.sdk.helper:org.bcia.javachain.protos.*:org.bcia.javachain.sdk.helper:org.bcia.javachain.sdk.transaction:org.bcia.javachain.sdk.security
+                        org.bcia.javachain_ca.sdk.helper:org.bcia.julongchain.protos.*:org.bcia.javachain.sdk.helper:org.bcia.javachain.sdk.transaction:org.bcia.javachain.sdk.security
                     </excludePackageNames>
                     <show>public</show>
                     <doctitle>BCIA javachain Java SDK</doctitle>                    

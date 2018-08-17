@@ -24,7 +24,7 @@ import java.util.Properties;
 import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.security.gm.GmCryptoSuiteFactory;
-import org.bcia.julongchain.common.exception.JavaChainException;
+import org.bcia.javachain.common.exception.JavaChainException;
 
 /**
  * All packages for PKI key creation/signing/verification implement this interface

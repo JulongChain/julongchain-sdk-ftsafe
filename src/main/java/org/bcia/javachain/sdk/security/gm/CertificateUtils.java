@@ -18,38 +18,31 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.codec.binary.Base64;
-import org.bcia.julongchain.common.exception.JavaChainException;
+import org.bcia.javachain.common.exception.JavaChainException;
 
-import org.bcia.julongchain.common.log.JavaChainLog;
-import org.bcia.julongchain.common.log.JavaChainLogFactory;
-import org.bcia.julongchain.common.tools.cryptogen.CspHelper;
-import org.bcia.julongchain.csp.factory.CspManager;
-import org.bcia.julongchain.csp.gm.dxct.sm2.SM2PrivateKeyImportOpts;
-import org.bcia.julongchain.csp.intfs.IKey;
+import org.bcia.javachain.sdk.common.log.JavaChainLog;
+import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
+import org.bcia.javachain.sdk.security.csp.factory.CspManager;
+import org.bcia.javachain.sdk.security.csp.gm.dxct.sm2.SM2PrivateKeyImportOpts;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequenceGenerator;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import sun.security.util.Debug;
-import sun.security.util.DerOutputStream;
 import sun.security.util.DerValue;
 import sun.security.x509.AlgorithmId;
 

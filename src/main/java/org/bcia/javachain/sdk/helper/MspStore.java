@@ -19,24 +19,27 @@ package org.bcia.javachain.sdk.helper;
 
 import com.google.protobuf.ByteString;
 import org.apache.commons.io.FileUtils;
+
+import org.bcia.javachain.sdk.security.csp.gm.dxct.sm2.SM2PublicKeyImportOpts;
+import org.bcia.javachain.sdk.security.csp.gm.dxct.sm2.SM2SignerOpts;
+import org.bcia.javachain.sdk.security.csp.intfs.ICsp;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
-import org.bcia.julongchain.common.exception.JavaChainException;
-import org.bcia.julongchain.common.exception.VerifyException;
-import org.bcia.julongchain.common.localmsp.ILocalSigner;
-import org.bcia.julongchain.common.localmsp.impl.LocalSigner;
-import org.bcia.julongchain.common.log.JavaChainLog;
-import org.bcia.julongchain.common.log.JavaChainLogFactory;
-import org.bcia.julongchain.common.tools.cryptogen.CspHelper;
-import org.bcia.julongchain.csp.gm.dxct.sm2.SM2PublicKeyImportOpts;
-import org.bcia.julongchain.csp.gm.dxct.sm2.SM2SignerOpts;
-import org.bcia.julongchain.csp.intfs.ICsp;
-import org.bcia.julongchain.csp.intfs.IKey;
-import org.bcia.julongchain.msp.IIdentity;
-import org.bcia.julongchain.msp.entity.IdentityIdentifier;
-import org.bcia.julongchain.msp.mgmt.GlobalMspManagement;
-import org.bcia.julongchain.msp.mgmt.Identity;
-import org.bcia.julongchain.msp.mgmt.Msp;
-import org.bcia.julongchain.msp.util.MspConfigBuilder;
+
+import org.bcia.javachain.sdk.security.msp.IIdentity;
+import org.bcia.javachain.sdk.security.msp.IMsp;
+import org.bcia.javachain.sdk.security.msp.entity.IdentityIdentifier;
+import org.bcia.javachain.sdk.security.msp.mgmt.Identity;
+import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
+import org.bcia.javachain.sdk.security.msp.util.MspConfigBuilder;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.common.exception.VerifyException;
+import org.bcia.javachain.common.localmsp.ILocalSigner;
+import org.bcia.javachain.common.localmsp.impl.LocalSigner;
+import org.bcia.javachain.sdk.common.log.JavaChainLog;
+import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
+import org.bcia.javachain.common.tools.cryptogen.CspHelper;
+
 import org.bcia.julongchain.protos.msp.Identities;
 import org.bcia.julongchain.protos.msp.MspConfigPackage;
 import org.bouncycastle.asn1.x509.Certificate;
@@ -66,8 +69,7 @@ public class MspStore {
 
     private static JavaChainLog log = JavaChainLogFactory.getLog(MspStore.class);
 
-    //這幾句是泄私的
-    public static String MSP_ID = GlobalMspManagement.getLocalMsp().getIdentifier();
+    //    public static String MSP_ID = GlobalMspManagement.getLocalMsp().getIdentifier();
     public static String MSP_DIR = System.getProperty("user.dir") +"/msp/";
     public static String CONFIG_DIR = System.getProperty("user.dir") +"/config/";
 
@@ -116,17 +118,17 @@ public class MspStore {
         return clientCerts;
     }
 
-    public Msp getMsp() {
+    public IMsp getMsp() {
         return msp;
     }
 
-    public static String getMspId() {
-        return MSP_ID;
+    public String getMspId() {
+        return msp.getIdentifier();
     }
 
 
     private static MspStore singleton;
-    private Msp msp;
+    private IMsp msp;
 
     private MspStore() {}
 
@@ -147,7 +149,7 @@ public class MspStore {
      * @return
      * @throws IOException
      */
-    private Msp init() throws IOException {
+    private IMsp init() throws IOException {
 
         if ( msp==null ) {
 
@@ -205,11 +207,10 @@ public class MspStore {
                 this.clientKeys.add(FileUtils.readFileToByteArray(file));
             }
 
-            String mspId = GlobalMspManagement.getLocalMsp().getIdentifier();
-            MspConfigPackage.MSPConfig mspConfig = MspConfigBuilder.mspConfigBuilder(mspId, caCerts, signCerts, adminCerts, clientCerts, new ArrayList<>(), configContent, tlsCaCerts, new ArrayList<>()).build();
+            MspConfigPackage.MSPConfig mspConfig = MspConfigBuilder.mspConfigBuilder("", caCerts, signCerts, adminCerts, clientCerts, new ArrayList<>(), configContent, tlsCaCerts, new ArrayList<>()).build();
 
-            msp = new Msp(mspConfig);
-
+            msp = new Msp().setup(mspConfig);
+            String mspId = msp.getIdentifier();
         }
         return msp;
     }
@@ -253,7 +254,7 @@ public class MspStore {
      */
     public static IIdentity deserializeIdentity(byte[] serializedIdentity) {
         ICsp csp = CspHelper.getCsp();
-        Msp msp = null;
+        IMsp msp = null;
         try {
             msp = MspStore.getInstance().init();
         } catch (IOException e) {
@@ -269,7 +270,7 @@ public class MspStore {
             //转换成十六进制字符串表示
             identifier_Id = Hex.toHexString(resultBytes);
             IdentityIdentifier identityIdentifier = new IdentityIdentifier(sId.getMspid(), identifier_Id);
-            IIdentity identity = new Identity(identityIdentifier, cert, certPubK, msp);
+            IIdentity identity = new Identity(identityIdentifier, cert, certPubK, (org.bcia.javachain.sdk.security.msp.mgmt.Msp) msp);
             return identity;
         } catch (Exception e) {
             e.printStackTrace();
@@ -278,7 +279,7 @@ public class MspStore {
     }
 
     public static void main(String[] args) {
-        Msp msp = null;
+        IMsp msp = null;
         try {
             msp = MspStore.getInstance().init();
             log.info(msp.toString());

@@ -32,8 +32,9 @@ import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.security.gm.GmCryptoPrimitives;
-import org.bcia.julongchain.common.exception.JavaChainException;
-import org.bcia.julongchain.msp.mgmt.Msp;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.sdk.security.msp.IMsp;
+import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Common.Envelope;
 import org.bcia.julongchain.protos.common.Common.GroupHeader;
@@ -337,8 +338,8 @@ public final class ProtoUtils {
 
 
     public static void main(String[] args) {
-        Msp msp = MspStore.getInstance().getMsp();
-        logger.info(msp.getIntermediateCerts()[0].getIdentifier());
+//        IMsp msp = MspStore.getInstance().getMsp();
+//        logger.info(msp.getIntermediateCerts()[0].getIdentifier());
 //        Identities.SerializedIdentity serial = null;
 //        Identities.SerializedIdentity.newBuilder()
 //                .setIdBytes(ByteString.copyFromUtf8(msp.getIntermediateCerts()[0].getIdentifier()))

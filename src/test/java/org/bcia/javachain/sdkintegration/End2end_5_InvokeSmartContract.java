@@ -24,16 +24,15 @@ import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.testutils.TestConfig;
 import org.bcia.javachain_ca.sdk.RegistrationRequest;
-import org.bcia.julongchain.common.exception.JavaChainException;
-import org.bcia.julongchain.common.localmsp.ILocalSigner;
-import org.bcia.julongchain.common.localmsp.impl.LocalSigner;
-import org.bcia.julongchain.common.log.JavaChainLog;
-import org.bcia.julongchain.common.log.JavaChainLogFactory;
-import org.bcia.julongchain.core.common.validation.MsgValidation;
-import org.bcia.julongchain.csp.intfs.IKey;
-import org.bcia.julongchain.msp.IIdentityDeserializer;
-import org.bcia.julongchain.msp.ISigningIdentity;
-import org.bcia.julongchain.msp.mgmt.GlobalMspManagement;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.common.localmsp.ILocalSigner;
+import org.bcia.javachain.common.localmsp.impl.LocalSigner;
+import org.bcia.javachain.sdk.common.log.JavaChainLog;
+import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentityDeserializer;
+import org.bcia.javachain.sdk.security.msp.ISigningIdentity;
+import org.bcia.javachain.sdk.security.msp.mgmt.GlobalMspManagement;
 import org.bcia.julongchain.protos.ledger.rwset.kvrwset.KvRwset;
 import org.junit.Before;
 import org.junit.Test;
@@ -275,6 +274,7 @@ public class End2end_5_InvokeSmartContract {
 
         Collection<ProposalResponse> transactionPropResp = newGroup.sendTransactionProposal(transactionProposalRequest, newGroup.getNodes());
         for (ProposalResponse response : transactionPropResp) {
+            log.info("______status:_______"+ response.getStatus());
             //if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
             if (response.getStatus() == ProposalResponse.Status.SUCCESS
                     || response.getStatus() == ProposalResponse.Status.UNDEFINED ) {//TODO 200和０暂时都算返回成功，等julongchain返回码统一
