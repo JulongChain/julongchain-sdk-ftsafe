@@ -47,10 +47,9 @@ import java.util.regex.Pattern;
 public class TestConfig {
     private static final Log logger = LogFactory.getLog(TestConfig.class);
 
+    private static final String DEFAULT_CONFIG = "src/test/java/org/bcia/javachain/sdk/testutils.properties";
     private static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdktest.configuration";
-    private static final String ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST = "ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST";
-    private static final String LOCALHOST = //Change test to reference another host .. easier config for my testing on Windows !
-            System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST) == null ? "localhost" : System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST);
+    private static final String LOCALHOST = "localhost";
 
     private static final String PROPBASE = "org.bcia.javachain.sdktest.";
 
@@ -61,10 +60,6 @@ public class TestConfig {
     private static final String INTEGRATIONTESTS_ORG = PROPBASE + "integrationTests.org.";
     private static final Pattern orgPat = Pattern.compile("^" + Pattern.quote(INTEGRATIONTESTS_ORG) + "([^\\.]+)\\.mspid$");
 
-    // location switching between fabric cryptogen and configtxgen artifacts for v1.0 and v1.1 in src/test/fixture/sdkintegration/e2e-2Orgs
-    public static final String FAB_CONFIG_GEN_VERS =
-            Objects.equals(System.getenv("ORG_HYPERLEDGER_FABRIC_SDKTEST_VERSION"), "1.0.0") ? "v1.0" : "v1.1";
-
     private static TestConfig config;
     private static final Properties sdkProperties = new Properties();
     private final boolean runningTLS;
@@ -74,21 +69,21 @@ public class TestConfig {
     private static final HashMap<String, SampleOrg> sampleOrgs = new HashMap<>();
 
     private TestConfig() {
-//        File loadFile;
+        File loadFile;
         //没来得及改
-//        FileInputStream configProps;
-//        try {
-//            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
-//                    .getAbsoluteFile();
-//            logger.debug(String.format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-//                    loadFile.exists()));
-//            configProps = new FileInputStream(loadFile);
-//            sdkProperties.load(configProps);
-//
-//        } catch (IOException e) { // if not there no worries just use defaults
-////            logger.warn(String.format("Failed to load any test configuration from: %s. Using toolkit defaults",
-////                    DEFAULT_CONFIG));
-//        } finally
+        FileInputStream configProps;
+        try {
+            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
+                    .getAbsoluteFile();
+            logger.debug(String.format("Loading configuration from %s and it is present: %b", loadFile.toString(),
+                    loadFile.exists()));
+            configProps = new FileInputStream(loadFile);
+            sdkProperties.load(configProps);
+
+        } catch (IOException e) { // if not there no worries just use defaults
+//            logger.warn(String.format("Failed to load any test configuration from: %s. Using toolkit defaults",
+//                    DEFAULT_CONFIG));
+        } finally
         {
 
             // Default values
@@ -166,8 +161,9 @@ public class TestConfig {
 
                 if (runningTLS) {
                     //没来得及改
-                    String cert = "src/test/fixture/sdkintegration/e2e-2Orgs/FAB_CONFIG_GEN_VERS/crypto-config/peerOrganizations/DNAME/ca/ca.DNAME-cert.pem"
-                            .replaceAll("DNAME", domainName).replaceAll("FAB_CONFIG_GEN_VERS", FAB_CONFIG_GEN_VERS);
+//                    String cert = "src/test/fixture/sdkintegration/e2e-2Orgs/FAB_CONFIG_GEN_VERS/crypto-config/peerOrganizations/DNAME/ca/ca.DNAME-cert.pem"
+//                            .replaceAll("DNAME", domainName).replaceAll("FAB_CONFIG_GEN_VERS", FAB_CONFIG_GEN_VERS);
+                    String cert = "";//仅防止报错
                     File cf = new File(cert);
                     if (!cf.exists() || !cf.isFile()) {
                         throw new RuntimeException("TEST is missing cert file " + cf.getAbsolutePath());
@@ -363,11 +359,12 @@ public class TestConfig {
                 Files.write(Paths.get(temp.getAbsolutePath()), sourceText.getBytes(StandardCharsets.UTF_8),
                         StandardOpenOption.CREATE_NEW, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
 
-                if (!Objects.equals("true", System.getenv(System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST + "_KEEP")))) {
-                    temp.deleteOnExit();
-                } else {
+//                if (!Objects.equals("true", System.getenv(System.getenv(ORG_HYPERLEDGER_FABRIC_SDK_TEST_FABRIC_HOST + "_KEEP")))) {
+//                    temp.deleteOnExit();
+//                } else {
+                    //保留
                     System.err.println("produced new network-config.yaml file at:" + temp.getAbsolutePath());
-                }
+//                }
 
             } catch (Exception e) {
                 throw new RuntimeException(e);

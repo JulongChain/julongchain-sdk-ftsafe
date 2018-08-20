@@ -29,6 +29,7 @@ import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.security.msp.IIdentity;
 import org.bcia.javachain.sdk.security.msp.IMsp;
 import org.bcia.javachain.sdk.security.msp.entity.IdentityIdentifier;
+import org.bcia.javachain.sdk.security.msp.mgmt.GlobalMspManagement;
 import org.bcia.javachain.sdk.security.msp.mgmt.Identity;
 import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
 import org.bcia.javachain.sdk.security.msp.util.MspConfigBuilder;
@@ -207,10 +208,10 @@ public class MspStore {
                 this.clientKeys.add(FileUtils.readFileToByteArray(file));
             }
 
-            MspConfigPackage.MSPConfig mspConfig = MspConfigBuilder.mspConfigBuilder("", caCerts, signCerts, adminCerts, clientCerts, new ArrayList<>(), configContent, tlsCaCerts, new ArrayList<>()).build();
+            String mspId = GlobalMspManagement.getLocalMsp().getIdentifier();
+            MspConfigPackage.MSPConfig mspConfig = MspConfigBuilder.mspConfigBuilder(mspId, caCerts, signCerts, adminCerts, clientCerts, new ArrayList<>(), configContent, tlsCaCerts, new ArrayList<>()).build();
 
             msp = new Msp().setup(mspConfig);
-            String mspId = msp.getIdentifier();
         }
         return msp;
     }

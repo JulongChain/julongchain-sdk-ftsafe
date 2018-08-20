@@ -154,9 +154,8 @@ public class SampleStore {
 
             // Create the SampleUser and try to restore it's state from the key value store (if found).
             sampleUser = new SampleUser(name, org, this);
-            sampleUser.setMspId(MspStore.getInstance().getMspId());
-
             Msp msp = (Msp) MspStore.getInstance().getMsp();
+            sampleUser.setMspId(MspStore.getInstance().getMsp().getIdentifier());
 
             byte[] identities = MspStore.getInstance().getClientCerts().get(0);
 

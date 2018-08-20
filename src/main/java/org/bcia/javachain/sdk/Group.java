@@ -61,6 +61,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.common.util.proto.GenesisConfigFactory;
 import org.bcia.javachain.sdk.BlockEvent.TransactionEvent;
 import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.exception.CryptoException;
@@ -488,9 +489,8 @@ public class Group implements Serializable {
 
                 try {
                     logger.info("EnvelopeHelper.makeGroupCreateTx begin");
-                    envelope = null;
-//                    envelope = EnvelopeHelper.makeGroupCreateTx(groupId, signer, null, GenesisConfigFactory
-//                            .getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
+                    envelope = EnvelopeHelper.makeGroupCreateTx(groupId, signer, null, GenesisConfigFactory
+                            .getGenesisConfig().getCompletedProfile(PROFILE_CREATE_GROUP));
                     logger.info("EnvelopeHelper.makeGroupCreateTx end");
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);

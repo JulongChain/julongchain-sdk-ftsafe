@@ -6,11 +6,22 @@ import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
 import org.bcia.javachain.common.policies.PolicyConstant;
 
 import java.util.Map;
-
+/**
+ * 创世配置对象(与configtx.yaml文件匹配)
+ *
+ * @author zhouhui
+ * @date 2018/3/8
+ * @company Dingxuan
+ * modified by wangzhe 180820 迁移到javachain.sdk中
+ */
 public class GenesisConfig {
 
     private static JavaChainLog log = JavaChainLogFactory.getLog(GenesisConfig.class);
 
+    /**
+     * 当前对象对应的yaml文件路径
+     */
+    public static final String CONFIGTX_FILE_PATH = "configtx.yaml";
     private static final String DEFAULT_CONSENTER_TYPE = "Singleton";
     private static final String DEFAULT_CONSENTER_ADDRESS = "127.0.0.1:7050";
     private static final long DEFAULT_BATCH_TIMEOUT = 2L;
@@ -24,6 +35,92 @@ public class GenesisConfig {
     private static final String DEFAULT_MSG_TYPE = "csp";
     public static final String DEFAULT_ADMIN_PRINCIPAL = "Role.ADMIN";
     private static final String DEFAULT_MOD_POLICY = PolicyConstant.GROUP_APP_ADMINS;
+
+    private Map<String, Profile> profiles;
+    private Organization[] organizations;
+    private Application application;
+    private Consenter consenter;
+    private Map<String, Map<String, Boolean>> capabilities;
+    private Resources resources;
+
+    public Map<String, Profile> getProfiles() {
+        return profiles;
+    }
+
+    public void setProfiles(Map<String, Profile> profiles) {
+        this.profiles = profiles;
+    }
+
+    public Organization[] getOrganizations() {
+        return organizations;
+    }
+
+    public void setOrganizations(Organization[] organizations) {
+        this.organizations = organizations;
+    }
+
+    public Application getApplication() {
+        return application;
+    }
+
+    public void setApplication(Application application) {
+        this.application = application;
+    }
+
+    public Consenter getConsenter() {
+        return consenter;
+    }
+
+    public void setConsenter(Consenter consenter) {
+        this.consenter = consenter;
+    }
+
+    public Map<String, Map<String, Boolean>> getCapabilities() {
+        return capabilities;
+    }
+
+    public void setCapabilities(Map<String, Map<String, Boolean>> capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    public Resources getResources() {
+        return resources;
+    }
+
+    public void setResources(Resources resources) {
+        this.resources = resources;
+    }
+
+
+    /**
+     * 补全实例中其他属性
+     */
+    public void completeInstance() {
+        if (organizations != null && organizations.length > 0) {
+            for (Organization org : organizations) {
+                org.completeInstance();
+            }
+        }
+
+        if (consenter != null) {
+            consenter.completeInstance();
+        }
+    }
+
+    /**
+     * 获取补全的Profile
+     */
+    public Profile getCompletedProfile(String profileName) {
+        if (profiles != null) {
+            Profile profile = profiles.get(profileName);
+            if (profile != null) {
+                profile.completeInstance();
+                return profile;
+            }
+        }
+
+        return null;
+    }
 
     public static class Profile {
         private String consortium;
