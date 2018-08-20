@@ -236,7 +236,7 @@ public class End2end_1_CreateGroup {
 
     //################################################################################################################################
     //
-    //                          創建羣組
+    //                          創建羣組180815
     //
     //################################################################################################################################
     public static Group createGroup(String groupName, HFClient client, SampleOrg sampleOrg) throws InvalidArgumentException, TransactionException {
