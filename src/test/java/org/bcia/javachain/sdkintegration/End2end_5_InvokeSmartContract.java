@@ -14,54 +14,37 @@
 
 package org.bcia.javachain.sdkintegration;
 
-import org.apache.commons.codec.binary.Hex;
+import org.bcia.javachain.common.exception.JavaChainException;
 import org.bcia.javachain.sdk.*;
-import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.TransactionRequest.Type;
-import org.bcia.javachain.sdk.exception.*;
+import org.bcia.javachain.sdk.common.log.JavaChainLog;
+import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
+import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.security.CryptoSuite;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.testutils.TestConfig;
 import org.bcia.javachain_ca.sdk.RegistrationRequest;
-import org.bcia.javachain.common.exception.JavaChainException;
-import org.bcia.javachain.common.localmsp.ILocalSigner;
-import org.bcia.javachain.common.localmsp.impl.LocalSigner;
-import org.bcia.javachain.sdk.common.log.JavaChainLog;
-import org.bcia.javachain.sdk.common.log.JavaChainLogFactory;
-import org.bcia.javachain.sdk.security.csp.intfs.IKey;
-import org.bcia.javachain.sdk.security.msp.IIdentityDeserializer;
-import org.bcia.javachain.sdk.security.msp.ISigningIdentity;
-import org.bcia.javachain.sdk.security.msp.mgmt.GlobalMspManagement;
-import org.bcia.julongchain.protos.ledger.rwset.kvrwset.KvRwset;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bcia.javachain.sdk.BlockInfo.EnvelopeType.TRANSACTION_ENVELOPE;
-import static org.bcia.javachain.sdk.Group.NOfEvents.createNofEvents;
-import static org.bcia.javachain.sdk.Group.NodeOptions.createNodeOptions;
-import static org.bcia.javachain.sdk.Group.TransactionOptions.createTransactionOptions;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 /**
- * Test end to end scenario
+ * 测试调用智能合约的脚本
  * 此时脚本来自于End2endIT
  * 1.将ＧＯ语言部分去掉
  * 2.将路径做了改动
  * 3.将群组２去掉
  * 4.安装julongchain-sc-java智能合约
  * 5.将protos全面改为julongchain包
- * @author wangzhe version 3.0
+ * @author wangzhe
  */
 public class End2end_5_InvokeSmartContract {
 
@@ -78,23 +61,11 @@ public class End2end_5_InvokeSmartContract {
     private static final String EXPECTED_EVENT_NAME = "event";
     private static final Map<String, String> TX_EXPECTED;
 
-    String testName = "End2endIT";
-
-    String SMART_CONTRACT_FILEPATH = "";//直接拼接fixture和name
-    String SMART_CONTRACT_NAME = "julongchain-sc-java";
-    String SMART_CONTRACT_VERSION = "1";
-    Type SMART_CONTRACT_LANG = Type.JAVA;
-
     static {
         TX_EXPECTED = new HashMap<>();
         TX_EXPECTED.put("readset1", "Missing readset for channel bar block 1");
         TX_EXPECTED.put("writeset1", "Missing writeset for channel bar block 1");
     }
-
-    private final TestConfigHelper configHelper = new TestConfigHelper();
-    String testTxID = null;  // save the CC invoke TxID and use in queries
-    SampleStore sampleStore = null;
-//    private Collection<SampleOrg> testSampleOrgs;
 
     static void info(String format, Object... args) {
 //        System.err.flush();
@@ -352,7 +323,8 @@ public class End2end_5_InvokeSmartContract {
         return orderers;
     }
 
-    public static void main(String[] args) throws Exception {
+    @Test
+    public void testInvokeSmartContact() throws Exception {
         File sampleStoreFile = new File(System.getProperty("java.io.tmpdir") + "/HFCSampletest.properties");
         if (sampleStoreFile.exists()) { //For testing start fresh
             sampleStoreFile.delete();

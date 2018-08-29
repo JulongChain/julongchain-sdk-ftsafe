@@ -46,22 +46,10 @@ public class TransactionContextTest {
         }
     }
 
-    @Test
-    public void testGetters() throws Exception {
-
-        Group channel = createTestGroup("channel1");
-
-        User user = hfclient.getUserContext();
-        CryptoSuite cryptoSuite = hfclient.getCryptoSuite();
-
-        TransactionContext context = new TransactionContext(channel, user, cryptoSuite);
-
-        // ensure getCryptoPrimitives returns what we passed in to the constructor
-        CryptoSuite cryptoPrimitives = context.getCryptoPrimitives();
-        Assert.assertEquals(cryptoSuite, cryptoPrimitives);
-
-    }
-
+    /**
+     * 测试签名
+     * @throws Exception
+     */
     @Test
     public void testSignByteStrings() throws Exception {
 
@@ -82,15 +70,21 @@ public class TransactionContextTest {
     // Helper methods
     // ==========================================================================================
 
+    /**
+     * 创建测试交易上下文
+     * @return
+     */
     private TransactionContext createTestContext() {
         Group channel = createTestGroup("channel1");
-
         User user = hfclient.getUserContext();
-        CryptoSuite cryptoSuite = hfclient.getCryptoSuite();
-
-        return new TransactionContext(channel, user, cryptoSuite);
+        return new TransactionContext(channel, user);
     }
 
+    /**
+     * 测试群组创建
+     * @param channelName
+     * @return
+     */
     private Group createTestGroup(String channelName) {
 
         Group channel = null;

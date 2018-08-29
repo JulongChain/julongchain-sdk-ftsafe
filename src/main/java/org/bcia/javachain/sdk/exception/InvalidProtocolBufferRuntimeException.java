@@ -30,6 +30,7 @@ public class InvalidProtocolBufferRuntimeException extends RuntimeException {
         super(parent);
     }
 
+    @Override
     public synchronized InvalidProtocolBufferException getCause() {
 
         return (InvalidProtocolBufferException) super.getCause();

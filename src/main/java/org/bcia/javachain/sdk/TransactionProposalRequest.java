@@ -34,6 +34,7 @@ public class TransactionProposalRequest extends TransactionRequest {
 
     }
 
+    @Override
     public void setSmartContractLanguage(Type chaincodeLanguage) {
         this.chaincodeLanguage = chaincodeLanguage;
     }

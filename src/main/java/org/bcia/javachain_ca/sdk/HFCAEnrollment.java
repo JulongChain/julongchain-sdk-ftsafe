@@ -38,11 +38,13 @@ public class HFCAEnrollment implements Enrollment, Serializable {
         this.cert = signedPem;
     }
 
+    @Override
     public IKey getKey() {
 //        return key.getPrivate();
         return key;
     }
 
+    @Override
     public byte[] getCert() {
         return cert;
     }

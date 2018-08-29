@@ -17,12 +17,18 @@ package org.bcia.javachain.sdk.transaction;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.common.localmsp.ILocalSigner;
+import org.bcia.javachain.common.localmsp.impl.LocalSigner;
 import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
+import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdk.security.CryptoSuite;
+import org.bcia.javachain.sdk.security.msp.mgmt.Identity;
 import org.bcia.julongchain.protos.msp.Identities;
 
 /**
@@ -34,13 +40,14 @@ import org.bcia.julongchain.protos.msp.Identities;
  * Group,TransactionPackage,TransactionResponsePackage,
  * EventsPackage,ProposalPackage,ProposalResponsePackage
  * by wangzhe in ftsafe 2018-07-02
+ * 修改內容：將CrptoSuite参数去掉，使用另外实现的加密模块。
  */
 public class TransactionContext {
     private static final Config config = Config.getConfig();
     //    private static final Log logger = LogFactory.getLog(TransactionContext.class);
     //TODO right now the server does not care need to figure out
     private final ByteString nonce = ByteString.copyFrom(Utils.generateNonce());
-    private final CryptoSuite cryptoPrimitives;
+    private final ILocalSigner signer;
     private final User user;
     private final Group channel;
     private final String txID;
@@ -50,7 +57,7 @@ public class TransactionContext {
     //private List<String> attrs;
     private long proposalWaitTime = config.getProposalWaitTime();
 
-    public TransactionContext(Group channel, User user, CryptoSuite cryptoPrimitives) {
+    public TransactionContext(Group channel, User user) {
 
         this.user = user;
         this.channel = channel;
@@ -58,23 +65,26 @@ public class TransactionContext {
         this.verify = !"".equals(channel.getName());  //if name is not blank not system channel and need verify.
 
         //  this.txID = transactionID;
-        this.cryptoPrimitives = cryptoPrimitives;
-
+        signer = new LocalSigner();
         identity = ProtoUtils.createSerializedIdentity(getUser());
 
         ByteString no = getNonce();
 
         ByteString comp = no.concat(identity.toByteString());
 
-        byte[] txh = cryptoPrimitives.hash(comp.toByteArray());
+        byte[] txh = new byte[0];
+
+        try {
+            txh = MspStore.getInstance().getCsp().hash(comp.toByteArray(), null);
+        } catch (JavaChainException e) {
+            e.printStackTrace();
+            txh = null;//沒有正確獲取txh
+        }
+
 
         //    txID = Hex.encodeHexString(txh);
         txID = new String(Utils.toHexString(txh));
 
-    }
-
-    public CryptoSuite getCryptoPrimitives() {
-        return cryptoPrimitives;
     }
 
     public Identities.SerializedIdentity getIdentity() {
@@ -172,7 +182,7 @@ public class TransactionContext {
     }
 
     byte[] sign(byte[] b) throws CryptoException {
-        return cryptoPrimitives.sign(b);
+        return signer.sign(b);
     }
 
     public ByteString signByteString(byte[] b) throws CryptoException {
@@ -220,22 +230,20 @@ public class TransactionContext {
 
         int i = -1;
         for (User user : users) {
-            ret[++i] = ByteString.copyFrom(cryptoPrimitives.sign(signbytes));
+            ret[++i] = ByteString.copyFrom(signer.sign(signbytes));
         }
         return ret;
     }
 
     public TransactionContext retryTransactionSameContext() {
-
-        return new TransactionContext(channel, user, cryptoPrimitives);
-
+        return new TransactionContext(channel, user);
     }
 
     @Override
     public String toString() {
         return "TransactionContext{" +
                 "nonce=" + nonce +
-                ", cryptoPrimitives=" + cryptoPrimitives +
+                ", signer=" + signer +
                 ", user=" + user +
                 ", channel=" + channel +
                 ", txID='" + txID + '\'' +

@@ -95,7 +95,11 @@ public class Config {
 
     
     private Map<String, String> yamlMap;
-    
+
+    /**
+     * 取得属性值
+     * @throws Exception
+     */
     public String getValue(String key) {
     	String value = (String) MVEL.eval(key, yamlMap);
     	logger.info("config >> key: "+ key +", value: "+ value);
@@ -106,117 +110,100 @@ public class Config {
 //        File loadFile;
         InputStream configProps;
 
-        try {
-//          loadFile = new File(System.getProperty(ORG_BCIA_JAVACHAIN_SDK_CONFIGURATION, DEFAULT_CONFIG))
-//          .getAbsoluteFile();
-//  logger.debug(format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-//          loadFile.exists()));
-//  configProps = new FileInputStream(loadFile);
-        	configProps = Config.class.getResourceAsStream("/config_gm.properties");
-            sdkProperties.load(configProps);
-            //yamlMap = (LinkedHashMap<String, String>) new Yaml().load(this.getClass().getResourceAsStream("/config_gm.yaml"));
-        } catch (IOException e) {
-        	e.printStackTrace();
-            logger.warn(format("Failed to load any configuration from: %s. Using toolkit defaults",
-                    DEFAULT_CONFIG));
-        } finally {
+        // Default values
+        /**
+         * Timeout settings
+         **/
+        defaultProperty(PROPOSAL_WAIT_TIME, "200000");
+        defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "1500000");
+        defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
+        // defaultProperty(ORDERER_WAIT_TIME, "10000");
+        defaultProperty(ORDERER_WAIT_TIME, "300000");
+        defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
+        defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
+        defaultProperty(EVENTHUB_CONNECTION_WAIT_TIME, "1000");
+        defaultProperty(GENESISBLOCK_WAIT_TIME, "5000");
+        /**
+         * This will NOT complete any transaction futures time out and must be kept WELL above any expected future timeout
+         * for transactions sent to the Orderer. For internal cleanup only.
+         */
 
-            // Default values
-            /**
-             * Timeout settings
-             **/
-            defaultProperty(PROPOSAL_WAIT_TIME, "200000");
-            defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "1500000");
-            defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
-            // defaultProperty(ORDERER_WAIT_TIME, "10000");
-            defaultProperty(ORDERER_WAIT_TIME, "300000");
-            defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
-            defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
-            defaultProperty(EVENTHUB_CONNECTION_WAIT_TIME, "1000");
-            defaultProperty(GENESISBLOCK_WAIT_TIME, "5000");
-            /**
-             * This will NOT complete any transaction futures time out and must be kept WELL above any expected future timeout
-             * for transactions sent to the Orderer. For internal cleanup only.
-             */
+        defaultProperty(TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME, "600000"); //10 min.
 
-            defaultProperty(TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME, "600000"); //10 min.
+        /**
+         * Crypto configuration settings
+         **/
+        /*
+        defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.HLSDKJCryptoSuiteFactory");
+        defaultProperty(SECURITY_LEVEL, "256");
+        defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
+        defaultProperty(SECURITY_CURVE_MAPPING, "256=secp256r1:384=secp384r1");
+        defaultProperty(HASH_ALGORITHM, "SHA2");
+        defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+        defaultProperty(CERTIFICATE_FORMAT, "X.509");
+        defaultProperty(SIGNATURE_ALGORITHM, "SHA256withECDSA");
+        */
 
-            /**
-             * Crypto configuration settings
-             **/
-            /*
-            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.HLSDKJCryptoSuiteFactory");
-            defaultProperty(SECURITY_LEVEL, "256");
-            defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
-            defaultProperty(SECURITY_CURVE_MAPPING, "256=secp256r1:384=secp384r1");
-            defaultProperty(HASH_ALGORITHM, "SHA2");
-            defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
-            defaultProperty(CERTIFICATE_FORMAT, "X.509");
-            defaultProperty(SIGNATURE_ALGORITHM, "SHA256withECDSA");
-            */
-            
-            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
-            defaultProperty(SECURITY_LEVEL, "256");
-            defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
-            defaultProperty(SECURITY_CURVE_MAPPING, "256=sm2p256v1");
-            defaultProperty(HASH_ALGORITHM, "SM3");//SHA2
-            defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
-            defaultProperty(CERTIFICATE_FORMAT, "X.509");
-            defaultProperty(SIGNATURE_ALGORITHM, "SM3withSM2");
+        defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
+        defaultProperty(SECURITY_LEVEL, "256");
+        defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
+        defaultProperty(SECURITY_CURVE_MAPPING, "256=sm2p256v1");
+        defaultProperty(HASH_ALGORITHM, "SM3");//SHA2
+        defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+        defaultProperty(CERTIFICATE_FORMAT, "X.509");
+        defaultProperty(SIGNATURE_ALGORITHM, "SM3withSM2");
 
-            /**
-             * Logging settings
-             **/
-            defaultProperty(MAX_LOG_STRING_LENGTH, "64");
-            defaultProperty(EXTRALOGLEVEL, "0");
-            defaultProperty(LOGGERLEVEL, null);
-            defaultProperty(DIAGNOTISTIC_FILE_DIRECTORY, null);
-            /**
-             * Miscellaneous settings
-             */
-            defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "false");//TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
+        /**
+         * Logging settings
+         **/
+        defaultProperty(MAX_LOG_STRING_LENGTH, "64");
+        defaultProperty(EXTRALOGLEVEL, "0");
+        defaultProperty(LOGGERLEVEL, null);
+        defaultProperty(DIAGNOTISTIC_FILE_DIRECTORY, null);
+        /**
+         * Miscellaneous settings
+         */
+        defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "false");//TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
 
-            defaultProperty(BLOCK_PATH, "/home/bcia/julongchain");
+        defaultProperty(BLOCK_PATH, "/home/bcia/julongchain");
 
 
-            final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
+        final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
 
-            if (null != inLogLevel) {
+        if (null != inLogLevel) {
 
-                Level setTo;
+            Level setTo;
 
-                switch (inLogLevel.toUpperCase()) {
+            switch (inLogLevel.toUpperCase()) {
 
-                    case "TRACE":
-                        setTo = Level.TRACE;
-                        break;
+                case "TRACE":
+                    setTo = Level.TRACE;
+                    break;
 
-                    case "DEBUG":
-                        setTo = Level.DEBUG;
-                        break;
+                case "DEBUG":
+                    setTo = Level.DEBUG;
+                    break;
 
-                    case "INFO":
-                        setTo = Level.INFO;
-                        break;
+                case "INFO":
+                    setTo = Level.INFO;
+                    break;
 
-                    case "WARN":
-                        setTo = Level.WARN;
-                        break;
+                case "WARN":
+                    setTo = Level.WARN;
+                    break;
 
-                    case "ERROR":
-                        setTo = Level.ERROR;
-                        break;
+                case "ERROR":
+                    setTo = Level.ERROR;
+                    break;
 
-                    default:
-                        setTo = Level.INFO;
-                        break;
+                default:
+                    setTo = Level.INFO;
+                    break;
 
-                }
+            }
 
-                if (null != setTo) {
-                    org.apache.log4j.Logger.getLogger("org.bcia.javachain").setLevel(setTo);
-                }
-
+            if (null != setTo) {
+                org.apache.log4j.Logger.getLogger("org.bcia.javachain").setLevel(setTo);
             }
 
         }

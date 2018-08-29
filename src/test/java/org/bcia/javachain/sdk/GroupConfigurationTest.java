@@ -28,14 +28,14 @@ public class GroupConfigurationTest {
     private static final String TEST_BYTES_2 = "00112233445566778899";
 
     @Test
-    public void testChannelConfigurationByeArray() {
+    public void testGroupConfigurationByeArray() {
         // Test empty constructor
-        new ChannelConfiguration();
+        new GroupConfiguration();
 
         // Test byte array constructor
-        ChannelConfiguration testChannelConfig = new ChannelConfiguration(TEST_BYTES_1.getBytes());
-        testChannelConfig.setChannelConfiguration(TEST_BYTES_2.getBytes());
-        Assert.assertEquals(TEST_BYTES_2, new String(testChannelConfig.getChannelConfigurationAsBytes()));
+        GroupConfiguration testChannelConfig = new GroupConfiguration(TEST_BYTES_1.getBytes());
+        testChannelConfig.setGroupConfiguration(TEST_BYTES_2.getBytes());
+        Assert.assertEquals(TEST_BYTES_2, new String(testChannelConfig.getGroupConfigurationAsBytes()));
     }
     
     @Test

@@ -1695,7 +1695,7 @@ public class Group implements Serializable {
 
         userContextCheck(userContext);
 
-        return new TransactionContext(this, userContext, client.getCryptoSuite());
+        return new TransactionContext(this, userContext);
     }
 
     /**
@@ -4296,7 +4296,7 @@ public class Group implements Serializable {
          *
          * @return return a duplicate of this instance.
          */
-
+        @Override
         public NodeOptions clone() {
             try {
                 return (NodeOptions) super.clone();

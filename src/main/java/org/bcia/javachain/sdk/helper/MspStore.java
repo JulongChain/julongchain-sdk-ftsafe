@@ -216,18 +216,13 @@ public class MspStore {
         return msp;
     }
 
+    /**
+     * 得到csp
+     * @return
+     */
     public ICsp getCsp() {
         return CspHelper.getCsp();
     }
-
-//    /**
-//     * 得到嘶鑰對象
-//     * @return
-//     * @throws JavaChainException
-//     */
-//    public IKey loadServerPrivateKey() throws JavaChainException {
-//        return CspHelper.loadPrivateKey(Paths.get(MSP_DIR, "keystore").toString());
-//    }
 
     /**
      * 序列化
@@ -277,72 +272,5 @@ public class MspStore {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public static void main(String[] args) {
-        IMsp msp = null;
-        try {
-            msp = MspStore.getInstance().init();
-            log.info(msp.toString());
-            IKey privateKey = CertificateUtils.bytesToPrivateKey(MspStore.getInstance().getClientKeys().get(0));
-            log.info(privateKey.toString());
-
-            log.info(MspStore.getInstance().getAdminCerts().toString());
-            log.info(MspStore.getInstance().getCaCerts().toString());
-            log.info(MspStore.getInstance().getTlsCaCerts().toString());
-            log.info(MspStore.getInstance().getTlsClientCerts().toString());
-            log.info(MspStore.getInstance().getClientCerts().toString());
-            log.info(MspStore.getInstance().getSignCerts().toString());
-            log.info(MspStore.getInstance().getConfigMap().toString());
-
-
-            log.info(CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getAdminCerts().get(0)).toString());
-            log.info(CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getCaCerts().get(0)).toString());
-            log.info(CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getTlsCaCerts().get(0)).toString());
-            log.info(CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getSignCerts().get(0)).toString());
-
-
-            byte[] result = serializeIdentity("Org1Msp", CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getClientCerts().get(0)));
-            log.info(new String(result));
-            IIdentity identity = deserializeIdentity(result);
-            log.info(identity.toString());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JavaChainException e) {
-            e.printStackTrace();
-        }
-
-//        Identities.SerializedIdentity.newBuilder()
-//                .setIdBytes(ByteString.copyFromUtf8(MspStore.getInstance().get))
-//                .setMspid("").build();
-
-
-
-        //實驗一下籤名
-        ILocalSigner signer = new LocalSigner();
-        byte[] msg = "我今天在球場沒拖地".getBytes();
-        byte[] sig = signer.sign("我今天在球場沒拖地".getBytes());
-        boolean verify = false;
-        Certificate cert = null;
-        IKey certPubK = null;
-        try {
-            cert = CertificateUtils.bytesToX509Certificate(MspStore.getInstance().getSignCerts().get(0));
-            byte[] pbBytes = cert.getSubjectPublicKeyInfo().getPublicKeyData().getBytes();
-            certPubK = MspStore.getInstance().getCsp().keyImport(pbBytes, new SM2PublicKeyImportOpts(true));
-        } catch (JavaChainException e) {
-            e.printStackTrace();
-        }
-
-
-        try {
-            verify = MspStore.getInstance().getCsp().verify(certPubK, sig, msg, new SM2SignerOpts());
-
-            if (verify == false) {
-                throw new VerifyException("Veify the sign is fail");
-            }
-        } catch (JavaChainException e) {
-            e.printStackTrace();
-        }
     }
 }
