@@ -68,10 +68,6 @@ public class HFCAIdentity {
             throw new InvalidArgumentException("EnrollmentID cannot be null or empty");
         }
 
-        if (client.getCryptoSuite() == null) {
-            throw new InvalidArgumentException("Client's crypto primitives not set");
-        }
-
         this.enrollmentID = enrollmentID;
         this.client = client;
     }

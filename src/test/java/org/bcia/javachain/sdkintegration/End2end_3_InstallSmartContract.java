@@ -23,7 +23,6 @@ import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.MspStore;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.testutils.TestConfig;
@@ -294,7 +293,6 @@ public class End2end_3_InstallSmartContract {
         Collection<SampleOrg> sampleOrgs = testConfig.getIntegrationTestsSampleOrgs();
         SampleOrg sampleOrg = sampleOrgs.toArray(new SampleOrg[0])[0];
         HFClient client = HFClient.createNewInstance();
-        client.setCryptoSuite(CryptoSuite.Factory.getCryptoSuite());
 
         initUser(sampleOrgs, sampleStore);
         client.setUserContext(sampleOrg.getNodeAdmin());

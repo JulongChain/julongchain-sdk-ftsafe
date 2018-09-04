@@ -19,8 +19,6 @@ import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.TestHFClient;
 import org.bcia.javachain.sdk.User;
-import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.sdk.transaction.TransactionContext;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

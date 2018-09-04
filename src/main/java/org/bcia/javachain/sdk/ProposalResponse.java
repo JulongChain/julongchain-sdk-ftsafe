@@ -13,12 +13,10 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.julongchain.protos.common.Common;
 import org.bcia.julongchain.protos.common.Common.Header;
 import org.bcia.julongchain.protos.ledger.rwset.Rwset.TxReadWriteSet;
@@ -101,7 +99,7 @@ public class ProposalResponse extends SmartContractResponse {
      *
      * @return true/false depending on result of signature verification
      */
-    public boolean verify(CryptoSuite crypto) {
+    public boolean verify() {
 
         if (isVerified()) { // check if this proposalResponse was already verified   by client code
             return isVerified();
@@ -121,6 +119,7 @@ public class ProposalResponse extends SmartContractResponse {
 
             //TODO 沒搞清楚ｓｅｒｉａｌｉｚｅ和ｓｉｇｎ的區別，先注視掉不驗證
             //this.isVerified = crypto.verify(endorser.getIdBytes().toByteArray(), sig.toByteArray(), plainText.toByteArray());
+
         } catch (InvalidProtocolBufferException e) {
             logger.error("verify: Cannot retrieve peer identity from ProposalResponse. Error is: " + e.getMessage(), e);
             this.isVerified = false;

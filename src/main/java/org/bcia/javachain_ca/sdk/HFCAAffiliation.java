@@ -57,10 +57,6 @@ public class HFCAAffiliation {
     HFCAAffiliation(String name, HFCAClient client) throws InvalidArgumentException {
         validateAffiliationNames(name);
 
-        if (client.getCryptoSuite() == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
         this.name = name;
         this.client = client;
     }

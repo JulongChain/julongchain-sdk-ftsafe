@@ -45,7 +45,6 @@ import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
-import org.bcia.javachain.sdk.security.gm.GmCryptoPrimitives;
 import org.bcia.javachain.common.exception.JavaChainException;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -92,74 +91,12 @@ class Endpoint {
 
         if (properties != null) {
             if ("grpcs".equals(protocol)) {
-                GmCryptoPrimitives cp = null;
-                try {
-                    cp = new GmCryptoPrimitives();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                if (properties.containsKey("pemFile") && properties.containsKey("pemBytes")) {
-                    throw new RuntimeException("Properties \"pemBytes\" and \"pemFile\" can not be both set.");
-                }
-                if (properties.containsKey("pemFile")) {
-                    Path path = Paths.get(properties.getProperty("pemFile"));
-                    try {
-                        pemBytes = Files.readAllBytes(path);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else if (properties.containsKey("pemBytes")) {
-                    pemBytes = (byte[]) properties.get("pemBytes");
-                }
-                if (null != pemBytes) {
-                    try {
-                        cn = properties.getProperty("hostnameOverride");
-                        if (cn == null && "true".equals(properties.getProperty("trustServerCertificate"))) {
-                            final String cnKey = new String(pemBytes, UTF_8);
-                            cn = CN_CACHE.get(cnKey);
-                            if (cn == null) {
-                                Certificate cert = null;
-                                X500Name x500name = CertificateUtils.bytesToX509Certificate(pemBytes).getSubject();
-                                RDN rdn = x500name.getRDNs(BCStyle.CN)[0];
-                                cn = IETFUtils.valueToString(rdn.getFirst().getValue());
-                                CN_CACHE.put(cnKey, cn);
-                            }
-                        }
-                    } catch (Exception e) {
-                        /// Mostly a development env. just log it.
-                        logger.error(
-                                "Error getting Subject CN from certificate. Try setting it specifically with hostnameOverride property. "
-                                        + e.getMessage());
-                    }
-                }
+
                 // check for mutual TLS - both clientKey and clientCert must be present
                 byte[] ckb = null, ccb = null;
 
                 ckb = MspStore.getInstance().getClientKeys().get(0);
                 ccb = MspStore.getInstance().getClientCerts().get(0);
-
-//                if (properties.containsKey("clientKeyFile") && properties.containsKey("clientKeyBytes")) {
-//                    throw new RuntimeException("Properties \"clientKeyFile\" and \"clientKeyBytes\" must cannot both be set");
-//                } else if (properties.containsKey("clientCertFile") && properties.containsKey("clientCertBytes")) {
-//                    throw new RuntimeException("Properties \"clientCertFile\" and \"clientCertBytes\" must cannot both be set");
-//                } else if (properties.containsKey("clientKeyFile") || properties.containsKey("clientCertFile")) {
-//                    if ((properties.getProperty("clientKeyFile") != null) && (properties.getProperty("clientCertFile") != null)) {
-//                        try {
-//                            ckb = Files.readAllBytes(Paths.get(properties.getProperty("clientKeyFile")));
-//                            ccb = Files.readAllBytes(Paths.get(properties.getProperty("clientCertFile")));
-//                        } catch (IOException e) {
-//                            throw new RuntimeException("Failed to parse TLS client key and/or cert", e);
-//                        }
-//                    } else {
-//                        throw new RuntimeException("Properties \"clientKeyFile\" and \"clientCertFile\" must both be set or both be null");
-//                    }
-//                } else if (properties.containsKey("clientKeyBytes") || properties.containsKey("clientCertBytes")) {
-//                    ckb = (byte[]) properties.get("clientKeyBytes");
-//                    ccb = (byte[]) properties.get("clientCertBytes");
-//                    if ((ckb == null) || (ccb == null)) {
-//                        throw new RuntimeException("Properties \"clientKeyBytes\" and \"clientCertBytes\" must both be set or both be null");
-//                    }
-//                }
 
                 if ((ckb != null) && (ccb != null)) {
                     String what = "private key";

@@ -33,13 +33,11 @@ import java.util.logging.Logger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.exception.CryptoException;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.NetworkConfigurationException;
 import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.julongchain.protos.node.Query.SmartContractInfo;
 
 import static java.lang.String.format;
@@ -53,8 +51,6 @@ import static org.bcia.javachain.sdk.User.userContextCheck;
  * by wangzhe in ftsafe 2018-07-02
  */
 public class HFClient {
-
-    private CryptoSuite cryptoSuite;
 
     static {
 
@@ -87,30 +83,6 @@ public class HFClient {
     private User userContext;
 
     private HFClient() {
-
-    }
-
-    public CryptoSuite getCryptoSuite() {
-        return cryptoSuite;
-    }
-
-    public void setCryptoSuite(CryptoSuite cryptoSuite) throws CryptoException, InvalidArgumentException {
-        if (null == cryptoSuite) {
-            throw new InvalidArgumentException("CryptoSuite paramter is null.");
-        }
-        if (this.cryptoSuite != null && cryptoSuite != this.cryptoSuite) {
-            throw new InvalidArgumentException("CryptoSuite may only be set once.");
-
-        }
-        //        if (cryptoSuiteFactory == null) {
-        //            cryptoSuiteFactory = cryptoSuite.getCryptoSuiteFactory();
-        //        } else {
-        //            if (cryptoSuiteFactory != cryptoSuite.getCryptoSuiteFactory()) {
-        //                throw new InvalidArgumentException("CryptoSuite is not derivied from cryptosuite factory");
-        //            }
-        //        }
-
-        this.cryptoSuite = cryptoSuite;
 
     }
 
@@ -402,9 +374,6 @@ public class HFClient {
      */
     public User setUserContext(User userContext) throws InvalidArgumentException {
 
-        if (null == cryptoSuite) {
-            throw new InvalidArgumentException("No cryptoSuite has been set.");
-        }
         userContextCheck(userContext);
 
         User ret = this.userContext;
@@ -658,10 +627,6 @@ public class HFClient {
 
 
     private void clientCheck() throws InvalidArgumentException {
-
-        if (null == cryptoSuite) {
-            throw new InvalidArgumentException("No cryptoSuite has been set.");
-        }
 
         userContextCheck(userContext);
 

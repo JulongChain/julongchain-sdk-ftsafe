@@ -29,9 +29,10 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.common.tools.cryptogen.CspHelper;
 import org.bcia.javachain.sdk.helper.MspStore;
+import org.bcia.javachain.sdk.security.csp.intfs.ICsp;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
-import org.bcia.javachain.sdk.security.gm.GmCryptoPrimitives;
 import org.bcia.javachain.common.exception.JavaChainException;
 import org.bcia.javachain.sdk.security.msp.IMsp;
 import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
@@ -53,7 +54,6 @@ import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec;
 import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec.Type;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -72,7 +72,6 @@ public final class ProtoUtils {
 
     private static final Log logger = LogFactory.getLog(ProtoUtils.class);
     private static final boolean isDebugLevel = logger.isDebugEnabled();
-    public static CryptoSuite suite;
 
     /**
      * Private constructor to prevent instantiation.
@@ -226,25 +225,11 @@ public final class ProtoUtils {
             }
             logger.debug(format(" User: %s Certificate:\n%s", user.getName(), cert));
 
-            if (null == suite) {
-
-                try {
-                    suite = CryptoSuite.Factory.getCryptoSuite();
-                } catch (Exception e) {
-                    //best try.
-                }
-
-            }
-            if (null != suite && suite instanceof GmCryptoPrimitives) {
-
-                GmCryptoPrimitives cp = (GmCryptoPrimitives) suite;
-                byte[] der = CertificateUtils.certificateToDER(cert);
-                if (null != der && der.length > 0) {
-
-                    cert = toHexString(suite.hash(der));
-
-                }
-
+            byte[] der = CertificateUtils.certificateToDER(cert);
+            if (null != der && der.length > 0) {
+                ICsp csp = CspHelper.getCsp();
+                cert = toHexString(csp.hash(der, null));
+                //cert = toHexString(suite.hash(der));
             }
 
             logger.debug(format("SignatureHeader: nonce: %s, User:%s, MSPID: %s, idBytes: %s",

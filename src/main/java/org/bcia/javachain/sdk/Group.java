@@ -2917,7 +2917,7 @@ public class Group implements Serializable {
             proposalResponse.setNode(peerFuturePair.peer);
 
             if (fabricResponse != null && transactionContext.getVerify()) {
-                proposalResponse.verify(client.getCryptoSuite());
+                proposalResponse.verify();
             }
 
             proposalResponses.add(proposalResponse);

@@ -23,12 +23,9 @@ import org.bcia.javachain.common.localmsp.impl.LocalSigner;
 import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.exception.TransactionException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.sdk.security.msp.mgmt.Identity;
 import org.bcia.julongchain.protos.msp.Identities;
 
 /**

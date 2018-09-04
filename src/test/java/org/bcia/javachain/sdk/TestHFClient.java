@@ -15,7 +15,6 @@
 package org.bcia.javachain.sdk;
 
 import org.bcia.javachain.sdk.HFClient;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain.sdk.testutils.TestConfig;
 import org.bcia.javachain.sdkintegration.SampleStore;
 import org.bcia.javachain.sdkintegration.SampleUser;

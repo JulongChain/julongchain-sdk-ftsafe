@@ -95,7 +95,6 @@ import org.apache.http.util.EntityUtils;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.sdk.security.CryptoSuite;
 import org.bcia.javachain_ca.sdk.exception.AffiliationException;
 import org.bcia.javachain_ca.sdk.exception.EnrollmentException;
 import org.bcia.javachain_ca.sdk.exception.GenerateCRLException;
@@ -195,8 +194,6 @@ public class HFCAClient {
 
     private final String caName;
 
-    private CryptoSuite cryptoSuite;
-
     private int statusCode = 400;
 
     /**
@@ -281,14 +278,6 @@ public class HFCAClient {
 
     }
 
-    public void setCryptoSuite(CryptoSuite cryptoSuite) {
-        this.cryptoSuite = cryptoSuite;
-    }
-
-    public CryptoSuite getCryptoSuite() {
-        return cryptoSuite;
-    }
-
     /**
      * Register a user.
      *
@@ -300,10 +289,6 @@ public class HFCAClient {
      */
 
     public String register(RegistrationRequest request, User registrar) throws RegistrationException, InvalidArgumentException {
-
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
 
         if (Utils.isNullOrEmpty(request.getEnrollmentID())) {
             throw new InvalidArgumentException("EntrollmentID cannot be null or empty");
@@ -460,9 +445,6 @@ public class HFCAClient {
     public HFCAInfo info() throws InfoException, InvalidArgumentException {
 
         logger.debug(format("info url:%s", url));
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
 
         setUpSSL();
 
@@ -622,10 +604,6 @@ public class HFCAClient {
 
     private String revokeInternal(User revoker, Enrollment enrollment, String reason, boolean genCRL) throws RevocationException, InvalidArgumentException {
 
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
         if (enrollment == null) {
             throw new InvalidArgumentException("revokee enrollment is not set");
         }
@@ -711,10 +689,6 @@ public class HFCAClient {
 
     private String revokeInternal(User revoker, String revokee, String reason, boolean genCRL) throws RevocationException, InvalidArgumentException {
 
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
         logger.debug(format("revoke revoker: %s, revokee: %s, reason: %s", revoker, revokee, reason));
 
         if (Utils.isNullOrEmpty(revokee)) {
@@ -785,10 +759,6 @@ public class HFCAClient {
 
     private String revokeInternal(User revoker, String serial, String aki, String reason, boolean genCRL) throws RevocationException, InvalidArgumentException {
 
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
-
         if (Utils.isNullOrEmpty(serial)) {
             throw new IllegalArgumentException("Serial number id required to revoke ceritificate");
         }
@@ -844,10 +814,6 @@ public class HFCAClient {
 
     public String generateCRL(User registrar, Date revokedBefore, Date revokedAfter, Date expireBefore, Date expireAfter)
             throws InvalidArgumentException, GenerateCRLException {
-
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
 
         if (registrar == null) {
             throw new InvalidArgumentException("registrar is not set");
@@ -972,9 +938,6 @@ public class HFCAClient {
      */
 
     public HFCAAffiliation getHFCAAffiliations(User registrar) throws AffiliationException, InvalidArgumentException {
-        if (cryptoSuite == null) {
-            throw new InvalidArgumentException("Crypto primitives not set.");
-        }
 
         if (registrar == null) {
             throw new InvalidArgumentException("Registrar should be a valid member");
@@ -1268,7 +1231,6 @@ public class HFCAClient {
 
     private Registry<ConnectionSocketFactory> registry = null;
     //Only use crypto primitives for reuse of its truststore on TLS
-    CryptoSuite cryptoPrimitives = null;
 
     private void setUpSSL() throws InvalidArgumentException {/*
 
