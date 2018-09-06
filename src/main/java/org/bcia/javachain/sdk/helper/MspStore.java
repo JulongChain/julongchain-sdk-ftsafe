@@ -157,55 +157,74 @@ public class MspStore {
             log.info(format("\nMSP_DIR is %s , \nCONFIG_DIR is %s", MSP_DIR, CONFIG_DIR));
 
             File caCertFile = new File(Paths.get(MSP_DIR, "cacerts").toString());
-            for (File file : Objects.requireNonNull(caCertFile.listFiles())) {
-                caCerts.add(FileUtils.readFileToByteArray(file));
+            if(caCertFile.exists()) {
+                for (File file : Objects.requireNonNull(caCertFile.listFiles())) {
+                    caCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             File adminCertFile = new File(Paths.get(MSP_DIR, "admincerts").toString());
-            for (File file : Objects.requireNonNull(adminCertFile.listFiles())) {
-                adminCerts.add(FileUtils.readFileToByteArray(file));
+            if(adminCertFile.exists()) {
+                for (File file : Objects.requireNonNull(adminCertFile.listFiles())) {
+                    adminCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             File tlsCertFile = new File(Paths.get(MSP_DIR, "tlscacerts").toString());
-            for (File file : Objects.requireNonNull(tlsCertFile.listFiles())) {
-                tlsCaCerts.add(FileUtils.readFileToByteArray(file));
+            if(tlsCertFile.exists()) {
+                for (File file : Objects.requireNonNull(tlsCertFile.listFiles())) {
+                    tlsCaCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             File configFile = new File(Paths.get(CONFIG_DIR, "config.yaml").toString());
             List<byte[]> configContent = new ArrayList<>();
-            configContent.add(FileUtils.readFileToByteArray(configFile));
-            configMap = new Yaml().load(new FileInputStream(configFile));
+            if(configFile.exists()) {
+                configContent.add(FileUtils.readFileToByteArray(configFile));
+                configMap = new Yaml().load(new FileInputStream(configFile));
+            }
 
             File signCertFile = new File(Paths.get(MSP_DIR, "signcerts").toString());
-            for (File file : Objects.requireNonNull(signCertFile.listFiles())) {
-                signCerts.add(FileUtils.readFileToByteArray(file));
+            if(signCertFile.exists()) {
+                for (File file : Objects.requireNonNull(signCertFile.listFiles())) {
+                    signCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             File clientCertsFile = new File(Paths.get(MSP_DIR, "clientcerts").toString());
-            for (File file : Objects.requireNonNull(clientCertsFile.listFiles())) {
-                clientCerts.add(FileUtils.readFileToByteArray(file));
+            if(clientCertsFile.exists()) {
+                for (File file : Objects.requireNonNull(clientCertsFile.listFiles())) {
+                    clientCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             File tlsClientCertsFile = new File(Paths.get(MSP_DIR, "tlsclientcerts").toString());
-            for (File file : Objects.requireNonNull(tlsClientCertsFile.listFiles())) {
-                tlsClientCerts.add(FileUtils.readFileToByteArray(file));
+            if(tlsClientCertsFile.exists()) {
+                for (File file : Objects.requireNonNull(tlsClientCertsFile.listFiles())) {
+                    tlsClientCerts.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
+
             File privateKeyFolder = new File(Paths.get(MSP_DIR, "keystore").toString());
-            log.info(format("\nprivateKeyFolder exists is %s", privateKeyFolder.exists()));
-            for (File file : Objects.requireNonNull(privateKeyFolder.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith("_sk");
+            if(privateKeyFolder.exists()) {
+                log.info(format("\nprivateKeyFolder exists is %s", privateKeyFolder.exists()));
+                for (File file : Objects.requireNonNull(privateKeyFolder.listFiles(new FilenameFilter() {
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return name.endsWith("_sk");
+                    }
+                }))) {
+                    this.serverKeys.add(FileUtils.readFileToByteArray(file));
                 }
-            }))) {
-                this.serverKeys.add(FileUtils.readFileToByteArray(file));
             }
 
             File clientKeyFolder = new File(Paths.get(MSP_DIR, "clientkeys").toString());
-            log.info(format("\nclientsKeyFolder exists is %s", clientKeyFolder.exists()));
-            for (File file : Objects.requireNonNull(clientKeyFolder.listFiles())) {
-                this.clientKeys.add(FileUtils.readFileToByteArray(file));
+            if(clientKeyFolder.exists()) {
+                log.info(format("\nclientsKeyFolder exists is %s", clientKeyFolder.exists()));
+                for (File file : Objects.requireNonNull(clientKeyFolder.listFiles())) {
+                    this.clientKeys.add(FileUtils.readFileToByteArray(file));
+                }
             }
 
             String mspId = GlobalMspManagement.getLocalMsp().getIdentifier();
