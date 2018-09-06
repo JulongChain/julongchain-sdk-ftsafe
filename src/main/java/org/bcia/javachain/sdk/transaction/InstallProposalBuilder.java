@@ -203,7 +203,7 @@ public class InstallProposalBuilder extends LSSCProposalBuilder {
                 dplang = "Java";
                 ccType = Type.JAVA;
                 if (null != chaincodeSource) {
-                    targetPathPrefix = "src";
+//                    targetPathPrefix = "src";
                     projectSourceDir = Paths.get(chaincodeSource.toString()).toFile();
                 }
                 break;
