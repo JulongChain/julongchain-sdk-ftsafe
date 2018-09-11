@@ -74,6 +74,7 @@ import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
+import org.bcia.javachain.sdk.security.msp.mgmt.GlobalMspManagement;
 import org.bcia.javachain.sdk.transaction.GetConfigBlockBuilder;
 import org.bcia.javachain.sdk.transaction.InstallProposalBuilder;
 import org.bcia.javachain.sdk.transaction.InstantiateProposalBuilder;
@@ -142,6 +143,7 @@ import io.grpc.StatusRuntimeException;
  * by wangzhe in ftsafe 2018-07-02
  * 1.将protos全面改为julongchain包
  * 2.增加sendNewUpdateGroup方法新增群组配置之后发出去
+ * modified by wangzhe Envelope构造的代码重写
  */
 public class Group implements Serializable {
     private static final long serialVersionUID = -3266164166893832538L;
@@ -171,7 +173,7 @@ public class Group implements Serializable {
     private final Map<Node, NodeOptions> peerOptionsMap = Collections.synchronizedMap(new HashMap<>());
     private final Map<NodeRole, Set<Node>> peerRoleSetMap = Collections.synchronizedMap(new HashMap<>());
     private final boolean systemGroup;
-    private final LinkedHashMap<String, SmartContractEventListenerEntry> chainCodeListeners = new LinkedHashMap<>();
+    private final LinkedHashMap<String, SmartContractEventListenerEntry> smartContractListeners = new LinkedHashMap<>();
     transient HFClient client;
 
     @Override
@@ -1670,11 +1672,11 @@ public class Group implements Serializable {
             InstantiateProposalBuilder instantiateProposalbuilder = InstantiateProposalBuilder.newBuilder();
             instantiateProposalbuilder.context(transactionContext);
             instantiateProposalbuilder.argss(instantiateProposalRequest.getArgs());
-            instantiateProposalbuilder.chaincodeName(instantiateProposalRequest.getSmartContractName());
-            instantiateProposalbuilder.chaincodeType(instantiateProposalRequest.getSmartContractLanguage());
-            instantiateProposalbuilder.chaincodePath(instantiateProposalRequest.getSmartContractPath());
-            instantiateProposalbuilder.chaincodeVersion(instantiateProposalRequest.getSmartContractVersion());
-            instantiateProposalbuilder.chaincodEndorsementPolicy(instantiateProposalRequest.getSmartContractEndorsementPolicy());
+            instantiateProposalbuilder.smartContractName(instantiateProposalRequest.getSmartContractName());
+            instantiateProposalbuilder.smartContractType(instantiateProposalRequest.getSmartContractLanguage());
+            instantiateProposalbuilder.smartContractPath(instantiateProposalRequest.getSmartContractPath());
+            instantiateProposalbuilder.smartContractVersion(instantiateProposalRequest.getSmartContractVersion());
+            instantiateProposalbuilder.smartContractEndorsementPolicy(instantiateProposalRequest.getSmartContractEndorsementPolicy());
             instantiateProposalbuilder.setTransientMap(instantiateProposalRequest.getTransientMap());
 
             ProposalPackage.Proposal instantiateProposal = instantiateProposalbuilder.build();
@@ -1699,7 +1701,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Send install chaincode request proposal to all the channels on the peer.
+     * Send install smartContract request proposal to all the channels on the peer.
      *
      * @param installProposalRequest
      * @return
@@ -1714,7 +1716,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Send install chaincode request proposal to the channel.
+     * Send install smartContract request proposal to the channel.
      *
      * @param installProposalRequest
      * @param peers
@@ -1757,7 +1759,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Send Upgrade proposal proposal to upgrade chaincode to a new version.
+     * Send Upgrade proposal proposal to upgrade smartContract to a new version.
      *
      * @param upgradeProposalRequest
      * @return Collection of proposal responses.
@@ -1772,7 +1774,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Send Upgrade proposal proposal to upgrade chaincode to a new version.
+     * Send Upgrade proposal proposal to upgrade smartContract to a new version.
      *
      * @param upgradeProposalRequest
      * @param peers                  the specific peers to send to.
@@ -1798,10 +1800,10 @@ public class Group implements Serializable {
             UpgradeProposalBuilder upgradeProposalBuilder = UpgradeProposalBuilder.newBuilder();
             upgradeProposalBuilder.context(transactionContext);
             upgradeProposalBuilder.argss(upgradeProposalRequest.getArgs());
-            upgradeProposalBuilder.chaincodeName(upgradeProposalRequest.getSmartContractName());
-            upgradeProposalBuilder.chaincodePath(upgradeProposalRequest.getSmartContractPath());
-            upgradeProposalBuilder.chaincodeVersion(upgradeProposalRequest.getSmartContractVersion());
-            upgradeProposalBuilder.chaincodEndorsementPolicy(upgradeProposalRequest.getSmartContractEndorsementPolicy());
+            upgradeProposalBuilder.smartContractName(upgradeProposalRequest.getSmartContractName());
+            upgradeProposalBuilder.smartContractPath(upgradeProposalRequest.getSmartContractPath());
+            upgradeProposalBuilder.smartContractVersion(upgradeProposalRequest.getSmartContractVersion());
+            upgradeProposalBuilder.smartContractEndorsementPolicy(upgradeProposalRequest.getSmartContractEndorsementPolicy());
 
             SignedProposal signedProposal = getSignedProposal(transactionContext, upgradeProposalBuilder.build());
 
@@ -2574,9 +2576,9 @@ public class Group implements Serializable {
 
             }
 
-            SmartContractQueryResponse chaincodeQueryResponse = SmartContractQueryResponse.parseFrom(fabricResponseResponse.getPayload());
+            SmartContractQueryResponse smartContractQueryResponse = SmartContractQueryResponse.parseFrom(fabricResponseResponse.getPayload());
 
-            return chaincodeQueryResponse.getSmartContractsList();
+            return smartContractQueryResponse.getSmartContractsList();
 
         } catch (ProposalException e) {
             throw e;
@@ -2588,7 +2590,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Query peer for chaincode that has been instantiated
+     * Query peer for smartContract that has been instantiated
      * <p>
      * <STRONG>This method may not be thread safe if client context is changed!</STRONG>
      * </P>
@@ -2605,7 +2607,7 @@ public class Group implements Serializable {
     }
 
     /**
-     * Query peer for chaincode that has been instantiated
+     * Query peer for smartContract that has been instantiated
      *
      * @param peer        The peer to query.
      * @param userContext the user context.
@@ -2658,9 +2660,9 @@ public class Group implements Serializable {
 
             }
 
-            SmartContractQueryResponse chaincodeQueryResponse = SmartContractQueryResponse.parseFrom(fabricResponseResponse.getPayload());
+            SmartContractQueryResponse smartContractQueryResponse = SmartContractQueryResponse.parseFrom(fabricResponseResponse.getPayload());
 
-            return chaincodeQueryResponse.getSmartContractsList();
+            return smartContractQueryResponse.getSmartContractsList();
 
         } catch (ProposalException e) {
             throw e;
@@ -2794,7 +2796,7 @@ public class Group implements Serializable {
         }
 
         if (proposalRequest.getSmartContractID() == null) {
-            throw new InvalidArgumentException("The proposalRequest's chaincode ID is null");
+            throw new InvalidArgumentException("The proposalRequest's smartContract ID is null");
         }
 
         proposalRequest.setSubmitted();
@@ -2871,19 +2873,25 @@ public class Group implements Serializable {
         Collection<ProposalResponse> proposalResponses = new ArrayList<>();
         for (Pair peerFuturePair : peerFuturePairs) {
 
-            ProposalResponsePackage.ProposalResponse fabricResponse = null;
+            ProposalResponsePackage.ProposalResponse proposalResponse = null;
             String message;
             int status = 500;
             final String peerName = peerFuturePair.peer.getName();
             try {
-                fabricResponse = peerFuturePair.future.get(transactionContext.getProposalWaitTime(), TimeUnit.MILLISECONDS);
-                message = fabricResponse.getResponse().getMessage();
-                status = fabricResponse.getResponse().getStatus();
-                logger.debug(format("Group %s got back from peer %s status: %d, message: %s",
-                        name, peerName, status, message));
+                proposalResponse = peerFuturePair.future.get(transactionContext.getProposalWaitTime(), TimeUnit.MILLISECONDS);
+                message = proposalResponse.getResponse().getMessage();
+                status = proposalResponse.getResponse().getStatus();
+                logger.info("_____________>>");
+                logger.info("response: " +
+                                "\nGroup: " + name +
+                                "\nnode: " + peerName +
+                                "\nstatus: " + status +
+                                "\nmessage: "+ cutStr(message) +
+                                "\npayload: "+ cutStr(String.valueOf(proposalResponse.getResponse().getPayload())) );
+                logger.info("<<_____________");
                 if (null != diagnosticFileDumper) {
                     logger.trace(format("Got back from channel %s, peer: %s, proposal response: %s", name, peerName,
-                            diagnosticFileDumper.createDiagnosticProtobufFile(fabricResponse.toByteArray())));
+                            diagnosticFileDumper.createDiagnosticProtobufFile(proposalResponse.toByteArray())));
 
                 }
             } catch (InterruptedException e) {
@@ -2910,20 +2918,27 @@ public class Group implements Serializable {
                 }
             }
 
-            ProposalResponse proposalResponse = new ProposalResponse(transactionContext.getTxID(),
+            ProposalResponse proposalRsp = new ProposalResponse(transactionContext.getTxID(),
                     transactionContext.getGroupID(), status, message);
-            proposalResponse.setProposalResponse(fabricResponse);
-            proposalResponse.setProposal(signedProposal);
-            proposalResponse.setNode(peerFuturePair.peer);
+            proposalRsp.setProposalResponse(proposalResponse);
+            proposalRsp.setProposal(signedProposal);
+            proposalRsp.setNode(peerFuturePair.peer);
 
-            if (fabricResponse != null && transactionContext.getVerify()) {
-                proposalResponse.verify();
+            if (proposalResponse != null && transactionContext.getVerify()) {
+                proposalRsp.verify();
             }
 
-            proposalResponses.add(proposalResponse);
+            proposalResponses.add(proposalRsp);
         }
 
         return proposalResponses;
+    }
+
+    private static String cutStr(String str) {
+        return cutStr(str, 200);
+    }
+    private static String cutStr(String str, int len) {
+        return str.length() > len ? str.substring(len) : str;
     }
 
     /**
@@ -3381,7 +3396,14 @@ public class Group implements Serializable {
                     .endorsements(ed)
                     .proposalResponsePayload(proposalResponsePayload).build();
 
-            Envelope transactionEnvelope = createTransactionEnvelope(transactionPayload, userContext);
+            //根据julongchain构建信封进行改写
+            //ProposalPackage.Proposal originalProposal, ISigningIdentity identity, ProposalResponsePackage.ProposalResponse... endorserResponses
+            List<Envelope> transactionEnvelopes = new ArrayList<Envelope>();
+
+            for ( ProposalResponse proposalResponse : proposalResponses ) {
+                Envelope transactionEnvelope = EnvelopeHelper.createSignedTxEnvelope(proposal, GlobalMspManagement.getLocalMsp().getDefaultSigningIdentity(), proposalResponse.getProposalResponse());
+                transactionEnvelopes.add(transactionEnvelope);
+            }
 
             NOfEvents nOfEvents = transactionOptions.nOfEvents;
 
@@ -3455,18 +3477,21 @@ public class Group implements Serializable {
                 failed = orderer;
                 try {
 
-                    if (null != diagnosticFileDumper) {
-                        logger.trace(format("Sending to channel %s, orderer: %s, transaction: %s", name, orderer.getName(),
-                                diagnosticFileDumper.createDiagnosticProtobufFile(transactionEnvelope.toByteArray())));
-                    }
+                    for ( Envelope transactionEnvelope : transactionEnvelopes ) {
 
-                    resp = orderer.sendTransaction(transactionEnvelope);
-                    lException = null; // no longer last exception .. maybe just failed.
-                    if (resp.getStatus() == Status.SUCCESS) {
-                        success = true;
-                        break;
-                    } else {
-                        logger.warn(format("Group %s %s failed. Status returned %s", name, orderer, getRespData(resp)));
+                        if (null != diagnosticFileDumper) {
+                            logger.trace(format("Sending to channel %s, orderer: %s, transaction: %s", name, orderer.getName(),
+                                    diagnosticFileDumper.createDiagnosticProtobufFile(transactionEnvelope.toByteArray())));
+                        }
+
+                        resp = orderer.sendTransaction(transactionEnvelope);
+                        lException = null; // no longer last exception .. maybe just failed.
+                        if (resp.getStatus() == Status.SUCCESS) {
+                            success = true;
+                            continue;
+                        } else {
+                            logger.warn(format("Group %s %s failed. Status returned %s", name, orderer, getRespData(resp)));
+                        }
                     }
                 } catch (Exception e) {
                     String emsg = format("Group %s unsuccessful sendTransaction to orderer %s (%s)",
@@ -3543,21 +3568,6 @@ public class Group implements Serializable {
 
         return respdata.toString();
 
-    }
-
-    private Envelope createTransactionEnvelope(Payload transactionPayload, User user) throws CryptoException {
-        Msp msp = null;
-        try {
-            msp = (Msp) MspStore.getInstance().getMsp();
-            return Envelope.newBuilder()
-                    .setPayload(transactionPayload.toByteString())
-                    .setSignature(ByteString.copyFrom(msp.getSigner().sign(transactionPayload.toByteArray())))
-                    .build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.error("init fail", e);
-        }
-        return null;
     }
 
     /**
@@ -3839,49 +3849,49 @@ public class Group implements Serializable {
     }
 
     /**
-     * Register a chaincode event listener. Both chaincodeId pattern AND eventName pattern must match to invoke
-     * the chaincodeEventListener
+     * Register a smartContract event listener. Both smartContractId pattern AND eventName pattern must match to invoke
+     * the smartContractEventListener
      *
-     * @param chaincodeId            Java pattern for chaincode identifier also know as chaincode name. If ma
+     * @param smartContractId            Java pattern for smartContract identifier also know as smartContract name. If ma
      * @param eventName              Java pattern to match the event name.
-     * @param chaincodeEventListener The listener to be invoked if both chaincodeId and eventName pattern matches.
+     * @param smartContractEventListener The listener to be invoked if both smartContractId and eventName pattern matches.
      * @return Handle to be used to unregister the event listener {@link #unregisterSmartContractEventListener(String)}
      * @throws InvalidArgumentException
      */
 
-    public String registerSmartContractEventListener(Pattern chaincodeId, Pattern eventName, SmartContractEventListener chaincodeEventListener) throws InvalidArgumentException {
+    public String registerSmartContractEventListener(Pattern smartContractId, Pattern eventName, SmartContractEventListener smartContractEventListener) throws InvalidArgumentException {
 
         if (shutdown) {
             throw new InvalidArgumentException(format("Group %s has been shutdown.", name));
         }
 
-        if (chaincodeId == null) {
-            throw new InvalidArgumentException("The chaincodeId argument may not be null.");
+        if (smartContractId == null) {
+            throw new InvalidArgumentException("The smartContractId argument may not be null.");
         }
 
         if (eventName == null) {
             throw new InvalidArgumentException("The eventName argument may not be null.");
         }
 
-        if (chaincodeEventListener == null) {
-            throw new InvalidArgumentException("The chaincodeEventListener argument may not be null.");
+        if (smartContractEventListener == null) {
+            throw new InvalidArgumentException("The smartContractEventListener argument may not be null.");
         }
 
-        SmartContractEventListenerEntry chaincodeEventListenerEntry = new SmartContractEventListenerEntry(chaincodeId, eventName, chaincodeEventListener);
+        SmartContractEventListenerEntry smartContractEventListenerEntry = new SmartContractEventListenerEntry(smartContractId, eventName, smartContractEventListener);
         synchronized (this) {
             if (null == blh) {
                 blh = registerSmartContractListenerProcessor();
             }
         }
-        return chaincodeEventListenerEntry.handle;
+        return smartContractEventListenerEntry.handle;
 
     }
 
     /**
-     * Unregister an existing chaincode event listener.
+     * Unregister an existing smartContract event listener.
      *
      * @param handle SmartContract event listener handle to be unregistered.
-     * @return True if the chaincode handler was found and removed.
+     * @return True if the smartContract handler was found and removed.
      * @throws InvalidArgumentException
      */
 
@@ -3894,13 +3904,13 @@ public class Group implements Serializable {
 
         checkHandle(CHAINCODE_EVENTS_TAG, handle);
 
-        synchronized (chainCodeListeners) {
-            ret = null != chainCodeListeners.remove(handle);
+        synchronized (smartContractListeners) {
+            ret = null != smartContractListeners.remove(handle);
 
         }
 
         synchronized (this) {
-            if (null != blh && chainCodeListeners.isEmpty()) {
+            if (null != blh && smartContractListeners.isEmpty()) {
 
                 unregisterBlockListener(blh);
                 blh = null;
@@ -3917,17 +3927,17 @@ public class Group implements Serializable {
     private String registerSmartContractListenerProcessor() throws InvalidArgumentException {
         logger.debug(format("Group %s registerSmartContractListenerProcessor starting", name));
 
-        // SmartContract event listener is internal Block listener for chaincode events.
+        // SmartContract event listener is internal Block listener for smartContract events.
 
         return registerBlockListener(blockEvent -> {
 
-            if (chainCodeListeners.isEmpty()) {
+            if (smartContractListeners.isEmpty()) {
                 return;
             }
 
-            LinkedList<SmartContractEvent> chaincodeEvents = new LinkedList<>();
+            LinkedList<SmartContractEvent> smartContractEvents = new LinkedList<>();
 
-            //Find the chaincode events in the transactions.
+            //Find the smartContract events in the transactions.
 
             for (TransactionEvent transactionEvent : blockEvent.getTransactionEvents()) {
 
@@ -3937,14 +3947,14 @@ public class Group implements Serializable {
 
                     SmartContractEvent event = info.getEvent();
                     if (null != event) {
-                        chaincodeEvents.add(event);
+                        smartContractEvents.add(event);
                     }
 
                 }
 
             }
 
-            if (!chaincodeEvents.isEmpty()) {
+            if (!smartContractEvents.isEmpty()) {
 
                 class MatchPair {
                     final SmartContractEventListenerEntry eventListener;
@@ -3958,15 +3968,15 @@ public class Group implements Serializable {
 
                 List<MatchPair> matches = new LinkedList<MatchPair>(); //Find matches.
 
-                synchronized (chainCodeListeners) {
+                synchronized (smartContractListeners) {
 
-                    for (SmartContractEventListenerEntry chaincodeEventListenerEntry : chainCodeListeners.values()) {
+                    for (SmartContractEventListenerEntry smartContractEventListenerEntry : smartContractListeners.values()) {
 
-                        for (SmartContractEvent chaincodeEvent : chaincodeEvents) {
+                        for (SmartContractEvent smartContractEvent : smartContractEvents) {
 
-                            if (chaincodeEventListenerEntry.isMatch(chaincodeEvent)) {
+                            if (smartContractEventListenerEntry.isMatch(smartContractEvent)) {
 
-                                matches.add(new MatchPair(chaincodeEventListenerEntry, chaincodeEvent));
+                                matches.add(new MatchPair(smartContractEventListenerEntry, smartContractEvent));
                             }
 
                         }
@@ -3977,9 +3987,9 @@ public class Group implements Serializable {
                 //fire events
                 for (MatchPair match : matches) {
 
-                    SmartContractEventListenerEntry chaincodeEventListenerEntry = match.eventListener;
+                    SmartContractEventListenerEntry smartContractEventListenerEntry = match.eventListener;
                     SmartContractEvent ce = match.event;
-                    chaincodeEventListenerEntry.fire(blockEvent, ce);
+                    smartContractEventListenerEntry.fire(blockEvent, ce);
 
                 }
 
@@ -4002,8 +4012,8 @@ public class Group implements Serializable {
 
         initialized = false;
         shutdown = true;
-        if (chainCodeListeners != null) {
-            chainCodeListeners.clear();
+        if (smartContractListeners != null) {
+            smartContractListeners.clear();
 
         }
 
@@ -4543,33 +4553,33 @@ public class Group implements Serializable {
 
     private class SmartContractEventListenerEntry {
 
-        private final Pattern chaincodeIdPattern;
+        private final Pattern smartContractIdPattern;
         private final Pattern eventNamePattern;
-        private final SmartContractEventListener chaincodeEventListener;
+        private final SmartContractEventListener smartContractEventListener;
         private final String handle;
 
-        SmartContractEventListenerEntry(Pattern chaincodeIdPattern, Pattern eventNamePattern, SmartContractEventListener chaincodeEventListener) {
-            this.chaincodeIdPattern = chaincodeIdPattern;
+        SmartContractEventListenerEntry(Pattern smartContractIdPattern, Pattern eventNamePattern, SmartContractEventListener smartContractEventListener) {
+            this.smartContractIdPattern = smartContractIdPattern;
             this.eventNamePattern = eventNamePattern;
-            this.chaincodeEventListener = chaincodeEventListener;
+            this.smartContractEventListener = smartContractEventListener;
             this.handle = CHAINCODE_EVENTS_TAG + Utils.generateUUID() + CHAINCODE_EVENTS_TAG;
 
-            synchronized (chainCodeListeners) {
+            synchronized (smartContractListeners) {
 
-                chainCodeListeners.put(handle, this);
+                smartContractListeners.put(handle, this);
 
             }
         }
 
-        boolean isMatch(SmartContractEvent chaincodeEvent) {
+        boolean isMatch(SmartContractEvent smartContractEvent) {
 
-            return chaincodeIdPattern.matcher(chaincodeEvent.getSmartContractId()).matches() && eventNamePattern.matcher(chaincodeEvent.getEventName()).matches();
+            return smartContractIdPattern.matcher(smartContractEvent.getSmartContractId()).matches() && eventNamePattern.matcher(smartContractEvent.getEventName()).matches();
 
         }
 
         void fire(BlockEvent blockEvent, SmartContractEvent ce) {
 
-            client.getExecutorService().execute(() -> chaincodeEventListener.received(handle, blockEvent, ce));
+            client.getExecutorService().execute(() -> smartContractEventListener.received(handle, blockEvent, ce));
 
         }
     }

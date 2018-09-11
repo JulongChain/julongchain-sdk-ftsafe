@@ -72,9 +72,9 @@ public class TestConfig {
 
         // Default values
 
-        defaultProperty(INVOKEWAITTIME, "120");
+        defaultProperty(INVOKEWAITTIME, "240");
         defaultProperty(DEPLOYWAITTIME, "120000");
-        defaultProperty(PROPOSALWAITTIME, "120000");
+        defaultProperty(PROPOSALWAITTIME, "1200000");
 
         //////
         defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.mspid", "DEFAULT");

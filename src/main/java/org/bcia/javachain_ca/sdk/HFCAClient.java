@@ -333,8 +333,137 @@ public class HFCAClient {
         return enroll(user, secret, new EnrollmentRequest());
     }
 
+
+
+    /*
+
+    "/enroll": {
+      "post": {
+        "tags": [
+          "fabric-ca-server"
+        ],
+        "description": "Enroll a new identity and return an enrollment certificate.",
+        //--------------------------------------------------------------------------
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "An HTTP basic authorization header where:  \n*  *user* is the enrollment ID;  \n*  *password* is the enrollment secret.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The request body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "request": {
+                  "type": "string",
+                  "description": "A PEM-encoded string containing the CSR (Certificate Signing Request) based on PKCS #10."
+                },
+                "profile": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The name of the signing profile to use when issuing the certificate."
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "The label used in HSM operations"
+                },
+                "caname": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Name of the CA to direct traffic to within server."
+                }
+              },
+              "required": [
+                "request"
+              ]
+            }
+          }
+        ],
+        //--------------------------------------------------------------------------
+        "responses": {
+          "200": {
+            "description": "Successfully enrolled a new identity",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "Success": {
+                  "type": "boolean",
+                  "description": "Boolean indicating if the request was successful."
+                },
+                "Result": {
+                  "type": "string",
+                  "description": "The enrollment certificate in base 64 encoded format."
+                },
+                "Errors": {
+                  "type": "array",
+                  "description": "A array of error messages (i.e. code and string messages).",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "description": "Integer code denoting the type of error."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "An error message"
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "message"
+                    ]
+                  }
+                },
+                "Messages": {
+                  "type": "array",
+                  "description": "A array of informational messages (i.e. code and string messages).",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "integer",
+                        "description": "Integer code denoting the type of message."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "A more specific message."
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "message"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "Success",
+                "Result",
+                "Errors",
+                "Messages"
+              ]
+            }
+          }
+        }
+      }
+    },
+    */
     /**
-     * Enroll the user with member service
+     * 使用成员服务注册用户(签发证书)
      *
      * @param user   Identity name to enroll
      * @param secret Secret returned via registration
@@ -345,22 +474,22 @@ public class HFCAClient {
      */
 
     public Enrollment enroll(String user, String secret, EnrollmentRequest req) throws EnrollmentException, InvalidArgumentException {
-//
-//        logger.debug(format("url:%s enroll user: %s", url, user));
-//
-//        if (Utils.isNullOrEmpty(user)) {
-//            throw new InvalidArgumentException("enrollment user is not set");
-//        }
-//        if (Utils.isNullOrEmpty(secret)) {
-//            throw new InvalidArgumentException("enrollment secret is not set");
-//        }
-//
+
+        logger.debug(format("url:%s enroll user: %s", url, user));
+
+        if (Utils.isNullOrEmpty(user)) {
+            throw new InvalidArgumentException("enrollment user is not set");
+        }
+        if (Utils.isNullOrEmpty(secret)) {
+            throw new InvalidArgumentException("enrollment secret is not set");
+        }
+
 //        if (cryptoSuite == null) {
 //            throw new InvalidArgumentException("Crypto primitives not set.");
 //        }
-//
-//        setUpSSL();
-//
+
+        setUpSSL();
+
 //        try {
 //            String pem = req.getCsr();
 //            KeyPair keypair = req.getKeyPair();
@@ -434,8 +563,8 @@ public class HFCAClient {
     }
 
     /**
-     * Return information on the Fabric Certificate Authority.
-     * No credentials are needed for this API.
+     * 返回CA信息
+     * 此API不需要凭据。
      *
      * @return {@link HFCAInfo}
      * @throws InfoException
@@ -496,9 +625,9 @@ public class HFCAClient {
     }
 
     /**
-     * Re-Enroll the user with member service
+     * 使用成员服务重新注册用户
      *
-     * @param user User to be re-enrolled
+     * @param user 要重新注册的用户
      * @return enrollment
      * @throws EnrollmentException
      * @throws InvalidArgumentException
@@ -508,10 +637,10 @@ public class HFCAClient {
     }
 
     /**
-     * Re-Enroll the user with member service
+     * 使用成员服务重新注册用户
      *
-     * @param user User to be re-enrolled
-     * @param req  Enrollment request with the following fields: hosts, profile, csr, label
+     * @param user 要重新注册的用户
+     * @param req 注册请求包含以下字段：hosts,profile,csr,label
      * @return enrollment
      * @throws EnrollmentException
      * @throws InvalidArgumentException

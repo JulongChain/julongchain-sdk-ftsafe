@@ -29,6 +29,7 @@ import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.bcia.javachain.sdk.security.gm.CertificateUtils;
 import org.bcia.javachain.sdk.testutils.TestConfig;
 import org.bcia.javachain_ca.sdk.RegistrationRequest;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 import org.junit.Test;
 
 import java.io.File;
@@ -202,8 +203,12 @@ public class End2end_4_InstantiateSmartContract {
 
 
 
-
-
+    public static String cutStr(String str) {
+        return cutStr(str, 200);
+    }
+    public static String cutStr(String str, int len) {
+        return str.length() > len ? str.substring(len) : str;
+    }
 
 
     //########################################################################################################################
@@ -262,13 +267,16 @@ public class End2end_4_InstantiateSmartContract {
 
         for (ProposalResponse response : responses) {
 
-            log.info("______status:_______"+ response.getStatus());
+            //恢复原本的ProposalResponsePackage的Response以取得status
+            ProposalResponsePackage.ProposalResponse proposalResponse = response.getProposalResponse();
+            log.info("______status:_______"+ proposalResponse.getResponse().getStatus());
+            //if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
+
 
             //if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
-            if (//response.isVerified() &&//暂时验签默认通过
-                    (
-                    response.getStatus() == ProposalResponse.Status.SUCCESS
-                    || response.getStatus() == ProposalResponse.Status.UNDEFINED )) {//TODO 200和０暂时都算返回成功，等julongchain返回码统一
+            //if (response.isVerified() &&//暂时验签默认通过
+            if (proposalResponse.getResponse().getStatus() == ProposalResponse.Status.SUCCESS.getStatus()
+                    || proposalResponse.getResponse().getStatus() == ProposalResponse.Status.UNDEFINED.getStatus() ) {//TODO 200和０暂时都算返回成功，等julongchain返回码统一
                 successful.add(response);
                 info("Succesful instantiate proposal response Txid: %s from peer %s", response.getTransactionID(), response.getNode().getName());
             } else {

@@ -43,14 +43,14 @@ public class InstantiateProposalBuilder extends LSSCProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(InstantiateProposalBuilder.class);
 
-    private String chaincodePath;
+    private String smartContractPath;
 
-    private String chaincodeName;
+    private String smartContractName;
     private List<String> argList;
-    private String chaincodeVersion;
-    private TransactionRequest.Type chaincodeType = TransactionRequest.Type.GO_LANG;
+    private String smartContractVersion;
+    private TransactionRequest.Type smartContractType = TransactionRequest.Type.JAVA;
 
-    private byte[] chaincodePolicy = null;
+    private byte[] smartContractPolicy = null;
     protected String action = "deploy";
 
     public void setTransientMap(Map<String, byte[]> transientMap) throws InvalidArgumentException {
@@ -71,33 +71,33 @@ public class InstantiateProposalBuilder extends LSSCProposalBuilder {
 
     }
 
-    public InstantiateProposalBuilder chaincodePath(String chaincodePath) {
+    public InstantiateProposalBuilder smartContractPath(String smartContractPath) {
 
-        this.chaincodePath = chaincodePath;
-
-        return this;
-
-    }
-
-    public InstantiateProposalBuilder chaincodeName(String chaincodeName) {
-
-        this.chaincodeName = chaincodeName;
+        this.smartContractPath = smartContractPath;
 
         return this;
 
     }
 
-    public InstantiateProposalBuilder chaincodeType(TransactionRequest.Type chaincodeType) {
+    public InstantiateProposalBuilder smartContractName(String smartContractName) {
 
-        this.chaincodeType = chaincodeType;
+        this.smartContractName = smartContractName;
 
         return this;
 
     }
 
-    public void chaincodEndorsementPolicy(SmartContractEndorsementPolicy policy) {
+    public InstantiateProposalBuilder smartContractType(TransactionRequest.Type smartContractType) {
+
+        this.smartContractType = smartContractType;
+
+        return this;
+
+    }
+
+    public void smartContractEndorsementPolicy(SmartContractEndorsementPolicy policy) {
         if (policy != null) {
-            this.chaincodePolicy = policy.getSmartContractEndorsementPolicyAsBytes();
+            this.smartContractPolicy = policy.getSmartContractEndorsementPolicyAsBytes();
         }
     }
 
@@ -131,7 +131,7 @@ public class InstantiateProposalBuilder extends LSSCProposalBuilder {
     private void createNetModeTransaction() throws InvalidArgumentException {
         logger.debug("NetModeTransaction");
 
-        if (chaincodeType == null) {
+        if (smartContractType == null) {
             throw new InvalidArgumentException("SmartContract type is required");
         }
 
@@ -139,7 +139,7 @@ public class InstantiateProposalBuilder extends LSSCProposalBuilder {
         modlist.add("init");
         modlist.addAll(argList);
 
-        switch (chaincodeType) {
+        switch (smartContractType) {
             case JAVA:
                 ccType(SmartContractPackage.SmartContractSpec.Type.JAVA);
                 break;
@@ -150,25 +150,25 @@ public class InstantiateProposalBuilder extends LSSCProposalBuilder {
                 ccType(SmartContractPackage.SmartContractSpec.Type.GOLANG);
                 break;
             default:
-                throw new InvalidArgumentException("Requested chaincode type is not supported: " + chaincodeType);
+                throw new InvalidArgumentException("Requested smartContract type is not supported: " + smartContractType);
         }
 
         SmartContractDeploymentSpec depspec = createDeploymentSpec(ccType,
-                chaincodeName, chaincodePath, chaincodeVersion, modlist, null);
+                smartContractName, smartContractPath, smartContractVersion, modlist, null);
 
         List<ByteString> argList = new ArrayList<>();
         argList.add(ByteString.copyFrom(action, StandardCharsets.UTF_8));
         argList.add(ByteString.copyFrom(context.getGroupID(), StandardCharsets.UTF_8));
         argList.add(depspec.toByteString());
-        if (chaincodePolicy != null) {
-            argList.add(ByteString.copyFrom(chaincodePolicy));
+        if (smartContractPolicy != null) {
+            argList.add(ByteString.copyFrom(smartContractPolicy));
         }
 
         args(argList);
 
     }
 
-    public void chaincodeVersion(String chaincodeVersion) {
-        this.chaincodeVersion = chaincodeVersion;
+    public void smartContractVersion(String smartContractVersion) {
+        this.smartContractVersion = smartContractVersion;
     }
 }

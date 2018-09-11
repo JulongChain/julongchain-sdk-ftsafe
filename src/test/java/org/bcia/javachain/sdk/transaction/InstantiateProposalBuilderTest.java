@@ -58,7 +58,7 @@ public class InstantiateProposalBuilderTest {
         thrown.expectMessage("Chaincode type is required");
 
         InstantiateProposalBuilder builder = InstantiateProposalBuilder.newBuilder();
-        builder.chaincodeType(null);
+        builder.smartContractType(null);
 
         builder.build();
     }

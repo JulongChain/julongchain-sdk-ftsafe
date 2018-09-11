@@ -48,11 +48,6 @@ public final class SmartContractID {
 
     }
 
-    @Override
-    public String toString() {
-        return "SmartContractID(" + getName() + ":" + getPath() + ":" + getVersion() + ")";
-    }
-
     /**
      * Build a new SmartContractID
      */
@@ -111,4 +106,13 @@ public final class SmartContractID {
         return new Builder();
     }
 
+    @Override
+    public String toString() {
+        return "SmartContractID{" +
+                "\nsmartcontractID=" + smartcontractID +
+                ",\nversion=" + smartcontractID.getVersion() +
+                ",\nname=" + smartcontractID.getName() +
+                ",\npath=" + smartcontractID.getPath() +
+                '}';
+    }
 }
