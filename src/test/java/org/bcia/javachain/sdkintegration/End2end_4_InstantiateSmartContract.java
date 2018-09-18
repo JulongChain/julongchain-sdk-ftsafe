@@ -241,7 +241,7 @@ public class End2end_4_InstantiateSmartContract {
         newGroup.initialize();
         //// Instantiate chaincode.
         InstantiateProposalRequest instantiateProposalRequest = client.newInstantiationProposalRequest();
-        instantiateProposalRequest.setProposalWaitTime(testConfig.getProposalWaitTime());
+        instantiateProposalRequest.setProposalWaitTime(testConfig.getInstantiateWaitTime());
         instantiateProposalRequest.setSmartContractID(smartContractID);
         instantiateProposalRequest.setSmartContractLanguage(Type.JAVA);
         instantiateProposalRequest.setFcn("init");
@@ -269,9 +269,7 @@ public class End2end_4_InstantiateSmartContract {
 
             //恢复原本的ProposalResponsePackage的Response以取得status
             ProposalResponsePackage.ProposalResponse proposalResponse = response.getProposalResponse();
-            log.info("______status:_______"+ proposalResponse.getResponse().getStatus());
-            //if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
-
+            log.info("proposalResponse.status:"+ proposalResponse.getResponse().getStatus());
 
             //if (response.isVerified() && response.getStatus() == ProposalResponse.Status.SUCCESS) {
             //if (response.isVerified() &&//暂时验签默认通过
