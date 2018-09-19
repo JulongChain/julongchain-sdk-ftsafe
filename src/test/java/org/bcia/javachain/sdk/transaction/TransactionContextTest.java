@@ -15,18 +15,29 @@
 package org.bcia.javachain.sdk.transaction;
 
 import com.google.protobuf.ByteString;
-import org.bcia.javachain.sdk.Group;
-import org.bcia.javachain.sdk.HFClient;
-import org.bcia.javachain.sdk.TestHFClient;
-import org.bcia.javachain.sdk.User;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.sdk.*;
+import org.bcia.javachain.sdk.helper.MspStore;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.gm.CertificateUtils;
+import org.bcia.javachain.sdk.testutils.TestConfig;
+import org.bcia.javachain.sdkintegration.SampleOrg;
+import org.bcia.javachain.sdkintegration.SampleStore;
+import org.bcia.javachain.sdkintegration.SampleUser;
+import org.bcia.javachain_ca.sdk.RegistrationRequest;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
+import java.util.Collection;
 
 public class TransactionContextTest {
+
+    public static final String TEST_ADMIN_NAME = "admin";
+    public static final String TESTUSER_1_NAME = "user1";
 
     public final TemporaryFolder tempFolder = new TemporaryFolder();
     static HFClient hfclient = null;
@@ -34,9 +45,18 @@ public class TransactionContextTest {
     @BeforeClass
     public static void setupClient() {
 
+        File sampleStoreFile = new File(System.getProperty("user.home") + "/test.properties");
+        if (sampleStoreFile.exists()) { //For testing start fresh
+            sampleStoreFile.delete();
+        }
+        final SampleStore sampleStore = new SampleStore(sampleStoreFile);
+
         try {
             hfclient = TestHFClient.newInstance();
-
+            Collection<SampleOrg> sampleOrgs = TestConfig.getConfig().getIntegrationTestsSampleOrgs();
+            SampleOrg sampleOrg = sampleOrgs.toArray(new SampleOrg[0])[0];
+            initUser(sampleOrgs, sampleStore);
+            hfclient.setUserContext(sampleOrg.getNodeAdmin());
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail("Unexpected Exception " + e.getMessage());
@@ -88,9 +108,9 @@ public class TransactionContextTest {
         Group channel = null;
 
         try {
+            channel = new Group("channel1", hfclient);
             Constructor<?> constructor = Group.class.getDeclaredConstructor(String.class, HFClient.class);
             constructor.setAccessible(true);
-
             channel = (Group) constructor.newInstance(channelName, hfclient);
         } catch (Exception e) {
             e.printStackTrace();
@@ -98,6 +118,109 @@ public class TransactionContextTest {
         }
 
         return channel;
+    }
+
+
+    /**
+     * 注册和嬁计用户存入samplestore.
+     *
+     * @param sampleStore
+     * @throws Exception
+     */
+    public static void initUser(Collection<SampleOrg> sampleOrgs, SampleStore sampleStore) throws Exception {
+        ////////////////////////////
+        //Set up USERS
+
+        //SampleUser can be any implementation that implements org.bcia.javachain.sdk.User Interface
+
+        ////////////////////////////
+        // get users for all orgs
+
+        for (SampleOrg sampleOrg : sampleOrgs) {
+
+            //HFCAClient ca = sampleOrg.getCAClient();
+
+            final String orgName = sampleOrg.getName();
+            final String mspid = sampleOrg.getMSPID();
+
+            //找到指定机构的管理员
+            SampleUser admin = sampleStore.getMember(TEST_ADMIN_NAME, orgName);
+            if (!admin.isEnrolled()) {  //Preregistered admin only needs to be enrolled with Fabric caClient.
+                //############################################
+                //
+                //      第一步該管理員的ｅｎｒｏｌｌｍｅｎｔ
+                //
+                //############################################
+                admin.setEnrollment(new Enrollment() {
+
+                    @Override
+                    public IKey getKey() {
+
+                        try {
+                            return CertificateUtils.bytesToPrivateKey(MspStore.getInstance().getClientKeys().get(0));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        return null;
+                    }
+
+                    @Override
+                    public byte[] getCert() {
+
+                        try {
+                            return MspStore.getInstance().getAdminCerts().get(0);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        return null;
+                    }
+                });
+                admin.setMspId(mspid);
+            }
+
+            sampleOrg.setAdmin(admin); // The admin of this org --
+            //找到指定机构的用户
+            SampleUser user = sampleStore.getMember(TESTUSER_1_NAME, sampleOrg.getName());
+            if (!user.isRegistered()) {  // users need to be registered AND enrolled
+                RegistrationRequest rr = new RegistrationRequest(user.getName(), "org1.department1");
+                //user.setEnrollmentSecret(ca.register(rr, admin));
+            }
+            if (!user.isEnrolled()) {
+                user.setEnrollment(new Enrollment() {
+
+                    @Override
+                    public IKey getKey() {
+                        try {
+                            return CertificateUtils.bytesToPrivateKey(MspStore.getInstance().getClientKeys().get(0));
+                        } catch (JavaChainException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    public byte[] getCert() {
+                        try {
+                            return MspStore.getInstance().getClientCerts().get(0);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                });
+                user.setMspId(mspid);
+            }
+            sampleOrg.addUser(user); //Remember user belongs to this Org
+
+            final String sampleOrgName = sampleOrg.getName();
+            final String sampleOrgDomainName = sampleOrg.getDomainName();
+
+            SampleUser peerOrgAdmin = sampleStore.getMember(sampleOrgName + "Admin", sampleOrgName);
+            sampleOrg.setNodeAdmin(peerOrgAdmin); //A special user that can create channels, join peers and install chaincode
+
+        }
     }
 
 }

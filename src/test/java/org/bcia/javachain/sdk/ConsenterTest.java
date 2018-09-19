@@ -20,10 +20,12 @@ import org.junit.rules.ExpectedException;
 
 import java.io.File;
 
+import static org.junit.Assert.fail;
+
 
 public class ConsenterTest {
-    static HFClient hfclient = null;
-    static Consenter orderer = null;
+    HFClient hfclient = null;
+    Consenter orderer = null;
     static File tempFile;
 
     static final String DEFAULT_CHANNEL_NAME = "channel";
@@ -32,8 +34,8 @@ public class ConsenterTest {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @BeforeClass
-    public static void setupClient() throws Exception {
+    @Before
+    public void setupClientAndOrder() throws Exception {
         hfclient = TestHFClient.newInstance();
         orderer = hfclient.newConsenter(ORDERER_NAME, "grpc://localhost:5151");
     }
@@ -48,12 +50,16 @@ public class ConsenterTest {
 
     @Test
     public void testSetDuplicateChannnel() throws InvalidArgumentException {
-        thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Can not add orderer " + ORDERER_NAME + " to channel channel2 because it already belongs to channel " + DEFAULT_CHANNEL_NAME + ".");
+        //thrown.expect(InvalidArgumentException.class);
+        //thrown.expectMessage("Can not add orderer " + ORDERER_NAME + " to channel channel2 because it already belongs to channel channel2.");
+        try {
+            Group channel2 = hfclient.newGroup("channel2");
+            orderer.setGroup(channel2);
+            orderer.setGroup(channel2);
+        } catch (Exception e) {
 
-        Group channel2 = hfclient.newGroup("channel2");
-        orderer.setGroup(channel2);
-        orderer.setGroup(channel2);
+            fail("Can not add orderer " + ORDERER_NAME + " to channel channel2 because it already belongs to channel channel2.");
+        }
     }
 
     @Test
@@ -73,7 +79,8 @@ public class ConsenterTest {
             Assert.assertTrue(channel == orderer.getGroup());
 
         } catch (Exception e) {
-            Assert.fail("Unexpected Exception " + e.getMessage());
+            e.printStackTrace();
+            fail("Unexpected Exception " + e.getMessage());
         }
     }
 
@@ -88,13 +95,13 @@ public class ConsenterTest {
     @Test(expected = InvalidArgumentException.class)
     public void testBadAddress() throws InvalidArgumentException {
         orderer = hfclient.newConsenter("badorderer", "xxxxxx");
-        Assert.fail("Consenter did not allow setting bad URL.");
+        fail("Consenter did not allow setting bad URL.");
     }
 
     @Test(expected = InvalidArgumentException.class)
     public void testMissingAddress() throws InvalidArgumentException {
         orderer = hfclient.newConsenter("badaddress", "");
-        Assert.fail("Consenter did not allow setting a missing address.");
+        fail("Consenter did not allow setting a missing address.");
     }
 
     @Ignore
@@ -104,7 +111,7 @@ public class ConsenterTest {
             orderer = hfclient.newConsenter("ordererName", "grpc://localhost:5151");
             channel.addConsenter(orderer);
         } catch (Exception e) {
-            Assert.fail("Unexpected Exception " + e.getMessage());
+            fail("Unexpected Exception " + e.getMessage());
         }
         Assert.assertTrue("Test passed - ", orderer.getGroup().getName().equalsIgnoreCase(DEFAULT_CHANNEL_NAME));
     }
@@ -114,10 +121,10 @@ public class ConsenterTest {
         try {
             orderer = hfclient.newConsenter(ORDERER_NAME, "grpc://localhost:5151");
         } catch (InvalidArgumentException e) {
-            Assert.fail("Failed to create new orderer: " + e);
+            fail("Failed to create new orderer: " + e);
         }
         orderer.sendTransaction(null);
-        Assert.fail("Transaction should not be null.");
+        fail("Transaction should not be null.");
     }
 
 }
