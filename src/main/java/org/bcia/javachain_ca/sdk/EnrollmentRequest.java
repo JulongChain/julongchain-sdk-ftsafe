@@ -51,6 +51,115 @@ public class EnrollmentRequest {
     // Attribute requests. added v1.1
     private Map<String, AttrReq> attrreqs = null; //new HashMap<>();
 
+    private String password; //用户密码
+    private String CN; //通用名CN，必填
+    private String O; //组织机构名称
+    private String OU; //部门
+    private String L; //城市
+    private String S; //省份
+    private String C; //ISO 3166国家代码
+    private String E; //邮箱地址
+    private String processId; //实体证书流程ID
+    private String certType; //获取证书类型1 : Certificate 公钥证书;2 : PKCS12 P12证书;3: JKS JKS证书
+    private String reqType; //请求类型：1 : 证书申请; 2 : 证书更新
+    private String keyType; //密钥类型
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getCN() {
+        return CN;
+    }
+
+    public void setCN(String CN) {
+        this.CN = CN;
+    }
+
+    public String getO() {
+        return O;
+    }
+
+    public void setO(String o) {
+        O = o;
+    }
+
+    public String getOU() {
+        return OU;
+    }
+
+    public void setOU(String OU) {
+        this.OU = OU;
+    }
+
+    public String getL() {
+        return L;
+    }
+
+    public void setL(String l) {
+        L = l;
+    }
+
+    public String getS() {
+        return S;
+    }
+
+    public void setS(String s) {
+        S = s;
+    }
+
+    public String getC() {
+        return C;
+    }
+
+    public void setC(String c) {
+        C = c;
+    }
+
+    public String getE() {
+        return E;
+    }
+
+    public void setE(String e) {
+        E = e;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    public void setProcessId(String processId) {
+        this.processId = processId;
+    }
+
+    public String getCertType() {
+        return certType;
+    }
+
+    public void setCertType(String certType) {
+        this.certType = certType;
+    }
+
+    public String getReqType() {
+        return reqType;
+    }
+
+    public void setReqType(String reqType) {
+        this.reqType = reqType;
+    }
+
+    public String getKeyType() {
+        return keyType;
+    }
+
+    public void setKeyType(String keyType) {
+        this.keyType = keyType;
+    }
+
     /**
      * The certificate signing request if it's not supplied it will be generated.
      *
