@@ -20,8 +20,6 @@ import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain.sdkintegration.SampleOrg;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,7 +52,7 @@ public class TestConfig {
     private static final String PROPBASE = "org.bcia.javachain.sdktest.";
 
     private static final String INVOKEWAITTIME = PROPBASE + "InvokeWaitTime";
-    private static final String DEPLOYWAITTIME = PROPBASE + "DeployWaitTime";
+    private static final String INSTANTIATE_WAIT_TIME = PROPBASE + "InstantiateWaitTime";
     private static final String PROPOSALWAITTIME = PROPBASE + "ProposalWaitTime";
 
     private static final String INTEGRATIONTESTS_ORG = PROPBASE + "integrationTests.org.";
@@ -73,8 +71,8 @@ public class TestConfig {
         // Default values
 
         defaultProperty(INVOKEWAITTIME, "240");
-        defaultProperty(DEPLOYWAITTIME, "120000");
-        defaultProperty(PROPOSALWAITTIME, "1200000");
+        defaultProperty(INSTANTIATE_WAIT_TIME, "1200000");
+        defaultProperty(PROPOSALWAITTIME, "12000");
 
         //////
         defaultProperty(INTEGRATIONTESTS_ORG + "peerOrg1.mspid", "DEFAULT");
@@ -234,8 +232,8 @@ public class TestConfig {
         return Integer.parseInt(getProperty(INVOKEWAITTIME));
     }
 
-    public int getDeployWaitTime() {
-        return Integer.parseInt(getProperty(DEPLOYWAITTIME));
+    public int getInstantiateWaitTime() {
+        return Integer.parseInt(getProperty(INSTANTIATE_WAIT_TIME));
     }
 
     public long getProposalWaitTime() {

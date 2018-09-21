@@ -247,7 +247,7 @@ public class End2end_5_InvokeSmartContract {
         for (ProposalResponse response : transactionPropResp) {
             //恢复原本的ProposalResponsePackage的Response以取得status
             ProposalResponsePackage.ProposalResponse proposalResponse = response.getProposalResponse();
-            log.info("______status:_______"+ proposalResponse.getResponse().getStatus());
+            log.info("proposalResponse.status:"+ proposalResponse.getResponse().getStatus());
             //if (response.getStatus() == ProposalResponse.Status.SUCCESS) {
             if (proposalResponse.getResponse().getStatus() == ProposalResponse.Status.SUCCESS.getStatus()
                     || proposalResponse.getResponse().getStatus() == ProposalResponse.Status.UNDEFINED.getStatus() ) {//TODO 200和０暂时都算返回成功，等julongchain返回码统一
@@ -258,18 +258,6 @@ public class End2end_5_InvokeSmartContract {
             }
         }
 
-        // Check that all the proposals are consistent with each other. We should have only one set
-        // where all the proposals above are consistent. Note the when sending to Consenter this is done automatically.
-        //  Shown here as an example that applications can invoke and select.
-        // See org.bcia.javachain.sdk.proposal.consistency_validation config property.
-        /*
-        //TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
-        Collection<Set<ProposalResponse>> proposalConsistencySets = SDKUtils.getProposalConsistencySets(transactionPropResp);
-        if (proposalConsistencySets.size() != 1) {
-            fail(format("Expected only one set of consistent proposal responses but got %d", proposalConsistencySets.size()));
-        }
-        */
-
         info("Received %d transaction proposal responses. Successful+verified: %d . Failed: %d",
                 transactionPropResp.size(), successful.size(), failed.size());
         if (failed.size() > 0) {
@@ -279,32 +267,10 @@ public class End2end_5_InvokeSmartContract {
                     ". Was verified: " + firstTransactionProposalResponse.isVerified());
         }
         info("Successfully received transaction proposal responses.");
-        /*
-        //TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
-        ProposalResponse resp = successful.iterator().next();
-        byte[] x = resp.getSmartContractActionResponsePayload(); // This is the data returned by the chaincode.
-        String resultAsString = null;
-        if (x != null) {
-            resultAsString = new String(x, "UTF-8");
-        }
-        assertEquals(":)", resultAsString);
-
-        assertEquals(200, resp.getSmartContractActionResponseStatus()); //SmartContract's status.
-
-        TxReadWriteSetInfo readWriteSetInfo = resp.getSmartContractActionResponseReadWriteSetInfo();
-        //See blockwalker below how to transverse this
-        assertNotNull(readWriteSetInfo);
-        assertTrue(readWriteSetInfo.getNsRwsetCount() > 0);
-
-        SmartContractID cid = resp.getSmartContractID();
-        assertNotNull(cid);
-        final String path = cid.getPath();
-
-        */
         ////////////////////////////
         // Send Transaction Transaction to orderer
         info("Sending chaincode transaction(move a,b,100) to orderer.");
-        newGroup.sendTransaction(successful).get(testConfig.getTransactionWaitTime(), TimeUnit.SECONDS);
+        newGroup.sendTransaction(successful);
 
         info("invoke success!");
     }

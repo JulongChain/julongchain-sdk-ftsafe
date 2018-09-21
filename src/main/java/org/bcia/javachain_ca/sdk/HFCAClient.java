@@ -94,6 +94,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.User;
+import org.bcia.javachain.sdk.helper.MspStore;
 import org.bcia.javachain.sdk.helper.Utils;
 import org.bcia.javachain_ca.sdk.exception.AffiliationException;
 import org.bcia.javachain_ca.sdk.exception.EnrollmentException;
@@ -196,6 +197,8 @@ public class HFCAClient {
 
     private int statusCode = 400;
 
+    private MspStore mspStore;
+
     /**
      * The Status Code level of client, HTTP status codes above this value will return in a
      * exception, otherwise, the status code will be return the status code and appropriate error
@@ -205,6 +208,15 @@ public class HFCAClient {
      */
     public int getStatusCode() {
         return statusCode;
+    }
+
+
+    public void setCryptoSuite(MspStore mspStore) {
+        this.mspStore = mspStore;
+    }
+
+    public MspStore getCryptoSuite() {
+        return mspStore;
     }
 
     /**
@@ -333,135 +345,6 @@ public class HFCAClient {
         return enroll(user, secret, new EnrollmentRequest());
     }
 
-
-
-    /*
-
-    "/enroll": {
-      "post": {
-        "tags": [
-          "fabric-ca-server"
-        ],
-        "description": "Enroll a new identity and return an enrollment certificate.",
-        //--------------------------------------------------------------------------
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "description": "An HTTP basic authorization header where:  \n*  *user* is the enrollment ID;  \n*  *password* is the enrollment secret.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "description": "The request body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "request": {
-                  "type": "string",
-                  "description": "A PEM-encoded string containing the CSR (Certificate Signing Request) based on PKCS #10."
-                },
-                "profile": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "The name of the signing profile to use when issuing the certificate."
-                },
-                "label": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "The label used in HSM operations"
-                },
-                "caname": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "description": "Name of the CA to direct traffic to within server."
-                }
-              },
-              "required": [
-                "request"
-              ]
-            }
-          }
-        ],
-        //--------------------------------------------------------------------------
-        "responses": {
-          "200": {
-            "description": "Successfully enrolled a new identity",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "Success": {
-                  "type": "boolean",
-                  "description": "Boolean indicating if the request was successful."
-                },
-                "Result": {
-                  "type": "string",
-                  "description": "The enrollment certificate in base 64 encoded format."
-                },
-                "Errors": {
-                  "type": "array",
-                  "description": "A array of error messages (i.e. code and string messages).",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "code": {
-                        "type": "integer",
-                        "description": "Integer code denoting the type of error."
-                      },
-                      "message": {
-                        "type": "string",
-                        "description": "An error message"
-                      }
-                    },
-                    "required": [
-                      "code",
-                      "message"
-                    ]
-                  }
-                },
-                "Messages": {
-                  "type": "array",
-                  "description": "A array of informational messages (i.e. code and string messages).",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "code": {
-                        "type": "integer",
-                        "description": "Integer code denoting the type of message."
-                      },
-                      "message": {
-                        "type": "string",
-                        "description": "A more specific message."
-                      }
-                    },
-                    "required": [
-                      "code",
-                      "message"
-                    ]
-                  }
-                }
-              },
-              "required": [
-                "Success",
-                "Result",
-                "Errors",
-                "Messages"
-              ]
-            }
-          }
-        }
-      }
-    },
-    */
     /**
      * 使用成员服务注册用户(签发证书)
      *

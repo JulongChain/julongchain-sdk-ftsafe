@@ -286,7 +286,7 @@ public class Group implements Serializable {
      * @param client
      * @throws InvalidArgumentException
      */
-    Group(String name, HFClient client) throws InvalidArgumentException {
+    public Group(String name, HFClient client) throws InvalidArgumentException {
         this(name, client, false);
     }
 

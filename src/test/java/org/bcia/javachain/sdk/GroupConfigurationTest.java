@@ -37,27 +37,4 @@ public class GroupConfigurationTest {
         testChannelConfig.setGroupConfiguration(TEST_BYTES_2.getBytes());
         Assert.assertEquals(TEST_BYTES_2, new String(testChannelConfig.getGroupConfigurationAsBytes()));
     }
-    
-    @Test
-    public void testLoad() {
-    	FileInputStream fis = null;
-    	try {
-			fis = new FileInputStream("/home/bcia/javachain-sdk-ftsafe/src/test/fixture/sdkintegration/e2e-2Orgs/v1.1/bar.tx");
-			int len = fis.available();
-			byte[] bytes = new byte[len];
-			fis.read(bytes);
-			Envelope ccEnvelope = Envelope.parseFrom(bytes);
-			
-			System.out.println(ccEnvelope);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-    	byte[] bytes = null;
-    	try {
-			Envelope ccEnvelope = Envelope.parseFrom(bytes);
-		} catch (InvalidProtocolBufferException e) {
-			e.printStackTrace();
-		}
-    }
 }
