@@ -348,9 +348,9 @@ public class HFCAClient {
         if (Utils.isNullOrEmpty(user)) {
             throw new InvalidArgumentException("enrollment user is not set");
         }
-        if (Utils.isNullOrEmpty(secret)) {
-            throw new InvalidArgumentException("enrollment secret is not set");
-        }
+//        if (Utils.isNullOrEmpty(secret)) {
+//            throw new InvalidArgumentException("enrollment secret is not set");
+//        }
 
 //        if (cryptoSuite == null) {
 //            throw new InvalidArgumentException("Crypto primitives not set.");
