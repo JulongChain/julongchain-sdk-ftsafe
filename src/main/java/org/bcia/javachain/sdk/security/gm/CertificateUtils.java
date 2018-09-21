@@ -4,16 +4,12 @@ package org.bcia.javachain.sdk.security.gm;
 import static java.lang.String.format;
 import java.io.*;
 import java.math.BigInteger;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Provider;
-import java.security.Security;
-import java.security.Signature;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.interfaces.ECPrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -35,13 +31,19 @@ import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequenceGenerator;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
+import sun.misc.BASE64Decoder;
 import sun.security.util.Debug;
 import sun.security.util.DerValue;
 import sun.security.x509.AlgorithmId;
@@ -203,7 +205,7 @@ public class CertificateUtils {
 //     * @param pemKey pem-encoded private key
 //     * @return
 //     */
-//    public static PrivateKey bytesToPrivateKey(byte[] pemKey) throws JavaChainException {
+//    public static PrivateKey bytesToPrivateKey(byte[] pemKey) {
 //        PrivateKey pk = null;
 //
 //        try {
@@ -211,27 +213,110 @@ public class CertificateUtils {
 //            PemObject po = pr.readPemObject();
 //            PEMParser pem = new PEMParser(new StringReader(new String(pemKey)));
 //            logger.info("found private key with type " + po.getType());
-//            if (po.getType().equals("PRIVATE KEY")) {
-//                //直接是privatekey
+//            if (po.getType().equals("EC PRIVATE KEY")) {
+                //直接是privatekey
 //                pk = new JcaPEMKeyConverter().getPrivateKey((PrivateKeyInfo) pem.readObject());
 //            } else {
-//                //是keypair
+                //是keypair
 //                PEMKeyPair kp = (PEMKeyPair) pem.readObject();
 //                pk = new JcaPEMKeyConverter().getPrivateKey(kp.getPrivateKeyInfo());
-//            	/*
-//            	PEMKeyPair kp = (PEMKeyPair) pem.readObject();
-//            	PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(kp.getPrivateKeyInfo().getEncoded());
-//                PrivateKeyInfo info = PrivateKeyInfo.getInstance(((PKCS8EncodedKeySpec)keySpec).getEncoded());
-//                pk = BouncyCastleProvider.getPrivateKey(info);
-//	            */
+            	/*
+            	PEMKeyPair kp = (PEMKeyPair) pem.readObject();
+            	PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(kp.getPrivateKeyInfo().getEncoded());
+                PrivateKeyInfo info = PrivateKeyInfo.getInstance(((PKCS8EncodedKeySpec)keySpec).getEncoded());
+                pk = BouncyCastleProvider.getPrivateKey(info);
+	            */
 //            }
 //            logger.info(pk.toString());
 //        } catch (Exception e) {
 //            e.printStackTrace();
-//            throw new JavaChainException("Failed to convert private key bytes", e);
 //        }
 //        return pk;
 //    }
+
+
+
+
+
+    //私钥字符串转对象
+    public static PrivateKey getPrivateKey(String privateKey) throws Exception{
+        StringReader in=new StringReader(privateKey);
+        String tmp = "";
+        BufferedReader bf = new BufferedReader(in);
+        String b = bf.readLine();
+
+        KeyFactory keyf = null;
+        if(b!= null && b.indexOf("---") != -1 && b.indexOf("EC") != -1) {
+            keyf = KeyFactory.getInstance("EC");
+        }else if(b!= null && b.indexOf("---") != -1 && b.indexOf("RSA") != -1) {
+            keyf = KeyFactory.getInstance("RSA");
+        }else{
+            System.out.println("私钥格式异常!");
+            return null;
+        }
+        privateKey = replaceHeadAndEnd(privateKey);
+        PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(new Base64().decode(privateKey) );
+        PrivateKey priKey = keyf.generatePrivate(priPKCS8);
+        return priKey;
+    }
+
+
+    private static String replaceHeadAndEnd(String content) throws Exception{
+        StringReader in=new StringReader(content);
+        String tmp = "";
+        BufferedReader bf = new BufferedReader(in);
+        String b;
+        while((b= bf.readLine())!= null){
+            if(b.indexOf("-----") == -1){
+                tmp += b;
+            }
+        }
+        return tmp;
+    }
+
+
+    public static PublicKey getPublicKey(String key) throws Exception {
+        byte[] keyBytes;
+        KeyFactory keyf = null;
+        if(key != null && key.indexOf("EC") != -1)
+            keyf = KeyFactory.getInstance("EC");
+        else if(key != null && key.indexOf("RSA") != -1)
+            keyf = KeyFactory.getInstance("RSA");
+        else{
+            System.out.println("私钥格式异常!");
+            return null;
+        }
+        key = replaceHeadAndEnd(key);
+        keyBytes = (new BASE64Decoder()).decodeBuffer(key);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        PublicKey publicKey = keyf.generatePublic(keySpec);
+        return publicKey;
+    }
+
+
+
+    public static PublicKey bytesToPublicKey(byte[] pemKey) {
+        PublicKey pk = null;
+
+        try {
+            PemReader pr = new PemReader(new StringReader(new String(pemKey)));
+            PemObject po = pr.readPemObject();
+            PEMParser pem = new PEMParser(new StringReader(new String(pemKey)));
+//            logger.info("found private key with type " + po.getType());
+            if (po.getType().equals("PUBLIC KEY")) {
+                pk = new JcaPEMKeyConverter().getPublicKey((SubjectPublicKeyInfo) pem.readObject());
+            } else {
+                //是keypair
+                PEMKeyPair kp = (PEMKeyPair) pem.readObject();
+                pk = new JcaPEMKeyConverter().getPublicKey(kp.getPublicKeyInfo());
+
+            }
+//            logger.info(pk.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return pk;
+    }
 
 
     /**
