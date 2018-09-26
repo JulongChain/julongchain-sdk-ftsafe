@@ -50,9 +50,9 @@ End2end_0_CAEnroll.java申请签发证书<br/>
 调用测试代码在/javachain-sdk-ftsafe/src/test/java/org/bcia/javachain/sdkintegration/路径下<br/>
 End2end_1_CreateGroup.java创建群组<br/>
 End2end_2_JoinGroup.java加入群组<br/>
-End2end_2_InstallSmartContract.java安装智能合约<br/>
-End2end_2_InstantiateSmartContract.java实例化智能合约<br/>
-End2end_3_InvokeSmartContract.java调用智能合约<br/>
+End2end_3_InstallSmartContract.java安装智能合约<br/>
+End2end_4_InstantiateSmartContract.java实例化智能合约<br/>
+End2end_5_InvokeSmartContract.java调用智能合约<br/>
 
 ## 端到端的测试环境
 必须先运行julongchain ca，julongchain Node背书节点和julongchain Consenter排序节点。
@@ -63,3 +63,32 @@ cacertsCA证书<br/>
 clientkeys客户端公私钥<br/>
 clientcerts客户端证书<br/>
 tlsclientcerts客户端tls通道证书<br/>
+
+## 详细流程指引
+1、End2end_0_CAEnroll申请签发证书和撤销证书<br/>
+1.1、申请签发证书<br/>
+1.1.1、首先确认CA服务器的接口状态是否可用，然后在HFCAClient类中配置CA服务器使用需要的administrator.p12和truststore.jks证书的目录以及秘钥；<br/>
+1.1.2、通过工具生成需要的公钥和私钥，获取后将生产的公私钥值分别复制到项目下的msp/clientkeys/privatekey_sk和msp/clientkeys/publickey_sk文件中；<br/>
+1.1.3、设置CA接口请求需要的参数，参考测试类的testEnroll方法，其中实体证书流程ID字段processId的值请到BCIA-CA系统中的RA功能下实体证书流程配置功能查询；<br/>
+1.1.4、所有设置完成后运行testEnroll方法，运行正确后会再相应目录生成证书，同时在BCIA-CA系统中也可以查询到相应的记录。<br/>
+1.2、撤销证书<br/>
+1.2.1、首先确认CA服务器的接口状态是否可用，然后在HFCAClient类中配置CA服务器使用需要的administrator.p12和truststore.jks证书的目录以及秘钥；<br/>
+1.2.2、通过工具生成需要的公钥和私钥，获取后将生产的公私钥值分别复制到项目下的msp/clientkeys/privatekey_sk和msp/clientkeys/publickey_sk文件中；<br/>
+1.2.3、设置必要的参数用户名、撤销原因、请求类型，其中序列号参数可以到BCIA-CA系统中终端实体管理功能获取或程序根据证书进行自动转译生成；<br/>
+1.2.4、所有设置完成后运行testEnroll方法，撤销成功后到BCIA-CA系统中终端实体管理查看记录状态为已撤销。注：撤销用户时此状态改变，单一撤销证书状态不变。<br/>
+2、End2end_1_CreateGroup创建群组<br/>
+2.1、首先确认julongchain的consenter和node两个服务都在正常运行；<br/>
+2.2、设置与julongchain相对应的共识节点地址，初始化用户信息；<br/>
+2.3、调用createGroup方法，将组名以及各参数传入此方法，执行查看运行结果。<br/>
+3、End2end_2_JoinGroup加入群组<br/>
+3.1、设置加要入julongchain的群组的目标节点地址和区块保存的文件地址以及其他信息；<br/>
+3.2、将组名以及各参数传入joinGroup方法，执行查看运行结果。<br/>
+4、End2end_3_InstallSmartContract安装智能合约<br/>
+4.1、设置要安装智能合约的目标节点地址、智能合约名称、版本、智能合约源码路径以及一些其他信息；<br/>
+4.2、执行installSC方法，执行查看运行结果。<br/>
+5、End2end_4_InstantiateSmartContract实例化智能合约<br/>
+5.1、此处需要传入的参数有要实例化智能合约的目标节点地址、 共识节点地址、群组名称、智能合约名称、智能合约版本智、能合约init方法入参、背书策略；<br/>
+5.2、相应的参数设置完成后运行testInstantiateSmartContract函数，查看运行结果。<br/>
+6、End2end_5_InvokeSmartContract调用智能合约<br/>
+6.1、调用智能合约需要准备要执行智能合约的目标节点地址、共识节点地址、群组名称、智能合约名称、智能合约invoke方法入参；<br/>
+6.2、执行testInvokeSmartContact方法，查看处理结果。<br/>
