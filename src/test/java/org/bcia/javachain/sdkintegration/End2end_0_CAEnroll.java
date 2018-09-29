@@ -82,12 +82,12 @@ public class End2end_0_CAEnroll {
 
     @Test
     public void testEnroll() throws EnrollmentException, InvalidArgumentException {
-        String user = "tf00000001"; //用户名，用户唯一标识，不能为空
+        String user = "ft00000008"; //用户名，用户唯一标识，不能为空
         String secret = "1";
         EnrollmentRequest rq = new EnrollmentRequest();
         rq.setPassword("123456");//用户密码，不能为空
-        rq.setCN("tf00000001");//通用名，不能为空
-        rq.setO("SZCAFT000001");//组织机构名称
+        rq.setCN("ft00000008");//通用名，不能为空
+        rq.setO("SZCAFT000008");//组织机构名称
         rq.setC("CN"); //ISO 3166国家代码
         rq.setL("广州市");//城市
         rq.setS("广东省");//省份
@@ -96,7 +96,7 @@ public class End2end_0_CAEnroll {
         rq.setCertType("1");//获取证书类型 1 : Certificate 公钥证书  2 : PKCS12 P12证书  3 : JKS  JKS证书
         rq.setReqType("1"); //请求类型：  1 : 证书申请    2 : 证书更新
         rq.setKeyType("2");//密钥类型，certType等于2或3时有效。    当无此参数时，默认是RSA2048              当keyType=2时，为SM2
-        rq.setCsr("CN=tf00000001"); //证书请求CSR，当certType等于1时必填
+        rq.setCsr("CN=ft00000008"); //证书请求CSR，当certType等于1时必填
         client.enroll(user,secret,rq);
     }
 
