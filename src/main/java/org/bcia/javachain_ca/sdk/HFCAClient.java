@@ -158,14 +158,14 @@ public class HFCAClient {
     private final Properties properties;
     public static String SZCA_API_APPLY_URL = "https://192.168.23.113:8943/publicweb/enrollOrUpdate.html";
     public static String SZCA_API_REVOKE_URL = "https://192.168.23.113:8943/publicweb/revoke.html";
-    public static final String PRIVATE_KEY_PATH = "/home/bcia/javachain-sdk-ftsafe/msp/clientkeys/privatekey_sk";
-    public static final String PUBLIC_KEY_PATH = "/home/bcia/javachain-sdk-ftsafe/msp/clientkeys/publickey_sk";
+    public static final String PRIVATE_KEY_PATH = "msp/clientkeys/privatekey_sk";
+    public static final String PUBLIC_KEY_PATH = "msp/clientkeys/publickey_sk";
     public static final String KEYSTORE_P12_PATH = "/home/bcia/administrator.p12";
     public static final String KEYSTORE_P12_PASSWORD = "szca1234";
     public static final String TRUSTSTORE_JKS_PATH = "/home/bcia/truststore.jks";
     public static final String TRUSTSTORE_JKS_PASSWORD = "123456";
     public static final String SAVECACERT_PATH = "/home/bcia/";
-    public static final String CLIENTCERTS_PEM_PATH = "/home/bcia/javachain-sdk-ftsafe/msp/clientcerts/";
+    public static final String CLIENTCERTS_PEM_PATH = "msp/clientcerts/";
 
     /**
      * The Certificate Authority name.
@@ -356,7 +356,6 @@ public class HFCAClient {
 //            throw new InvalidArgumentException("Crypto primitives not set.");
 //        }
 
-        // TODO
         /***20180919 START***/
         Security.addProvider(new BouncyCastleProvider());
         com.google.gson.JsonObject jsonObject = new com.google.gson.JsonObject();
@@ -452,6 +451,7 @@ public class HFCAClient {
             String kp = FileUtils.readToString(filePath);
 
             FileUtils.saveFile(kp.getBytes(), CLIENTCERTS_PEM_PATH, jsonObject.get("userName").getAsString() + ".pem");
+//            FileUtils.saveFile(kp.getBytes(), CLIENTCERTS_PEM_PATH, "node0-cert.pem");
 
 //            return new HFCAEnrollment(iKey, signedPem);
 
