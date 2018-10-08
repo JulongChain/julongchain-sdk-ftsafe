@@ -17,6 +17,12 @@ import java.util.Map;
 
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class TransactionProposalRequest extends TransactionRequest {
 
     TransactionProposalRequest(User userContext) {
@@ -28,7 +34,8 @@ public class TransactionProposalRequest extends TransactionRequest {
 
     }
 
-    public void setChaincodeLanguage(Type chaincodeLanguage) {
+    @Override
+    public void setSmartContractLanguage(Type chaincodeLanguage) {
         this.chaincodeLanguage = chaincodeLanguage;
     }
 

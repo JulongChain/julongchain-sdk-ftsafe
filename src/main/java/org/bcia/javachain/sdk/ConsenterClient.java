@@ -1,0 +1,337 @@
+/*
+ *  Copyright 2016, 2017 DTCC, Fujitsu Australia Software Technology, IBM - All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package org.bcia.javachain.sdk;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import io.grpc.ConnectivityState;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.bcia.javachain.sdk.exception.TransactionException;
+import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.consenter.Ab;
+import org.bcia.julongchain.protos.consenter.Ab.DeliverResponse;
+import org.bcia.julongchain.protos.consenter.AtomicBroadcastGrpc;
+
+import static java.lang.String.format;
+import static org.bcia.julongchain.protos.consenter.Ab.DeliverResponse.TypeCase.STATUS;
+
+/**
+ * Sample client code that makes gRPC calls to the server.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
+class ConsenterClient {
+    private static final Config config = Config.getConfig();
+    private static final long ORDERER_WAIT_TIME = config.getConsenterWaitTime();
+    private final String channelName;
+    private final ManagedChannelBuilder channelBuilder;
+    private boolean shutdown = false;
+    private static final Log logger = LogFactory.getLog(ConsenterClient.class);
+    private ManagedChannel managedGroup = null;
+    private final String name;
+    private final String url;
+    private final long ordererWaitTimeMilliSecs;
+
+    /**
+     * Construct client for accessing Consenter server using the existing managedGroup.
+     */
+    ConsenterClient(Consenter orderer, ManagedChannelBuilder<?> channelBuilder, Properties properties) {
+
+        this.channelBuilder = channelBuilder;
+        name = orderer.getName();
+        url = orderer.getUrl();
+        channelName = orderer.getGroup().getName();
+
+        if (null == properties) {
+
+            ordererWaitTimeMilliSecs = ORDERER_WAIT_TIME;
+
+        } else {
+
+            String ordererWaitTimeMilliSecsString = properties.getProperty("ordererWaitTimeMilliSecs", Long.toString(ORDERER_WAIT_TIME));
+
+            long tempConsenterWaitTimeMilliSecs = ORDERER_WAIT_TIME;
+
+            try {
+                tempConsenterWaitTimeMilliSecs = Long.parseLong(ordererWaitTimeMilliSecsString);
+            } catch (NumberFormatException e) {
+                logger.warn(format("Consenter %s wait time %s not parsable.", name, ordererWaitTimeMilliSecsString), e);
+            }
+
+            ordererWaitTimeMilliSecs = tempConsenterWaitTimeMilliSecs;
+        }
+
+    }
+
+    synchronized void shutdown(boolean force) {
+
+        if (shutdown) {
+            return;
+        }
+        shutdown = true;
+        ManagedChannel lchannel = managedGroup;
+        managedGroup = null;
+        if (lchannel == null) {
+            return;
+        }
+        if (force) {
+            lchannel.shutdownNow();
+        } else {
+            boolean isTerminated = false;
+
+            try {
+                isTerminated = lchannel.shutdown().awaitTermination(3, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                logger.debug(e); //best effort
+            }
+            if (!isTerminated) {
+                lchannel.shutdownNow();
+            }
+        }
+    }
+
+    @Override
+    public void finalize() {
+        shutdown(true);
+    }
+
+    Ab.BroadcastResponse sendTransaction(Common.Envelope envelope) throws Exception {
+        StreamObserver<Common.Envelope> nso = null;
+
+        if (shutdown) {
+            throw new TransactionException("Consenter client is shutdown");
+        }
+
+        ManagedChannel lmanagedGroup = managedGroup;
+
+        if (lmanagedGroup == null || lmanagedGroup.isTerminated() || lmanagedGroup.isShutdown()) {
+
+            lmanagedGroup = channelBuilder.build();
+            managedGroup = lmanagedGroup;
+
+        }
+
+        try {
+            final CountDownLatch finishLatch = new CountDownLatch(1);
+            AtomicBroadcastGrpc.AtomicBroadcastStub broadcast = AtomicBroadcastGrpc.newStub(lmanagedGroup);
+
+            final Ab.BroadcastResponse[] ret = new Ab.BroadcastResponse[1];
+            final Throwable[] throwable = new Throwable[] {null};
+
+            StreamObserver<Ab.BroadcastResponse> so = new StreamObserver<Ab.BroadcastResponse>() {
+                @Override
+                public void onNext(Ab.BroadcastResponse resp) {
+                    // logger.info("Got Broadcast response: " + resp);
+                    logger.debug("resp status value: " + resp.getStatusValue() + ", resp: " + resp.getStatus());
+                    if (resp.getStatus() == Common.Status.SUCCESS) {
+                        ret[0] = resp;
+                    } else {
+                        throwable[0] = new TransactionException(format("Group %s orderer %s status returned failure code %d (%s) during order registration",
+                                channelName, name, resp.getStatusValue(), resp.getStatus().name()));
+                    }
+                    finishLatch.countDown();
+
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    if (!shutdown) {
+                        logger.error(format("Received error on channel %s, orderer %s, url %s, %s",
+                                channelName, name, url, t.getMessage()), t);
+                    }
+                    throwable[0] = t;
+                    finishLatch.countDown();
+                }
+
+                @Override
+                public void onCompleted() {
+                    finishLatch.countDown();
+                }
+            };
+
+            nso = broadcast.broadcast(so);
+
+            nso.onNext(envelope);
+
+            try {
+                if (!finishLatch.await(ordererWaitTimeMilliSecs, TimeUnit.MILLISECONDS)) {
+                    TransactionException ste = new TransactionException(format("Group %s, send transactions failed on orderer %s. Reason:  timeout after %d ms.",
+                            channelName, name, ordererWaitTimeMilliSecs));
+                    logger.error("sendTransaction error " + ste.getMessage(), ste);
+                    throw ste;
+                }
+                if (throwable[0] != null) {
+                    //get full stack trace
+                    TransactionException ste = new TransactionException(format("Group %s, send transaction failed on orderer %s. Reason: %s",
+                            channelName, name, throwable[0].getMessage()), throwable[0]);
+                    logger.error("sendTransaction error " + ste.getMessage(), ste);
+                    throw ste;
+                }
+                logger.debug("Done waiting for reply! Got:" + ret[0]);
+
+            } catch (InterruptedException e) {
+                logger.error(e);
+
+            }
+
+            return ret[0];
+        } catch (Throwable t) {
+            managedGroup = null;
+            throw t;
+
+        } finally {
+
+            if (null != nso) {
+
+                try {
+                    nso.onCompleted();
+                } catch (Exception e) {  //Best effort only report on debug
+                    logger.debug(format("Exception completing sendTransaction with channel %s,  name %s, url %s %s",
+                            channelName, name, url, e.getMessage()), e);
+                }
+            }
+
+        }
+    }
+
+    DeliverResponse[] sendDeliver(Common.Envelope envelope) throws TransactionException {
+
+        if (shutdown) {
+            throw new TransactionException("Consenter client is shutdown");
+        }
+
+        StreamObserver<Common.Envelope> nso = null;
+
+        ManagedChannel lmanagedGroup = managedGroup;
+
+        if (lmanagedGroup == null || lmanagedGroup.isTerminated() || lmanagedGroup.isShutdown()) {
+
+            lmanagedGroup = channelBuilder.build();
+            managedGroup = lmanagedGroup;
+
+        }
+
+        try {
+
+            AtomicBroadcastGrpc.AtomicBroadcastStub broadcast = AtomicBroadcastGrpc.newStub(lmanagedGroup);
+
+            // final DeliverResponse[] ret = new DeliverResponse[1];
+            final List<DeliverResponse> retList = new ArrayList<>();
+            final List<Throwable> throwableList = new ArrayList<>();
+            final CountDownLatch finishLatch = new CountDownLatch(1);
+
+            StreamObserver<DeliverResponse> so = new StreamObserver<DeliverResponse>() {
+                boolean done = false;
+
+                @Override
+                public void onNext(DeliverResponse resp) {
+
+                    // logger.info("Got Broadcast response: " + resp);
+                    logger.debug("resp status value: " + resp.getStatusValue() + ", resp: " + resp.getStatus() + ", type case: " + resp.getTypeCase());
+
+                    if (done) {
+                        return;
+                    }
+
+                    if (resp.getTypeCase() == STATUS) {
+                        done = true;
+                        retList.add(0, resp);
+
+                        finishLatch.countDown();
+
+                    } else {
+                        retList.add(resp);
+                    }
+
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    if (!shutdown) {
+                        logger.error(format("Received error on channel %s, orderer %s, url %s, %s",
+                                channelName, name, url, t.getMessage()), t);
+                    }
+                    throwableList.add(t);
+                    finishLatch.countDown();
+                }
+
+                @Override
+                public void onCompleted() {
+                    logger.trace("onCompleted");
+                    finishLatch.countDown();
+                }
+            };
+
+            nso = broadcast.deliver(so);
+            nso.onNext(envelope);
+            //nso.onCompleted();
+
+            try {
+                if (!finishLatch.await(ordererWaitTimeMilliSecs, TimeUnit.MILLISECONDS)) {
+                    TransactionException ex = new TransactionException(format(
+                            "Group %s sendDeliver time exceeded for orderer %s, timed out at %d ms.", channelName, name, ordererWaitTimeMilliSecs));
+                    logger.error(ex.getMessage(), ex);
+                    throw ex;
+                }
+                logger.trace("Done waiting for reply!");
+
+            } catch (InterruptedException e) {
+                logger.error(e);
+            }
+
+            if (!throwableList.isEmpty()) {
+                Throwable throwable = throwableList.get(0);
+                TransactionException e = new TransactionException(format(
+                        "Group %s sendDeliver failed on orderer %s. Reason: %s", channelName, name, throwable.getMessage()), throwable);
+                logger.error(e.getMessage(), e);
+                throw e;
+            }
+
+            return retList.toArray(new DeliverResponse[retList.size()]);
+        } catch (Throwable t) {
+            managedGroup = null;
+            throw t;
+
+        } finally {
+            if (null != nso) {
+
+                try {
+                    nso.onCompleted();
+                } catch (Exception e) {  //Best effort only report on debug
+                    logger.debug(format("Exception completing sendDeliver with channel %s,  name %s, url %s %s",
+                            channelName, name, url, e.getMessage()), e);
+                }
+
+            }
+        }
+    }
+
+    boolean isGroupActive() {
+        ManagedChannel lchannel = managedGroup;
+        return lchannel != null && !lchannel.isShutdown() && !lchannel.isTerminated() && ConnectivityState.READY.equals(lchannel.getState(true));
+    }
+}

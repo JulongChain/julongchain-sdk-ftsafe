@@ -38,7 +38,7 @@ public class InstallProposalBuilderTest {
     public final TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Test
-    public void testBuildNoChaincode() throws Exception {
+    public void testBuildNoSmartContract() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Missing chaincodeSource or chaincodeInputStream");
@@ -51,30 +51,30 @@ public class InstallProposalBuilderTest {
 
     // Tests that both chaincodeSource and chaincodeInputStream are not specified together
     @Test
-    public void testBuildBothChaincodeSources() throws Exception {
+    public void testBuildBothSmartContractSources() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Both chaincodeSource and chaincodeInputStream");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeSource(new File("some/dir"));
-        builder.setChaincodeInputStream(new ByteArrayInputStream("test string".getBytes()));
+        builder.setSmartContractSource(new File("some/dir"));
+        builder.setSmartContractInputStream(new ByteArrayInputStream("test string".getBytes()));
 
         builder.build();
     }
 
     // Tests that a chaincode path has been specified for GO_LANG code using a File
     @Test
-    public void testBuildChaincodePathGolangFile() throws Exception {
+    public void testBuildSmartContractPathGolangFile() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Missing chaincodePath");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.GO_LANG);
-        builder.setChaincodeSource(new File("some/dir"));
+        builder.setSmartContractLanguage(TransactionRequest.Type.GO_LANG);
+        builder.setSmartContractSource(new File("some/dir"));
         builder.chaincodePath(null);
 
         builder.build();
@@ -82,15 +82,15 @@ public class InstallProposalBuilderTest {
 
     // Tests that a chaincode path has been specified for GO_LANG code using an InputStream
     @Test
-    public void testBuildChaincodePathGolangStream() throws Exception {
+    public void testBuildSmartContractPathGolangStream() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("Missing chaincodePath");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.GO_LANG);
-        builder.setChaincodeInputStream(new ByteArrayInputStream("test string".getBytes()));
+        builder.setSmartContractLanguage(TransactionRequest.Type.GO_LANG);
+        builder.setSmartContractInputStream(new ByteArrayInputStream("test string".getBytes()));
         builder.chaincodePath(null);
 
         builder.build();
@@ -98,15 +98,15 @@ public class InstallProposalBuilderTest {
 
     // Tests that a chaincode path is null for JAVA code using a File
     @Test
-    public void testBuildChaincodePathJavaFile() throws Exception {
+    public void testBuildSmartContractPathJavaFile() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("chaincodePath must be null for Java chaincode");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.JAVA);
-        builder.setChaincodeSource(new File("some/dir"));
+        builder.setSmartContractLanguage(TransactionRequest.Type.JAVA);
+        builder.setSmartContractSource(new File("some/dir"));
         builder.chaincodePath("");
 
         builder.build();
@@ -114,15 +114,15 @@ public class InstallProposalBuilderTest {
 
     // Tests that a chaincode path is null for JAVA code using a File
     @Test
-    public void testBuildChaincodePathJavaStream() throws Exception {
+    public void testBuildSmartContractPathJavaStream() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("chaincodePath must be null for Java chaincode");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.JAVA);
-        builder.setChaincodeInputStream(new ByteArrayInputStream("test string".getBytes()));
+        builder.setSmartContractLanguage(TransactionRequest.Type.JAVA);
+        builder.setSmartContractInputStream(new ByteArrayInputStream("test string".getBytes()));
         builder.chaincodePath("");
 
         builder.build();
@@ -137,9 +137,9 @@ public class InstallProposalBuilderTest {
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.JAVA);
+        builder.setSmartContractLanguage(TransactionRequest.Type.JAVA);
         builder.chaincodePath(null);
-        builder.setChaincodeSource(new File("some/dir"));
+        builder.setSmartContractSource(new File("some/dir"));
 
         builder.build();
     }
@@ -162,7 +162,7 @@ public class InstallProposalBuilderTest {
         dummyFile.createNewFile();
 
         builder.chaincodePath(dummyFileName);
-        builder.setChaincodeSource(tempFolder.getRoot().getAbsoluteFile());
+        builder.setSmartContractSource(tempFolder.getRoot().getAbsoluteFile());
 
         builder.build();
     }
@@ -184,23 +184,23 @@ public class InstallProposalBuilderTest {
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.JAVA);
-        builder.setChaincodeInputStream(new MockInputStream());
+        builder.setSmartContractLanguage(TransactionRequest.Type.JAVA);
+        builder.setSmartContractInputStream(new MockInputStream());
 
         builder.build();
     }
 
     // Tests that no chaincode path is specified for Node code using a File
     @Test
-    public void testBuildChaincodePathNodeFile() throws Exception {
+    public void testBuildSmartContractPathNodeFile() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("chaincodePath must be null for Node chaincode");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.NODE);
-        builder.setChaincodeSource(new File("some/dir"));
+        builder.setSmartContractLanguage(TransactionRequest.Type.NODE);
+        builder.setSmartContractSource(new File("some/dir"));
         builder.chaincodePath("src");
 
         builder.build();
@@ -208,15 +208,15 @@ public class InstallProposalBuilderTest {
 
     // Tests that no chaincode path is specified for Node code using input stream
     @Test
-    public void testBuildChaincodePathNodeStream() throws Exception {
+    public void testBuildSmartContractPathNodeStream() throws Exception {
 
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("chaincodePath must be null for Node chaincode");
 
         InstallProposalBuilder builder = createTestBuilder();
 
-        builder.setChaincodeLanguage(TransactionRequest.Type.NODE);
-        builder.setChaincodeInputStream(new ByteArrayInputStream("test string".getBytes()));
+        builder.setSmartContractLanguage(TransactionRequest.Type.NODE);
+        builder.setSmartContractInputStream(new ByteArrayInputStream("test string".getBytes()));
         builder.chaincodePath("src");
 
         builder.build();
@@ -232,7 +232,7 @@ public class InstallProposalBuilderTest {
 
         builder.chaincodeName("mycc");
         builder.chaincodeVersion("1.0");
-        builder.setChaincodeLanguage(TransactionRequest.Type.GO_LANG);
+        builder.setSmartContractLanguage(TransactionRequest.Type.GO_LANG);
 
         return builder;
     }

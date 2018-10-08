@@ -43,8 +43,8 @@ import javax.json.JsonValue.ValueType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.Channel.PeerOptions;
-import org.bcia.javachain.sdk.Peer.PeerRole;
+import org.bcia.javachain.sdk.Group.NodeOptions;
+import org.bcia.javachain.sdk.Node.NodeRole;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.NetworkConfigurationException;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -59,8 +59,12 @@ import static java.lang.String.format;
  * Holds details of network and channel configurations typically loaded from an external config file.
  * <br>
  * Also contains convenience methods for utilizing the config details,
- * including the main {@link HFClient#getChannel(String)} method
- *
+ * including the main {@link HFClient#getGroup(String)} method
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 
 public class NetworkConfig {
@@ -69,9 +73,9 @@ public class NetworkConfig {
 
     private OrgInfo clientOrganization;
 
-    private Map<String, Node> orderers;
-    private Map<String, Node> peers;
-    private Map<String, Node> eventHubs;
+    private Map<String, ConfigNode> orderers;
+    private Map<String, ConfigNode> peers;
+    private Map<String, ConfigNode> eventHubs;
 
     // Organizations, keyed on org name (and not on mspid!)
     private Map<String, OrgInfo> organizations;
@@ -99,8 +103,8 @@ public class NetworkConfig {
         }
 
         // Preload and create all peers, orderers, etc
-        createAllPeers();
-        createAllOrderers();
+        createAllNodes();
+        createAllConsenters();
 
         // Note: CAs must be loaded before orgs!
         createAllCertificateAuthorities();
@@ -276,9 +280,9 @@ public class NetworkConfig {
      * @return The admin user details
      * @throws NetworkConfigurationException
      */
-    public UserInfo getPeerAdmin() throws NetworkConfigurationException {
+    public UserInfo getNodeAdmin() throws NetworkConfigurationException {
         // Get the details from the client organization
-        return getPeerAdmin(clientOrganization.getName());
+        return getNodeAdmin(clientOrganization.getName());
     }
 
     /**
@@ -288,19 +292,19 @@ public class NetworkConfig {
      * @return The admin user details
      * @throws NetworkConfigurationException
      */
-    public UserInfo getPeerAdmin(String orgName) throws NetworkConfigurationException {
+    public UserInfo getNodeAdmin(String orgName) throws NetworkConfigurationException {
 
         OrgInfo org = getOrganizationInfo(orgName);
         if (org == null) {
             throw new NetworkConfigurationException(format("Organization %s is not defined", orgName));
         }
 
-        return org.getPeerAdmin();
+        return org.getNodeAdmin();
     }
 
 
 
-    //public Set<CertificateAuthority> getPeerCertificateAuthorites(String peerName) {
+    //public Set<CertificateAuthority> getNodeCertificateAuthorites(String peerName) {
     //    return null;
     //}
 
@@ -310,28 +314,28 @@ public class NetworkConfig {
      *
      * @param client The associated client
      * @param channelName The name of the channel
-     * @return A configured Channel instance
+     * @return A configured Group instance
      */
-    Channel loadChannel(HFClient client, String channelName) throws NetworkConfigurationException {
+    Group loadGroup(HFClient client, String channelName) throws NetworkConfigurationException {
 
         if (logger.isTraceEnabled()) {
-            logger.trace(format("NetworkConfig.loadChannel: %s", channelName));
+            logger.trace(format("NetworkConfig.loadGroup: %s", channelName));
         }
 
-        Channel channel = null;
+        Group channel = null;
 
         JsonObject channels = getJsonObject(jsonConfig, "channels");
 
         if (channels != null) {
-            JsonObject jsonChannel = getJsonObject(channels, channelName);
-            if (jsonChannel != null) {
-                channel = client.getChannel(channelName);
+            JsonObject jsonGroup = getJsonObject(channels, channelName);
+            if (jsonGroup != null) {
+                channel = client.getGroup(channelName);
                 if (channel != null) {
                     // The channel already exists in the client!
-                    // Note that by rights this should never happen as HFClient.loadChannelFromConfig should have already checked for this!
-                    throw new NetworkConfigurationException(format("Channel %s is already configured in the client!", channelName));
+                    // Note that by rights this should never happen as HFClient.loadGroupFromConfig should have already checked for this!
+                    throw new NetworkConfigurationException(format("Group %s is already configured in the client!", channelName));
                 }
-                channel = reconstructChannel(client, channelName, jsonChannel);
+                channel = reconstructGroup(client, channelName, jsonGroup);
             }
 
         }
@@ -349,7 +353,7 @@ public class NetworkConfig {
      * @param role The desired role (or null for any role)
      * @return A matching peer (or null if a suitable peer was not found)
      *
-    Peer findPeerWithRole(String orgName, PeerRole role) {
+    Node findNodeWithRole(String orgName, NodeRole role) {
 
         JsonObject org = orgName == null ? clientOrganization : getOrganization(orgName);
         if (org == null) {
@@ -363,11 +367,11 @@ public class NetworkConfig {
             for (JsonValue val: peerNames) {
                 String peerName = getJsonValueAsString(val);
                 if (peerName != null) {
-                    Node peer = peers.get(peerName);
+                    ConfigNode peer = peers.get(peerName);
                     if (peer != null) {
                         // TODO: Currently we are ignoring the role - because roles are channel-based and hence we need to know the channel before we can get the roles!
                         try {
-                            return Peer.createNewInstance(peer.getName(), peer.getUrl(), peer.getProperties());
+                            return Node.createNewInstance(peer.getName(), peer.getUrl(), peer.getProperties());
                         } catch (InvalidArgumentException e) {
                             throw new RuntimeException(e);
                         }
@@ -380,8 +384,8 @@ public class NetworkConfig {
     }
 */
 
-    // Creates Node instances representing all the orderers defined in the config file
-    private void createAllOrderers() throws NetworkConfigurationException {
+    // Creates ConfigNode instances representing all the orderers defined in the config file
+    private void createAllConsenters() throws NetworkConfigurationException {
 
         // Sanity check
         if (orderers != null) {
@@ -391,27 +395,27 @@ public class NetworkConfig {
         orderers = new HashMap<>();
 
         // orderers is a JSON object containing a nested object for each orderers
-        JsonObject jsonOrderers = getJsonObject(jsonConfig, "orderers");
+        JsonObject jsonConsenters = getJsonObject(jsonConfig, "orderers");
 
-        if (jsonOrderers != null) {
+        if (jsonConsenters != null) {
 
-            for (Entry<String, JsonValue> entry : jsonOrderers.entrySet()) {
+            for (Entry<String, JsonValue> entry : jsonConsenters.entrySet()) {
                 String ordererName = entry.getKey();
 
-                JsonObject jsonOrderer = getJsonValueAsObject(entry.getValue());
-                if (jsonOrderer == null) {
+                JsonObject jsonConsenter = getJsonValueAsObject(entry.getValue());
+                if (jsonConsenter == null) {
                     throw new NetworkConfigurationException(format("Error loading config. Invalid orderer entry: %s", ordererName));
                 }
 
-                Node orderer = createNode(ordererName, jsonOrderer, "url");
+                ConfigNode orderer = createNode(ordererName, jsonConsenter, "url");
                 orderers.put(ordererName, orderer);
             }
         }
 
     }
 
-    // Creates Node instances representing all the peers (and associated event hubs) defined in the config file
-    private void createAllPeers() throws NetworkConfigurationException {
+    // Creates ConfigNode instances representing all the peers (and associated event hubs) defined in the config file
+    private void createAllNodes() throws NetworkConfigurationException {
 
         // Sanity checks
         if (peers != null) {
@@ -426,24 +430,24 @@ public class NetworkConfig {
         eventHubs = new HashMap<>();
 
         // peers is a JSON object containing a nested object for each peer
-        JsonObject jsonPeers = getJsonObject(jsonConfig, "peers");
+        JsonObject jsonNodes = getJsonObject(jsonConfig, "peers");
 
-        //out("Peers: " + (jsonPeers == null ? "null" : jsonPeers.toString()));
-        if (jsonPeers != null) {
+        //out("Nodes: " + (jsonNodes == null ? "null" : jsonNodes.toString()));
+        if (jsonNodes != null) {
 
-            for (Entry<String, JsonValue> entry : jsonPeers.entrySet()) {
+            for (Entry<String, JsonValue> entry : jsonNodes.entrySet()) {
                 String peerName = entry.getKey();
 
-                JsonObject jsonPeer = getJsonValueAsObject(entry.getValue());
-                if (jsonPeer == null) {
+                JsonObject jsonNode = getJsonValueAsObject(entry.getValue());
+                if (jsonNode == null) {
                     throw new NetworkConfigurationException(format("Error loading config. Invalid peer entry: %s", peerName));
                 }
 
-                Node peer = createNode(peerName, jsonPeer, "url");
+                ConfigNode peer = createNode(peerName, jsonNode, "url");
                 peers.put(peerName, peer);
 
                 // Also create an event hub with the same name as the peer
-                Node eventHub = createNode(peerName, jsonPeer, "eventUrl");
+                ConfigNode eventHub = createNode(peerName, jsonNode, "eventUrl");
                 eventHubs.put(peerName, eventHub);
             }
         }
@@ -512,70 +516,70 @@ public class NetworkConfig {
 
 
     // Reconstructs an existing channel
-    private Channel reconstructChannel(HFClient client, String channelName, JsonObject jsonChannel) throws NetworkConfigurationException {
+    private Group reconstructGroup(HFClient client, String channelName, JsonObject jsonGroup) throws NetworkConfigurationException {
 
-        Channel channel = null;
+        Group channel = null;
 
         try {
-            channel = client.newChannel(channelName);
+            channel = client.newGroup(channelName);
 
             // orderers is an array of orderer name strings
-            JsonArray ordererNames = getJsonValueAsArray(jsonChannel.get("orderers"));
-            boolean foundOrderer = false;
+            JsonArray ordererNames = getJsonValueAsArray(jsonGroup.get("orderers"));
+            boolean foundConsenter = false;
 
-            //out("Orderer names: " + (ordererNames == null ? "null" : ordererNames.toString()));
+            //out("Consenter names: " + (ordererNames == null ? "null" : ordererNames.toString()));
             if (ordererNames != null) {
                 for (JsonValue jsonVal: ordererNames) {
 
                     String ordererName = getJsonValueAsString(jsonVal);
-                    Orderer orderer = getOrderer(client, ordererName);
+                    Consenter orderer = getConsenter(client, ordererName);
                     if (orderer == null) {
-                        throw new NetworkConfigurationException(format("Error constructing channel %s. Orderer %s not defined in configuration", channelName, ordererName));
+                        throw new NetworkConfigurationException(format("Error constructing channel %s. Consenter %s not defined in configuration", channelName, ordererName));
                     }
-                    channel.addOrderer(orderer);
-                    foundOrderer = true;
+                    channel.addConsenter(orderer);
+                    foundConsenter = true;
                 }
             }
 
-            if (!foundOrderer) {
+            if (!foundConsenter) {
                 // orderers is a required field
                 throw new NetworkConfigurationException(format("Error constructing channel %s. At least one orderer must be specified", channelName));
             }
 
             // peers is an object containing a nested object for each peer
-            JsonObject jsonPeers = getJsonObject(jsonChannel, "peers");
-            boolean foundPeer = false;
+            JsonObject jsonNodes = getJsonObject(jsonGroup, "peers");
+            boolean foundNode = false;
 
-            //out("Peers: " + (peers == null ? "null" : peers.toString()));
-            if (jsonPeers != null) {
+            //out("Nodes: " + (peers == null ? "null" : peers.toString()));
+            if (jsonNodes != null) {
 
-                for (Entry<String, JsonValue> entry : jsonPeers.entrySet()) {
+                for (Entry<String, JsonValue> entry : jsonNodes.entrySet()) {
                     String peerName = entry.getKey();
 
                     if (logger.isTraceEnabled()) {
-                        logger.trace(format("NetworkConfig.reconstructChannel: Processing peer %s", peerName));
+                        logger.trace(format("NetworkConfig.reconstructGroup: Processing peer %s", peerName));
                     }
 
-                    JsonObject jsonPeer = getJsonValueAsObject(entry.getValue());
-                    if (jsonPeer == null) {
+                    JsonObject jsonNode = getJsonValueAsObject(entry.getValue());
+                    if (jsonNode == null) {
                         throw new NetworkConfigurationException(format("Error constructing channel %s. Invalid peer entry: %s", channelName, peerName));
                     }
 
-                    Peer peer = getPeer(client, peerName);
+                    Node peer = getNode(client, peerName);
                     if (peer == null) {
-                        throw new NetworkConfigurationException(format("Error constructing channel %s. Peer %s not defined in configuration", channelName, peerName));
+                        throw new NetworkConfigurationException(format("Error constructing channel %s. Node %s not defined in configuration", channelName, peerName));
                     }
 
                     // Set the various roles
-                    PeerOptions peerOptions = PeerOptions.createPeerOptions();
-                    setPeerRole(channelName, peerOptions, jsonPeer, PeerRole.ENDORSING_PEER);
-                    setPeerRole(channelName, peerOptions, jsonPeer, PeerRole.CHAINCODE_QUERY);
-                    setPeerRole(channelName, peerOptions, jsonPeer, PeerRole.LEDGER_QUERY);
-                    setPeerRole(channelName, peerOptions, jsonPeer, PeerRole.EVENT_SOURCE);
+                    NodeOptions peerOptions = NodeOptions.createNodeOptions();
+                    setNodeRole(channelName, peerOptions, jsonNode, NodeRole.ENDORSING_PEER);
+                    setNodeRole(channelName, peerOptions, jsonNode, NodeRole.CHAINCODE_QUERY);
+                    setNodeRole(channelName, peerOptions, jsonNode, NodeRole.LEDGER_QUERY);
+                    setNodeRole(channelName, peerOptions, jsonNode, NodeRole.EVENT_SOURCE);
 
-                    channel.addPeer(peer, peerOptions);
+                    channel.addNode(peer, peerOptions);
 
-                    foundPeer = true;
+                    foundNode = true;
 
                     // Add the event hub associated with this peer
                     EventHub eventHub = getEventHub(client, peerName);
@@ -589,7 +593,7 @@ public class NetworkConfig {
 
             }
 
-            if (!foundPeer) {
+            if (!foundNode) {
                 // peers is a required field
                 throw new NetworkConfigurationException(format("Error constructing channel %s. At least one peer must be specified", channelName));
             }
@@ -602,9 +606,9 @@ public class NetworkConfig {
         return channel;
     }
 
-    private static void setPeerRole(String channelName, PeerOptions peerOptions, JsonObject jsonPeer, PeerRole role) throws NetworkConfigurationException {
+    private static void setNodeRole(String channelName, NodeOptions peerOptions, JsonObject jsonNode, NodeRole role) throws NetworkConfigurationException {
         String propName = role.getPropertyName();
-        JsonValue val = jsonPeer.get(propName);
+        JsonValue val = jsonNode.get(propName);
         if (val != null) {
             Boolean isSet = getJsonValueAsBoolean(val);
             if (isSet == null) {
@@ -612,30 +616,30 @@ public class NetworkConfig {
                 throw new NetworkConfigurationException(format("Error constructing channel %s. Role %s has invalid boolean value: %s", channelName, propName, val.toString()));
             }
             if (isSet) {
-                peerOptions.addPeerRole(role);
+                peerOptions.addNodeRole(role);
             }
         }
     }
 
-    // Returns a new Orderer instance for the specified orderer name
-    private Orderer getOrderer(HFClient client, String ordererName) throws InvalidArgumentException {
-        Orderer orderer = null;
-        Node o = orderers.get(ordererName);
+    // Returns a new Consenter instance for the specified orderer name
+    private Consenter getConsenter(HFClient client, String ordererName) throws InvalidArgumentException {
+        Consenter orderer = null;
+        ConfigNode o = orderers.get(ordererName);
         if (o != null) {
-            orderer = client.newOrderer(o.getName(), o.getUrl(), o.getProperties());
+            orderer = client.newConsenter(o.getName(), o.getUrl(), o.getProperties());
         }
         return orderer;
     }
 
-    // Creates a new Node instance from a JSON object
-    private Node createNode(String nodeName, JsonObject jsonOrderer, String urlPropName) throws NetworkConfigurationException {
+    // Creates a new ConfigNode instance from a JSON object
+    private ConfigNode createNode(String nodeName, JsonObject jsonConsenter, String urlPropName) throws NetworkConfigurationException {
 
-        String url = jsonOrderer.getString(urlPropName);
+        String url = jsonConsenter.getString(urlPropName);
 
-        Properties props = extractProperties(jsonOrderer, "grpcOptions");
+        Properties props = extractProperties(jsonConsenter, "grpcOptions");
 
         // Extract the pem details
-        JsonObject jsonTlsCaCerts = getJsonObject(jsonOrderer, "tlsCACerts");
+        JsonObject jsonTlsCaCerts = getJsonObject(jsonConsenter, "tlsCACerts");
         if (jsonTlsCaCerts != null) {
             String pemFilename = getJsonValueAsString(jsonTlsCaCerts.get("path"));
             String pemBytes = getJsonValueAsString(jsonTlsCaCerts.get("pem"));
@@ -659,7 +663,7 @@ public class NetworkConfig {
             }
         }
 
-        return new Node(nodeName, url, props);
+        return new ConfigNode(nodeName, url, props);
     }
 
 
@@ -675,13 +679,13 @@ public class NetworkConfig {
 
         OrgInfo org = new OrgInfo(orgName, mspId);
 
-        // Peers
-        JsonArray jsonPeers = getJsonValueAsArray(jsonOrg.get("peers"));
-        if (jsonPeers != null) {
-            for (JsonValue peer: jsonPeers) {
+        // Nodes
+        JsonArray jsonNodes = getJsonValueAsArray(jsonOrg.get("peers"));
+        if (jsonNodes != null) {
+            for (JsonValue peer: jsonNodes) {
                 String peerName = getJsonValueAsString(peer);
                 if (peerName != null) {
-                    org.addPeerName(peerName);
+                    org.addNodeName(peerName);
                 }
             }
         }
@@ -825,12 +829,12 @@ public class NetworkConfig {
     }
 
 
-    // Returns a new Peer instance for the specified peer name
-    private Peer getPeer(HFClient client, String peerName) throws InvalidArgumentException {
-        Peer peer = null;
-        Node p = peers.get(peerName);
+    // Returns a new Node instance for the specified peer name
+    private Node getNode(HFClient client, String peerName) throws InvalidArgumentException {
+        Node peer = null;
+        ConfigNode p = peers.get(peerName);
         if (p != null) {
-            peer = client.newPeer(p.getName(), p.getUrl(), p.getProperties());
+            peer = client.newNode(p.getName(), p.getUrl(), p.getProperties());
         }
         return peer;
     }
@@ -839,7 +843,7 @@ public class NetworkConfig {
     // Returns a new EventHub instance for the specified name
     private EventHub getEventHub(HFClient client, String name) throws InvalidArgumentException {
         EventHub ehub = null;
-        Node e = eventHubs.get(name);
+        ConfigNode e = eventHubs.get(name);
         if (e != null) {
             ehub = client.newEventHub(e.getName(), e.getUrl(), e.getProperties());
         }
@@ -912,14 +916,14 @@ public class NetworkConfig {
     }
 
 
-    // Holds a network "node" (eg. Peer, Orderer, EventHub)
-    private class Node {
+    // Holds a network "node" (eg. Node, Consenter, EventHub)
+    private class ConfigNode {
 
         private final String name;
         private final String url;
         private final Properties properties;
 
-        Node(String name, String url, Properties properties) {
+        ConfigNode(String name, String url, Properties properties) {
             this.url = url;
             this.name = name;
             this.properties = properties;
@@ -996,7 +1000,7 @@ public class NetworkConfig {
             this.mspId = mspId;
         }
 
-        private void addPeerName(String peerName) {
+        private void addNodeName(String peerName) {
             peerNames.add(peerName);
         }
 
@@ -1029,7 +1033,7 @@ public class NetworkConfig {
             return signedCert;
         }
 
-        public List<String> getPeerNames() {
+        public List<String> getNodeNames() {
             return peerNames;
         }
 
@@ -1043,7 +1047,7 @@ public class NetworkConfig {
          * @return The admin user details
          * @throws NetworkConfigurationException
          */
-        public UserInfo getPeerAdmin() throws NetworkConfigurationException {
+        public UserInfo getNodeAdmin() throws NetworkConfigurationException {
 
             String enrollId = null;
             String enrollSecret = null;

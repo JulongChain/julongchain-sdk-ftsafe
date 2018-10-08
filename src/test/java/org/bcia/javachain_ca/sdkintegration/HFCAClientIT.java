@@ -12,50 +12,9 @@
 
 package org.bcia.javachain_ca.sdkintegration;
 
-import org.bcia.javachain.sdk.Enrollment;
-import org.bcia.javachain.sdk.security.CryptoSuite;
-import org.bcia.javachain.sdk.testutils.TestConfig;
-import org.bcia.javachain.sdkintegration.SampleStore;
-import org.bcia.javachain.sdkintegration.SampleUser;
-import org.bcia.javachain_ca.sdk.*;
-import org.bcia.javachain_ca.sdk.HFCAAffiliation.HFCAAffiliationResp;
-import org.bcia.javachain_ca.sdk.exception.EnrollmentException;
-import org.bcia.javachain_ca.sdk.exception.IdentityException;
-import org.bcia.javachain_ca.sdk.exception.InvalidArgumentException;
-import org.bcia.javachain_ca.sdk.exception.RevocationException;
-import org.bcia.javachain_ca.sdk.helper.Config;
-import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.TBSCertList;
-import org.bouncycastle.cert.X509CRLHolder;
-import org.bouncycastle.openssl.PEMParser;
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-
-import javax.xml.bind.DatatypeConverter;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.StringReader;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.CertificateParsingException;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bcia.javachain.sdk.testutils.TestUtils.resetConfig;
-import static org.bcia.javachain.sdk.testutils.TestUtils.setField;
-import static org.bcia.javachain_ca.sdk.HFCAClient.DEFAULT_PROFILE_NAME;
-import static org.junit.Assert.*;
-
 public class HFCAClientIT {
 
-    @Rule
+    /*@Rule
     public ExpectedException thrown = ExpectedException.none();
 
     private static final String TEST_ADMIN_NAME = "admin";
@@ -152,11 +111,11 @@ public class HFCAClientIT {
 
     }
 
-    /**
+    *//**
      * Test that we get default attributes.
      *
      * @throws Exception
-     */
+     *//*
     @Test
     public void testRegisterAttributesDefault() throws Exception {
 
@@ -193,11 +152,11 @@ public class HFCAClientIT {
 
     }
 
-    /**
+    *//**
      * Test that we get no attributes.
      *
      * @throws Exception
-     */
+     *//*
     @Test
     public void testRegisterAttributesNONE() throws Exception {
         SampleUser user = new SampleUser("mrAttributesNone", TEST_ADMIN_ORG, sampleStore);
@@ -1338,6 +1297,6 @@ public class HFCAClientIT {
         System.out.println(format(format, args));
         System.err.flush();
         System.out.flush();
-    }
+    }*/
 
 }

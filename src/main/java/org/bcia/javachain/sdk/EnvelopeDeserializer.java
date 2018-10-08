@@ -22,11 +22,17 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common.ChannelHeader;
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.common.Common.Payload;
-import org.bcia.javachain.protos.peer.FabricTransaction;
+import org.bcia.julongchain.protos.common.Common.GroupHeader;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.common.Common.Payload;
+import org.bcia.julongchain.protos.node.TransactionPackage;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class EnvelopeDeserializer {
     protected final ByteString byteString;
     private final byte validcode;
@@ -91,7 +97,7 @@ class EnvelopeDeserializer {
     int getType() {
         if (type == null) {
 
-            type = getPayload().getHeader().getChannelHeader().getType();
+            type = getPayload().getHeader().getGroupHeader().getType();
 
         }
         return type;
@@ -102,7 +108,7 @@ class EnvelopeDeserializer {
      */
     public boolean isValid() {
 
-        return validcode == FabricTransaction.TxValidationCode.VALID_VALUE;
+        return validcode == TransactionPackage.TxValidationCode.VALID_VALUE;
     }
 
     /**
@@ -117,8 +123,8 @@ class EnvelopeDeserializer {
 
         EnvelopeDeserializer ret;
 
-        final int type = ChannelHeader.parseFrom(Payload.parseFrom(Envelope.parseFrom(byteString).getPayload())
-                .getHeader().getChannelHeader()).getType();
+        final int type = GroupHeader.parseFrom(Payload.parseFrom(Envelope.parseFrom(byteString).getPayload())
+                .getHeader().getGroupHeader()).getType();
 
        /*
 

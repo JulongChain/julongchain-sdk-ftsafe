@@ -22,31 +22,36 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.exception.PeerException;
-import org.bcia.javachain.protos.peer.EndorserGrpc;
-import org.bcia.javachain.protos.peer.FabricProposal;
-import org.bcia.javachain.protos.peer.FabricProposalResponse;
+import org.bcia.javachain.sdk.exception.NodeException;
+import org.bcia.julongchain.protos.node.EndorserGrpc;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalResponsePackage;
 
 /**
  * Sample client code that makes gRPC calls to the server.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 class EndorserClient {
     private static final Log logger = LogFactory.getLog(EndorserClient.class);
 
-    private ManagedChannel managedChannel;
+    private ManagedChannel managedGroup;
     private EndorserGrpc.EndorserBlockingStub blockingStub;
     private EndorserGrpc.EndorserFutureStub futureStub;
     private boolean shutdown = false;
 
     /**
-     * Construct client for accessing Peer server using the existing channel.
+     * Construct client for accessing Node server using the existing channel.
      *
-     * @param channelBuilder The ChannelBuilder to build the endorser client
+     * @param channelBuilder The GroupBuilder to build the endorser client
      */
     EndorserClient(ManagedChannelBuilder<?> channelBuilder) {
-        managedChannel = channelBuilder.build();
-        blockingStub = EndorserGrpc.newBlockingStub(managedChannel);
-        futureStub = EndorserGrpc.newFutureStub(managedChannel);
+        managedGroup = channelBuilder.build();
+        blockingStub = EndorserGrpc.newBlockingStub(managedGroup);
+        futureStub = EndorserGrpc.newFutureStub(managedGroup);
     }
 
     synchronized void shutdown(boolean force) {
@@ -54,9 +59,9 @@ class EndorserClient {
             return;
         }
         shutdown = true;
-        ManagedChannel lchannel = managedChannel;
+        ManagedChannel lchannel = managedGroup;
         // let all referenced resource finalize
-        managedChannel = null;
+        managedGroup = null;
         blockingStub = null;
         futureStub = null;
 
@@ -79,16 +84,16 @@ class EndorserClient {
         }
     }
 
-    public ListenableFuture<FabricProposalResponse.ProposalResponse> sendProposalAsync(FabricProposal.SignedProposal proposal) throws PeerException {
+    public ListenableFuture<ProposalResponsePackage.ProposalResponse> sendProposalAsync(ProposalPackage.SignedProposal proposal) throws NodeException {
         if (shutdown) {
-            throw new PeerException("Shutdown");
+            throw new NodeException("Shutdown");
         }
         return futureStub.processProposal(proposal);
     }
 
 
-    boolean isChannelActive() {
-        ManagedChannel lchannel = managedChannel;
+    boolean isGroupActive() {
+        ManagedChannel lchannel = managedGroup;
         return lchannel != null && !lchannel.isShutdown() && !lchannel.isTerminated() && ConnectivityState.READY.equals(lchannel.getState(true));
     }
 

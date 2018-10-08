@@ -14,6 +14,7 @@
  *
  */
 
+
 package org.bcia.javachain.sdk.testutils;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -21,6 +22,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.User;
 import org.bcia.javachain.sdk.helper.Config;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -305,14 +307,15 @@ public class TestUtils {
             this.cert = cert;
         }
 
+
         @Override
-        public PrivateKey getKey() {
-            return privateKey;
+        public IKey getKey() {
+            return null;
         }
 
         @Override
-        public String getCert() {
-            return cert;
+        public byte[] getCert() {
+            return new byte[0];
         }
     }
 
@@ -363,3 +366,4 @@ public class TestUtils {
     }
 
 }
+

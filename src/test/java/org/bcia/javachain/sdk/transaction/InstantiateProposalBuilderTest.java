@@ -55,10 +55,10 @@ public class InstantiateProposalBuilderTest {
     public void testInvalidType() throws Exception {
 
         thrown.expect(InvalidArgumentException.class);
-        thrown.expectMessage("Chaincode type is required");
+        thrown.expectMessage("SmartContract type is required");
 
         InstantiateProposalBuilder builder = InstantiateProposalBuilder.newBuilder();
-        builder.chaincodeType(null);
+        builder.smartContractType(null);
 
         builder.build();
     }

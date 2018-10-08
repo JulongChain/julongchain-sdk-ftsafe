@@ -16,10 +16,15 @@ package org.bcia.javachain.sdk;
 
 /**
  * BlockListener  implemented by classes needing to receive block events.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public interface BlockListener {
     /**
-     * Receive a block event from  the Channel
+     * Receive a block event from  the Group
      *
      * @param blockEvent The block being received.
      */

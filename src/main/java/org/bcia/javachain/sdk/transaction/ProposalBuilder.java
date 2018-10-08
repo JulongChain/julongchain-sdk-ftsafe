@@ -27,32 +27,39 @@ import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.TransactionRequest;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.exception.ProposalException;
-import org.bcia.javachain.protos.common.Common;
-import org.bcia.javachain.protos.common.Common.HeaderType;
-import org.bcia.javachain.protos.peer.Chaincode;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeInput;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeInvocationSpec;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeSpec;
-import org.bcia.javachain.protos.peer.FabricProposal;
-import org.bcia.javachain.protos.peer.FabricProposal.ChaincodeHeaderExtension;
-import org.bcia.javachain.protos.peer.FabricProposal.ChaincodeProposalPayload;
+import org.bcia.julongchain.protos.common.Common;
+import org.bcia.julongchain.protos.common.Common.HeaderType;
+import org.bcia.julongchain.protos.node.SmartContractPackage;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractInput;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractInvocationSpec;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec;
+import org.bcia.julongchain.protos.node.ProposalPackage;
+import org.bcia.julongchain.protos.node.ProposalPackage.SmartContractHeaderExtension;
+import org.bcia.julongchain.protos.node.ProposalPackage.SmartContractProposalPayload;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bcia.javachain.sdk.helper.Utils.logString;
-import static org.bcia.javachain.sdk.transaction.ProtoUtils.createChannelHeader;
+import static org.bcia.javachain.sdk.transaction.ProtoUtils.createGroupHeader;
 import static org.bcia.javachain.sdk.transaction.ProtoUtils.getSignatureHeaderAsByteString;
 
+/**
+ * modified for Node,SmartContractPackage,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ * modified by wangzhe 2018-07-18 SmartContractSpec.Type.JAVA默认
+ */
 public class ProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(ProposalBuilder.class);
     private static final boolean IS_DEBUG_LEVEL = logger.isDebugEnabled();
 
-    private Chaincode.ChaincodeID chaincodeID;
+    private SmartContractPackage.SmartContractID smartContractID;
     private List<ByteString> argList;
     protected TransactionContext context;
     protected TransactionRequest request;
-    protected ChaincodeSpec.Type ccType = ChaincodeSpec.Type.GOLANG;
+    protected SmartContractSpec.Type ccType = SmartContractSpec.Type.JAVA;
     protected Map<String, byte[]> transientMap = null;
 
     // The channel that is being targeted . note blank string means no specific channel
@@ -65,8 +72,8 @@ public class ProposalBuilder {
         return new ProposalBuilder();
     }
 
-    public ProposalBuilder chaincodeID(Chaincode.ChaincodeID chaincodeID) {
-        this.chaincodeID = chaincodeID;
+    public ProposalBuilder smartContractID(SmartContractPackage.SmartContractID smartContractID) {
+        this.smartContractID = smartContractID;
         return this;
     }
 
@@ -78,7 +85,7 @@ public class ProposalBuilder {
     public ProposalBuilder context(TransactionContext context) {
         this.context = context;
         if (null == channelID) {
-            channelID = context.getChannel().getName(); //Default to context channel.
+            channelID = context.getGroup().getName(); //Default to context channel.
         }
         return this;
     }
@@ -86,20 +93,20 @@ public class ProposalBuilder {
     public ProposalBuilder request(TransactionRequest request) throws InvalidArgumentException {
         this.request = request;
 
-        chaincodeID(request.getChaincodeID().getFabricChaincodeID());
+        smartContractID(request.getSmartContractID().getSmartContractID());
 
-        switch (request.getChaincodeLanguage()) {
+        switch (request.getSmartContractLanguage()) {
             case JAVA:
-                ccType(Chaincode.ChaincodeSpec.Type.JAVA);
+                ccType(SmartContractPackage.SmartContractSpec.Type.JAVA);
                 break;
             case NODE:
-                ccType(Chaincode.ChaincodeSpec.Type.NODE);
+                ccType(SmartContractPackage.SmartContractSpec.Type.NODE);
                 break;
             case GO_LANG:
-                ccType(Chaincode.ChaincodeSpec.Type.GOLANG);
+                ccType(SmartContractPackage.SmartContractSpec.Type.GOLANG);
                 break;
             default:
-                throw new InvalidArgumentException("Requested chaincode type is not supported: " + request.getChaincodeLanguage());
+                throw new InvalidArgumentException("Requested chaincode type is not supported: " + request.getSmartContractLanguage());
         }
 
         transientMap = request.getTransientMap();
@@ -107,14 +114,14 @@ public class ProposalBuilder {
         return this;
     }
 
-    public FabricProposal.Proposal build() throws ProposalException, InvalidArgumentException {
-        if (request != null && request.noChannelID()) {
+    public ProposalPackage.Proposal build() throws ProposalException, InvalidArgumentException {
+        if (request != null && request.noGroupID()) {
             channelID = "";
         }
-        return createFabricProposal(channelID, chaincodeID);
+        return createProposalPackage(channelID, smartContractID);
     }
 
-    private FabricProposal.Proposal createFabricProposal(String channelID, Chaincode.ChaincodeID chaincodeID) {
+    private ProposalPackage.Proposal createProposalPackage(String channelID, SmartContractPackage.SmartContractID smartContractID) {
         if (null == transientMap) {
             transientMap = Collections.emptyMap();
         }
@@ -125,14 +132,14 @@ public class ProposalBuilder {
                         logString(new String(tme.getValue(), UTF_8))));
             }
         }
-        ChaincodeHeaderExtension chaincodeHeaderExtension = ChaincodeHeaderExtension.newBuilder()
-                .setChaincodeId(chaincodeID).build();
+        SmartContractHeaderExtension chaincodeHeaderExtension = SmartContractHeaderExtension.newBuilder()
+                .setSmartContractId(smartContractID).build();
 
-        Common.ChannelHeader chainHeader = createChannelHeader(HeaderType.ENDORSER_TRANSACTION,
+        Common.GroupHeader chainHeader = createGroupHeader(HeaderType.ENDORSER_TRANSACTION,
                 context.getTxID(), channelID, context.getEpoch(), context.getFabricTimestamp(), chaincodeHeaderExtension, null);
 
-        ChaincodeInvocationSpec chaincodeInvocationSpec = createChaincodeInvocationSpec(
-                chaincodeID,
+        SmartContractInvocationSpec chaincodeInvocationSpec = createSmartContractInvocationSpec(
+                smartContractID,
                 ccType);
 
         //Convert to bytestring map.
@@ -143,24 +150,24 @@ public class ProposalBuilder {
 
         }
 
-        ChaincodeProposalPayload payload = ChaincodeProposalPayload.newBuilder()
+        SmartContractProposalPayload payload = SmartContractProposalPayload.newBuilder()
                 .setInput(chaincodeInvocationSpec.toByteString())
                 .putAllTransientMap(bsm)
                 .build();
 
         Common.Header header = Common.Header.newBuilder()
                 .setSignatureHeader(getSignatureHeaderAsByteString(context))
-                .setChannelHeader(chainHeader.toByteString())
+                .setGroupHeader(chainHeader.toByteString())
                 .build();
 
-        return FabricProposal.Proposal.newBuilder()
+        return ProposalPackage.Proposal.newBuilder()
                 .setHeader(header.toByteString())
                 .setPayload(payload.toByteString())
                 .build();
 
     }
 
-    private ChaincodeInvocationSpec createChaincodeInvocationSpec(Chaincode.ChaincodeID chaincodeID, ChaincodeSpec.Type langType) {
+    private SmartContractInvocationSpec createSmartContractInvocationSpec(SmartContractPackage.SmartContractID smartContractID, SmartContractSpec.Type langType) {
 
         List<ByteString> allArgs = new ArrayList<>();
 
@@ -193,8 +200,8 @@ public class ProposalBuilder {
 
             StringBuilder logout = new StringBuilder(1000);
 
-            logout.append(format("ChaincodeInvocationSpec type: %s, chaincode name: %s, chaincode path: %s, chaincode version: %s",
-                    langType.name(), chaincodeID.getName(), chaincodeID.getPath(), chaincodeID.getVersion()));
+            logout.append(format("SmartContractInvocationSpec type: %s, chaincode name: %s, chaincode path: %s, chaincode version: %s",
+                    langType.name(), smartContractID.getName(), smartContractID.getPath(), smartContractID.getVersion()));
 
             String sep = "";
             logout.append(" args(");
@@ -210,20 +217,20 @@ public class ProposalBuilder {
 
         }
 
-        ChaincodeInput chaincodeInput = ChaincodeInput.newBuilder().addAllArgs(allArgs).build();
+        SmartContractInput chaincodeInput = SmartContractInput.newBuilder().addAllArgs(allArgs).build();
 
-        ChaincodeSpec chaincodeSpec = ChaincodeSpec.newBuilder()
+        SmartContractSpec chaincodeSpec = SmartContractSpec.newBuilder()
                 .setType(langType)
-                .setChaincodeId(chaincodeID)
+                .setSmartContractId(smartContractID)
                 .setInput(chaincodeInput)
                 .build();
 
-        return ChaincodeInvocationSpec.newBuilder()
-                .setChaincodeSpec(chaincodeSpec).build();
+        return SmartContractInvocationSpec.newBuilder()
+                .setSmartContractSpec(chaincodeSpec).build();
 
     }
 
-    public ProposalBuilder ccType(ChaincodeSpec.Type ccType) {
+    public ProposalBuilder ccType(SmartContractSpec.Type ccType) {
         this.ccType = ccType;
         return this;
     }

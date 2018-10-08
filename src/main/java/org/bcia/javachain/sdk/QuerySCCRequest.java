@@ -14,10 +14,15 @@
 
 package org.bcia.javachain.sdk;
 
-import org.bcia.javachain.protos.peer.Chaincode;
+import org.bcia.julongchain.protos.node.SmartContractPackage;
 
 /**
  * Request for getting information about the blockchain ledger.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class QuerySCCRequest extends TransactionRequest {
 
@@ -32,9 +37,9 @@ public class QuerySCCRequest extends TransactionRequest {
     }
 
     @Override
-    public ChaincodeID getChaincodeID() {
-        return new ChaincodeID(
-                Chaincode.ChaincodeID.newBuilder().setName("qscc").build());
+    public SmartContractID getSmartContractID() {
+        return new SmartContractID(
+        		SmartContractPackage.SmartContractID.newBuilder().setName("qssc").build());
     }
 
 }

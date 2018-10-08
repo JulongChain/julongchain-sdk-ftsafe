@@ -16,7 +16,6 @@ package org.bcia.javachain_ca.sdk.helper;
 
 import org.apache.log4j.Level;
 import org.bcia.javachain.sdk.TestConfigHelper;
-import org.bcia.javachain_ca.sdk.helper.Config;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -90,7 +89,7 @@ public class ConfigTest {
         Assert.assertNotNull(config.getCertificateFormat());
 
         // Arrays
-        Assert.assertNotNull(config.getPeerCACerts());
+        Assert.assertNotNull(config.getNodeCACerts());
     }
 
     @Test

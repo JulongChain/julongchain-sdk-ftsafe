@@ -32,14 +32,20 @@ import org.bcia.javachain.sdk.exception.ProposalException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.helper.DiagnosticFileDumper;
 import org.bcia.javachain.sdk.helper.Utils;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeDeploymentSpec;
-import org.bcia.javachain.protos.peer.Chaincode.ChaincodeSpec.Type;
-import org.bcia.javachain.protos.peer.FabricProposal;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractDeploymentSpec;
+import org.bcia.julongchain.protos.node.SmartContractPackage.SmartContractSpec.Type;
+import org.bcia.julongchain.protos.node.ProposalPackage;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.transaction.ProtoUtils.createDeploymentSpec;
 
-public class InstallProposalBuilder extends LSCCProposalBuilder {
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
+public class InstallProposalBuilder extends LSSCProposalBuilder {
 
     private static final Log logger = LogFactory.getLog(InstallProposalBuilder.class);
     private static final boolean IS_TRACE_LEVEL = logger.isTraceEnabled();
@@ -83,20 +89,20 @@ public class InstallProposalBuilder extends LSCCProposalBuilder {
 
     }
 
-    public InstallProposalBuilder setChaincodeSource(File chaincodeSource) {
+    public InstallProposalBuilder setSmartContractSource(File chaincodeSource) {
         this.chaincodeSource = chaincodeSource;
 
         return this;
     }
 
-    public InstallProposalBuilder setChaincodeMetaInfLocation(File chaincodeMetaInfLocation) {
+    public InstallProposalBuilder setSmartContractMetaInfLocation(File chaincodeMetaInfLocation) {
 
         this.chaincodeMetaInfLocation = chaincodeMetaInfLocation;
         return this;
     }
 
     @Override
-    public FabricProposal.Proposal build() throws ProposalException, InvalidArgumentException {
+    public ProposalPackage.Proposal build() throws ProposalException, InvalidArgumentException {
 
         constructInstallProposal();
         return super.build();
@@ -197,7 +203,7 @@ public class InstallProposalBuilder extends LSCCProposalBuilder {
                 dplang = "Java";
                 ccType = Type.JAVA;
                 if (null != chaincodeSource) {
-                    targetPathPrefix = "src";
+//                    targetPathPrefix = "src";
                     projectSourceDir = Paths.get(chaincodeSource.toString()).toFile();
                 }
                 break;
@@ -266,7 +272,7 @@ public class InstallProposalBuilder extends LSCCProposalBuilder {
 
         }
 
-        final ChaincodeDeploymentSpec depspec = createDeploymentSpec(
+        final SmartContractDeploymentSpec depspec = createDeploymentSpec(
                 ccType, this.chaincodeName, this.chaincodePath, this.chaincodeVersion, null, data);
 
         // set args
@@ -277,7 +283,7 @@ public class InstallProposalBuilder extends LSCCProposalBuilder {
 
     }
 
-    public void setChaincodeLanguage(TransactionRequest.Type chaincodeLanguage) {
+    public void setSmartContractLanguage(TransactionRequest.Type chaincodeLanguage) {
         this.chaincodeLanguage = chaincodeLanguage;
     }
 
@@ -285,7 +291,7 @@ public class InstallProposalBuilder extends LSCCProposalBuilder {
         this.chaincodeVersion = chaincodeVersion;
     }
 
-    public void setChaincodeInputStream(InputStream chaincodeInputStream) {
+    public void setSmartContractInputStream(InputStream chaincodeInputStream) {
         this.chaincodeInputStream = chaincodeInputStream;
 
     }

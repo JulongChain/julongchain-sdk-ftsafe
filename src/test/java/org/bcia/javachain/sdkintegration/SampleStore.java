@@ -14,13 +14,17 @@
 
 package org.bcia.javachain.sdkintegration;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bcia.javachain.sdk.Channel;
+import org.bcia.javachain.sdk.Group;
 import org.bcia.javachain.sdk.Enrollment;
 import org.bcia.javachain.sdk.HFClient;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
+import org.bcia.javachain.sdk.helper.MspStore;
+import org.bcia.javachain.sdk.security.gm.CertificateUtils;
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentity;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -36,6 +40,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import org.bcia.javachain.sdk.security.msp.mgmt.Msp;
 
 /**
  * A local file-based key value store.
@@ -110,28 +115,6 @@ public class SampleStore {
     private final Map<String, SampleUser> members = new HashMap<>();
 
     /**
-     * Get the user with a given name
-     *
-     * @param name
-     * @param org
-     * @return user
-     */
-    public SampleUser getMember(String name, String org) {
-
-        // Try to get the SampleUser state from the cache
-        SampleUser sampleUser = members.get(SampleUser.toKeyValStoreName(name, org));
-        if (null != sampleUser) {
-            return sampleUser;
-        }
-
-        // Create the SampleUser and try to restore it's state from the key value store (if found).
-        sampleUser = new SampleUser(name, org, this);
-
-        return sampleUser;
-
-    }
-
-    /**
      * Check if store has user.
      *
      * @param name
@@ -154,17 +137,13 @@ public class SampleStore {
      *
      * @param name
      * @param org
-     * @param mspId
-     * @param privateKeyFile
-     * @param certificateFile
      * @return user
      * @throws IOException
      * @throws NoSuchAlgorithmException
      * @throws NoSuchProviderException
      * @throws InvalidKeySpecException
      */
-    public SampleUser getMember(String name, String org, String mspId, File privateKeyFile,
-                                File certificateFile) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+    public SampleUser getMember(String name, String org) throws IOException, JavaChainException {
 
         try {
             // Try to get the SampleUser state from the cache
@@ -175,33 +154,22 @@ public class SampleStore {
 
             // Create the SampleUser and try to restore it's state from the key value store (if found).
             sampleUser = new SampleUser(name, org, this);
-            sampleUser.setMspId(mspId);
+            Msp msp = (Msp) MspStore.getInstance().getMsp();
+            sampleUser.setMspId(MspStore.getInstance().getMsp().getIdentifier());
 
-            String certificate = new String(IOUtils.toByteArray(new FileInputStream(certificateFile)), "UTF-8");
+            byte[] identities = MspStore.getInstance().getClientCerts().get(0);
 
-            PrivateKey privateKey = getPrivateKeyFromBytes(IOUtils.toByteArray(new FileInputStream(privateKeyFile)));
+            IKey key = CertificateUtils.bytesToPrivateKey(MspStore.getInstance().getClientKeys().get(0));
 
-            sampleUser.setEnrollment(new SampleStoreEnrollement(privateKey, certificate));
+            sampleUser.setEnrollment(new SampleStoreEnrollement(key, identities));
 
             sampleUser.saveState();
 
             return sampleUser;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw e;
 
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-            throw e;
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-            throw e;
         }
 
     }
@@ -226,10 +194,10 @@ public class SampleStore {
     static final class SampleStoreEnrollement implements Enrollment, Serializable {
 
         private static final long serialVersionUID = -2784835212445309006L;
-        private final PrivateKey privateKey;
-        private final String certificate;
+        private final IKey privateKey;
+        private final byte[] certificate;
 
-        SampleStoreEnrollement(PrivateKey privateKey, String certificate) {
+        SampleStoreEnrollement(IKey privateKey, byte[] certificate) {
 
             this.certificate = certificate;
 
@@ -237,31 +205,31 @@ public class SampleStore {
         }
 
         @Override
-        public PrivateKey getKey() {
+        public IKey getKey() {
 
             return privateKey;
         }
 
         @Override
-        public String getCert() {
+        public byte[] getCert() {
             return certificate;
         }
 
     }
 
-    void saveChannel(Channel channel) throws IOException, InvalidArgumentException {
+    void saveGroup(Group channel) throws IOException, InvalidArgumentException {
 
-        setValue("channel." + channel.getName(), Hex.toHexString(channel.serializeChannel()));
+        setValue("channel." + channel.getName(), Hex.toHexString(channel.serializeGroup()));
 
     }
 
-    Channel getChannel(HFClient client, String name) throws IOException, ClassNotFoundException, InvalidArgumentException {
-        Channel ret = null;
+    Group getGroup(HFClient client, String name) throws IOException, ClassNotFoundException, InvalidArgumentException {
+        Group ret = null;
 
         String channelHex = getValue("channel." + name);
         if (channelHex != null) {
 
-            ret = client.deSerializeChannel(Hex.decode(channelHex));
+            ret = client.deSerializeGroup(Hex.decode(channelHex));
 
         }
         return ret;

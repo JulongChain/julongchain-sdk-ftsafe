@@ -23,6 +23,11 @@ import org.bcia.javachain.sdk.helper.Config;
 
 /**
  * A base transaction request common for InstallProposalRequest,trRequest, and QueryRequest.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class TransactionRequest {
     private User userContext;
@@ -39,7 +44,7 @@ public class TransactionRequest {
     // The version of the chaincode
     protected String chaincodeVersion;
     // The chaincode ID as provided by the 'submitted' event emitted by a TransactionContext
-    private ChaincodeID chaincodeID;
+    private SmartContractID chaincodeID;
 
     // The name of the function to invoke
     protected String fcn;
@@ -48,10 +53,10 @@ public class TransactionRequest {
     // the arguments to pass to the chaincode invocation as byte arrays
     protected ArrayList<byte[]> argBytes;
 
-    // Chaincode language
-    protected Type chaincodeLanguage = Type.GO_LANG;
+    // SmartContract language
+    protected Type chaincodeLanguage = Type.JAVA;
     // The endorsementPolicy associated with this chaincode
-    private ChaincodeEndorsementPolicy endorsementPolicy = null;
+    private SmartContractEndorsementPolicy endorsementPolicy = null;
     // The timeout for a single proposal request to endorser in milliseconds
     protected long proposalWaitTime = config.getProposalWaitTime();
 
@@ -96,7 +101,7 @@ public class TransactionRequest {
      * @return {@code true} if an empty channel ID should be used; otherwise
      * {@code false}.
      */
-    public boolean noChannelID() {
+    public boolean noGroupID() {
         return false;
     }
 
@@ -110,52 +115,52 @@ public class TransactionRequest {
         return true;
     }
 
-    public String getChaincodePath() {
+    public String getSmartContractPath() {
         return null == chaincodePath ? "" : chaincodePath;
     }
 
-    public TransactionRequest setChaincodePath(String chaincodePath) {
+    public TransactionRequest setSmartContractPath(String chaincodePath) {
 
         this.chaincodePath = chaincodePath;
         return this;
     }
 
-    public String getChaincodeName() {
+    public String getSmartContractName() {
         return chaincodeName;
     }
 
-    public TransactionRequest setChaincodeName(String chaincodeName) {
+    public TransactionRequest setSmartContractName(String chaincodeName) {
         this.chaincodeName = chaincodeName;
         return this;
     }
 
-    public TransactionRequest setChaincodeVersion(String chaincodeVersion) {
+    public TransactionRequest setSmartContractVersion(String chaincodeVersion) {
         this.chaincodeVersion = chaincodeVersion;
         return this;
     }
 
-    public String getChaincodeVersion() {
+    public String getSmartContractVersion() {
         return chaincodeVersion;
     }
 
-    public ChaincodeID getChaincodeID() {
+    public SmartContractID getSmartContractID() {
         return chaincodeID;
     }
 
-    public void setChaincodeID(ChaincodeID chaincodeID) {
+    public void setSmartContractID(SmartContractID chaincodeID) {
 
         if (chaincodeName != null) {
 
-            throw new IllegalArgumentException("Chaincode name has already been set.");
+            throw new IllegalArgumentException("SmartContract name has already been set.");
         }
         if (chaincodeVersion != null) {
 
-            throw new IllegalArgumentException("Chaincode version has already been set.");
+            throw new IllegalArgumentException("SmartContract version has already been set.");
         }
 
         if (chaincodePath != null) {
 
-            throw new IllegalArgumentException("Chaincode path has already been set.");
+            throw new IllegalArgumentException("SmartContract path has already been set.");
         }
 
         this.chaincodeID = chaincodeID;
@@ -223,7 +228,7 @@ public class TransactionRequest {
         NODE
     }
 
-    public Type getChaincodeLanguage() {
+    public Type getSmartContractLanguage() {
         return chaincodeLanguage;
     }
 
@@ -232,7 +237,7 @@ public class TransactionRequest {
      *
      * @param chaincodeLanguage . Type.Java Type.GO_LANG Type.NODE
      */
-    public void setChaincodeLanguage(Type chaincodeLanguage) {
+    public void setSmartContractLanguage(Type chaincodeLanguage) {
         this.chaincodeLanguage = chaincodeLanguage;
     }
 
@@ -240,9 +245,9 @@ public class TransactionRequest {
      * sets the endorsementPolicy associated with the chaincode of this transaction
      *
      * @param policy a Policy object
-     * @see ChaincodeEndorsementPolicy
+     * @see SmartContractEndorsementPolicy
      */
-    public void setChaincodeEndorsementPolicy(ChaincodeEndorsementPolicy policy) {
+    public void setSmartContractEndorsementPolicy(SmartContractEndorsementPolicy policy) {
         this.endorsementPolicy = policy;
     }
 
@@ -250,9 +255,9 @@ public class TransactionRequest {
      * returns the Policy object associated with the chaincode of this transaction
      *
      * @return a Policy object
-     * @see ChaincodeEndorsementPolicy
+     * @see SmartContractEndorsementPolicy
      */
-    public ChaincodeEndorsementPolicy getChaincodeEndorsementPolicy() {
+    public SmartContractEndorsementPolicy getSmartContractEndorsementPolicy() {
         return this.endorsementPolicy;
     }
 

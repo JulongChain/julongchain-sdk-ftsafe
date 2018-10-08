@@ -22,12 +22,18 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.peer.FabricTransaction.TransactionAction;
+import org.bcia.julongchain.protos.node.TransactionPackage.TransactionAction;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 class TransactionActionDeserializer {
     private final ByteString byteString;
     private WeakReference<TransactionAction> transactionAction;
-    private WeakReference<ChaincodeActionPayloadDeserializer> chaincodeActionPayloadDeserializer;
+    private WeakReference<SmartContractActionPayloadDeserializer> chaincodeActionPayloadDeserializer;
 
     TransactionActionDeserializer(ByteString byteString) {
         this.byteString = byteString;
@@ -60,9 +66,9 @@ class TransactionActionDeserializer {
 
     }
 
-    ChaincodeActionPayloadDeserializer getPayload() {
+    SmartContractActionPayloadDeserializer getPayload() {
 
-        ChaincodeActionPayloadDeserializer ret = null;
+        SmartContractActionPayloadDeserializer ret = null;
 
         if (chaincodeActionPayloadDeserializer != null) {
             ret = chaincodeActionPayloadDeserializer.get();
@@ -70,9 +76,9 @@ class TransactionActionDeserializer {
         }
         if (ret == null) {
 
-            ret = new ChaincodeActionPayloadDeserializer(getTransactionAction().getPayload());
+            ret = new SmartContractActionPayloadDeserializer(getTransactionAction().getPayload());
 
-            chaincodeActionPayloadDeserializer = new WeakReference<ChaincodeActionPayloadDeserializer>(ret);
+            chaincodeActionPayloadDeserializer = new WeakReference<SmartContractActionPayloadDeserializer>(ret);
 
         }
 

@@ -14,7 +14,7 @@
 
 package org.bcia.javachain.sdk;
 
-import org.bcia.javachain.protos.common.Ledger;
+import org.bcia.julongchain.protos.common.Ledger;
 
 /**
  * BlockchainInfo contains information about the blockchain ledger.

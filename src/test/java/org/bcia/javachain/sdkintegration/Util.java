@@ -88,6 +88,11 @@ class Util {
         return new ByteArrayInputStream(bos.toByteArray());
     }
 
+    /**
+     * 找到_sk结尾的文件，找到就返回
+     * @param directory
+     * @return
+     */
     public static File findFileSk(File directory) {
 
         File[] matches = directory.listFiles((dir, name) -> name.endsWith("_sk"));

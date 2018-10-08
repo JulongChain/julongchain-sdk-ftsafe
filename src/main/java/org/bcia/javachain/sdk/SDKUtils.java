@@ -25,20 +25,26 @@ import java.util.Set;
 
 import com.google.protobuf.ByteString;
 
+import org.bcia.javachain.common.exception.JavaChainException;
+import org.bcia.javachain.common.tools.cryptogen.CspHelper;
 import org.bcia.javachain.sdk.exception.InvalidArgumentException;
-import org.bcia.javachain.sdk.security.CryptoSuite;
+import org.bcia.javachain.sdk.security.csp.intfs.ICsp;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequenceGenerator;
 
 import static java.lang.String.format;
 
+/**
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
+ */
 public class SDKUtils {
     private SDKUtils() {
 
     }
-
-    public static CryptoSuite suite = null;
 
     /**
      * used asn1 and get hash
@@ -50,7 +56,7 @@ public class SDKUtils {
      * @throws IOException
      * @throws InvalidArgumentException
      */
-    public static byte[] calculateBlockHash(HFClient client, long blockNumber, byte[] previousHash, byte[] dataHash) throws IOException, InvalidArgumentException {
+    public static byte[] calculateBlockHash(HFClient client, long blockNumber, byte[] previousHash, byte[] dataHash) throws IOException, InvalidArgumentException, JavaChainException {
 
         if (previousHash == null) {
             throw new InvalidArgumentException("previousHash parameter is null.");
@@ -62,7 +68,6 @@ public class SDKUtils {
             throw new InvalidArgumentException("client parameter is null.");
         }
 
-        CryptoSuite cryptoSuite = client.getCryptoSuite();
         if (null == client) {
             throw new InvalidArgumentException("Client crypto suite has not  been set.");
         }
@@ -73,8 +78,9 @@ public class SDKUtils {
         seq.addObject(new DEROctetString(previousHash));
         seq.addObject(new DEROctetString(dataHash));
         seq.close();
-        return cryptoSuite.hash(s.toByteArray());
-
+//        return cryptoSuite.hash(s.toByteArray());
+        ICsp csp = CspHelper.getCsp();
+        return csp.hash(s.toByteArray(), null);
     }
 
     /**
@@ -128,10 +134,10 @@ public class SDKUtils {
 
                 if (payloadBytes == null) {
                     throw new InvalidArgumentException(format("proposalResponse.getPayloadBytes() was null from peer: %s.",
-                            proposalResponse.getPeer()));
+                            proposalResponse.getNode()));
                 } else if (payloadBytes.isEmpty()) {
                     throw new InvalidArgumentException(format("proposalResponse.getPayloadBytes() was empty from peer: %s.",
-                            proposalResponse.getPeer()));
+                            proposalResponse.getNode()));
                 }
                 Set<ProposalResponse> set = ret.computeIfAbsent(payloadBytes, k -> new HashSet<>());
                 set.add(proposalResponse);

@@ -13,12 +13,17 @@
  */
 package org.bcia.javachain.sdk;
 
-import org.bcia.javachain.protos.common.Common.Envelope;
-import org.bcia.javachain.protos.peer.FabricTransaction.ProcessedTransaction;
-import org.bcia.javachain.protos.peer.FabricTransaction.TxValidationCode;
+import org.bcia.julongchain.protos.common.Common.Envelope;
+import org.bcia.julongchain.protos.node.TransactionPackage.ProcessedTransaction;
+import org.bcia.julongchain.protos.node.TransactionPackage.TxValidationCode;
 
 /**
  * TransactionInfo contains the data from a {@link ProcessedTransaction} message
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class TransactionInfo {
     private final String txID;

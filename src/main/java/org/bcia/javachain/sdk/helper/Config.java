@@ -13,11 +13,14 @@
  */
 package org.bcia.javachain.sdk.helper;
 
+import static java.lang.String.format;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -25,8 +28,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import static java.lang.String.format;
+import org.mvel2.MVEL;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Config allows for a global config of the toolkit. Central location for all
@@ -36,12 +39,17 @@ import static java.lang.String.format;
  * with environment variable and then overridden
  * with a java system property. Property hierarchy goes System property
  * overrides environment variable which overrides config file for default values specified here.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 
 public class Config {
     private static final Log logger = LogFactory.getLog(Config.class);
 
-    private static final String DEFAULT_CONFIG = "config.properties";
+    private static final String DEFAULT_CONFIG = "config_gm.properties";
     public static final String ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION = "org.bcia.javachain.sdk.configuration";
     /**
      * Timeout settings
@@ -58,6 +66,7 @@ public class Config {
     /**
      * Crypto configuration settings
      **/
+    public static final String CRYPTO_ID = "org.bcia.javachain.sdk.crypto.id";
     public static final String DEFAULT_CRYPTO_SUITE_FACTORY = "org.bcia.javachain.sdk.crypto.default_crypto_suite_factory";
     public static final String SECURITY_LEVEL = "org.bcia.javachain.sdk.security_level";
     public static final String SECURITY_PROVIDER_CLASS_NAME = "org.bcia.javachain.sdk.security_provider_class_name";
@@ -79,110 +88,122 @@ public class Config {
      **/
     public static final String PROPOSAL_CONSISTENCY_VALIDATION = "org.bcia.javachain.sdk.proposal.consistency_validation";
 
+    public static final String BLOCK_PATH = "org.bcia.javachain.sdk.block_path";
+
     private static Config config;
     private static final Properties sdkProperties = new Properties();
 
+    
+    private Map<String, String> yamlMap;
+
+    /**
+     * 取得属性值
+     * @throws Exception
+     */
+    public String getValue(String key) {
+    	String value = (String) MVEL.eval(key, yamlMap);
+    	logger.info("config >> key: "+ key +", value: "+ value);
+    	return value;
+    }
+    
     private Config() {
-        File loadFile;
-        FileInputStream configProps;
+//        File loadFile;
+        InputStream configProps;
 
-        try {
-            loadFile = new File(System.getProperty(ORG_HYPERLEDGER_FABRIC_SDK_CONFIGURATION, DEFAULT_CONFIG))
-                    .getAbsoluteFile();
-            logger.debug(format("Loading configuration from %s and it is present: %b", loadFile.toString(),
-                    loadFile.exists()));
-            configProps = new FileInputStream(loadFile);
-            sdkProperties.load(configProps);
+        // Default values
+        /**
+         * Timeout settings
+         **/
+        defaultProperty(PROPOSAL_WAIT_TIME, "200000");
+        defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "1500000");
+        defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
+        // defaultProperty(ORDERER_WAIT_TIME, "10000");
+        defaultProperty(ORDERER_WAIT_TIME, "300000");
+        defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
+        defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
+        defaultProperty(EVENTHUB_CONNECTION_WAIT_TIME, "1000");
+        defaultProperty(GENESISBLOCK_WAIT_TIME, "5000");
+        /**
+         * This will NOT complete any transaction futures time out and must be kept WELL above any expected future timeout
+         * for transactions sent to the Orderer. For internal cleanup only.
+         */
 
-        } catch (IOException e) {
-            logger.warn(format("Failed to load any configuration from: %s. Using toolkit defaults",
-                    DEFAULT_CONFIG));
-        } finally {
+        defaultProperty(TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME, "600000"); //10 min.
 
-            // Default values
-            /**
-             * Timeout settings
-             **/
-            defaultProperty(PROPOSAL_WAIT_TIME, "20000");
-            defaultProperty(CHANNEL_CONFIG_WAIT_TIME, "15000");
-            defaultProperty(ORDERER_RETRY_WAIT_TIME, "200");
-            // defaultProperty(ORDERER_WAIT_TIME, "10000");
+        /**
+         * Crypto configuration settings
+         **/
+        /*
+        defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.HLSDKJCryptoSuiteFactory");
+        defaultProperty(SECURITY_LEVEL, "256");
+        defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
+        defaultProperty(SECURITY_CURVE_MAPPING, "256=secp256r1:384=secp384r1");
+        defaultProperty(HASH_ALGORITHM, "SHA2");
+        defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+        defaultProperty(CERTIFICATE_FORMAT, "X.509");
+        defaultProperty(SIGNATURE_ALGORITHM, "SHA256withECDSA");
+        */
 
-            defaultProperty(ORDERER_WAIT_TIME, "30000");
-            defaultProperty(PEER_EVENT_REGISTRATION_WAIT_TIME, "5000");
-            defaultProperty(PEER_EVENT_RETRY_WAIT_TIME, "500");
-            defaultProperty(EVENTHUB_CONNECTION_WAIT_TIME, "1000");
-            defaultProperty(GENESISBLOCK_WAIT_TIME, "5000");
-            /**
-             * This will NOT complete any transaction futures time out and must be kept WELL above any expected future timeout
-             * for transactions sent to the Orderer. For internal cleanup only.
-             */
+        defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.gm.GmHLSDKJCryptoSuiteFactory");//wangzhe
+        defaultProperty(SECURITY_LEVEL, "256");
+        defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
+        defaultProperty(SECURITY_CURVE_MAPPING, "256=sm2p256v1");
+        defaultProperty(HASH_ALGORITHM, "SM3");//SHA2
+        defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+        defaultProperty(CERTIFICATE_FORMAT, "X.509");
+        defaultProperty(SIGNATURE_ALGORITHM, "SM3withSM2");
 
-            defaultProperty(TRANSACTION_CLEANUP_UP_TIMEOUT_WAIT_TIME, "600000"); //10 min.
+        /**
+         * Logging settings
+         **/
+        defaultProperty(MAX_LOG_STRING_LENGTH, "64");
+        defaultProperty(EXTRALOGLEVEL, "0");
+        defaultProperty(LOGGERLEVEL, null);
+        defaultProperty(DIAGNOTISTIC_FILE_DIRECTORY, null);
+        /**
+         * Miscellaneous settings
+         */
+        defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "false");//TODO 这个校验暂时不加算返回成功，等julongchain返回码统一
 
-            /**
-             * Crypto configuration settings
-             **/
-            defaultProperty(DEFAULT_CRYPTO_SUITE_FACTORY, "org.bcia.javachain.sdk.security.HLSDKJCryptoSuiteFactory");
-            defaultProperty(SECURITY_LEVEL, "256");
-            defaultProperty(SECURITY_PROVIDER_CLASS_NAME, BouncyCastleProvider.class.getName());
-            defaultProperty(SECURITY_CURVE_MAPPING, "256=secp256r1:384=secp384r1");
-            defaultProperty(HASH_ALGORITHM, "SHA2");
-            defaultProperty(ASYMMETRIC_KEY_TYPE, "EC");
+        defaultProperty(BLOCK_PATH, "/home/bcia/julongchain");
 
-            defaultProperty(CERTIFICATE_FORMAT, "X.509");
-            defaultProperty(SIGNATURE_ALGORITHM, "SHA256withECDSA");
 
-            /**
-             * Logging settings
-             **/
-            defaultProperty(MAX_LOG_STRING_LENGTH, "64");
-            defaultProperty(EXTRALOGLEVEL, "0");
-            defaultProperty(LOGGERLEVEL, null);
-            defaultProperty(DIAGNOTISTIC_FILE_DIRECTORY, null);
-            /**
-             * Miscellaneous settings
-             */
-            defaultProperty(PROPOSAL_CONSISTENCY_VALIDATION, "true");
+        final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
 
-            final String inLogLevel = sdkProperties.getProperty(LOGGERLEVEL);
+        if (null != inLogLevel) {
 
-            if (null != inLogLevel) {
+            Level setTo;
 
-                Level setTo;
+            switch (inLogLevel.toUpperCase()) {
 
-                switch (inLogLevel.toUpperCase()) {
+                case "TRACE":
+                    setTo = Level.TRACE;
+                    break;
 
-                    case "TRACE":
-                        setTo = Level.TRACE;
-                        break;
+                case "DEBUG":
+                    setTo = Level.DEBUG;
+                    break;
 
-                    case "DEBUG":
-                        setTo = Level.DEBUG;
-                        break;
+                case "INFO":
+                    setTo = Level.INFO;
+                    break;
 
-                    case "INFO":
-                        setTo = Level.INFO;
-                        break;
+                case "WARN":
+                    setTo = Level.WARN;
+                    break;
 
-                    case "WARN":
-                        setTo = Level.WARN;
-                        break;
+                case "ERROR":
+                    setTo = Level.ERROR;
+                    break;
 
-                    case "ERROR":
-                        setTo = Level.ERROR;
-                        break;
+                default:
+                    setTo = Level.INFO;
+                    break;
 
-                    default:
-                        setTo = Level.INFO;
-                        break;
+            }
 
-                }
-
-                if (null != setTo) {
-                    org.apache.log4j.Logger.getLogger("org.bcia.javachain").setLevel(setTo);
-                }
-
+            if (null != setTo) {
+                org.apache.log4j.Logger.getLogger("org.bcia.javachain").setLevel(setTo);
             }
 
         }
@@ -337,7 +358,7 @@ public class Config {
      *
      * @return
      */
-    public long getChannelConfigWaitTime() {
+    public long getGroupConfigWaitTime() {
         return Long.parseLong(getProperty(CHANNEL_CONFIG_WAIT_TIME));
     }
 
@@ -346,29 +367,29 @@ public class Config {
      *
      * @return
      */
-    public long getOrdererRetryWaitTime() {
+    public long getConsenterRetryWaitTime() {
         return Long.parseLong(getProperty(ORDERER_RETRY_WAIT_TIME));
     }
 
-    public long getOrdererWaitTime() {
+    public long getConsenterWaitTime() {
         return Long.parseLong(getProperty(ORDERER_WAIT_TIME));
     }
 
     /**
-     * getPeerEventRegistrationWaitTime
+     * getNodeEventRegistrationWaitTime
      *
      * @return time in milliseconds to wait for peer eventing service to wait for event registration
      */
-    public long getPeerEventRegistrationWaitTime() {
+    public long getNodeEventRegistrationWaitTime() {
         return Long.parseLong(getProperty(PEER_EVENT_REGISTRATION_WAIT_TIME));
     }
 
     /**
-     * getPeerEventRegistrationWaitTime
+     * getNodeEventRegistrationWaitTime
      *
      * @return time in milliseconds to wait for peer eventing service to wait for event registration
      */
-    public  long getPeerRetryWaitTime() {
+    public  long getNodeRetryWaitTime() {
         return Long.parseLong(getProperty(PEER_EVENT_RETRY_WAIT_TIME));
     }
 
@@ -388,8 +409,17 @@ public class Config {
         return getProperty(SIGNATURE_ALGORITHM);
     }
 
+    public String getCryptoId() {
+        return getProperty(CRYPTO_ID);
+    }
+
     public String getDefaultCryptoSuiteFactory() {
         return getProperty(DEFAULT_CRYPTO_SUITE_FACTORY);
+    }
+
+    //区块文件路径
+    public String getBlockPath() {
+        return getProperty(BLOCK_PATH);
     }
 
     public int maxLogStringLength() {

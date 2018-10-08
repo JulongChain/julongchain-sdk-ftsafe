@@ -30,6 +30,11 @@ import org.apache.log4j.Level;
  * with environment variable and then overridden
  * with a java system property. Property hierarchy goes System property
  * overrides environment variable which overrides config file for default values specified here.
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 
 public class Config {
@@ -207,7 +212,7 @@ public class Config {
 
     }
 
-    public String[] getPeerCACerts() {
+    public String[] getNodeCACerts() {
         return getProperty(CACERTS).split("'");
     }
 

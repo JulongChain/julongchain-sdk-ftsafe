@@ -20,20 +20,24 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.bcia.javachain.sdk.exception.InvalidProtocolBufferRuntimeException;
-import org.bcia.javachain.protos.common.Common.Block;
-import org.bcia.javachain.protos.peer.PeerEvents;
-import org.bcia.javachain.protos.peer.PeerEvents.Event;
+import org.bcia.julongchain.protos.common.Common.Block;
+import org.bcia.julongchain.protos.node.EventsPackage;
+import org.bcia.julongchain.protos.node.EventsPackage.Event;
 
 /**
  * A wrapper for the Block returned in an Event
  *
  * @see Block
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class BlockEvent extends BlockInfo {
 //    private static final Log logger = LogFactory.getLog(BlockEvent.class);
 
     private final EventHub eventHub;
-    private final Peer peer;
+    private final Node peer;
     private final Event event;
 
     /**
@@ -50,7 +54,7 @@ public class BlockEvent extends BlockInfo {
         this.event = event;
     }
 
-    BlockEvent(Peer peer, PeerEvents.DeliverResponse resp) {
+    BlockEvent(Node peer, EventsPackage.DeliverResponse resp) {
         super(resp);
         eventHub = null;
         this.peer = peer;
@@ -69,11 +73,11 @@ public class BlockEvent extends BlockInfo {
     }
 
     /**
-     * The Peer that received this event.
+     * The Node that received this event.
      *
-     * @return Peer that received this event. Maybe null if source is legacy event hub.
+     * @return Node that received this event. Maybe null if source is legacy event hub.
      */
-    public Peer getPeer() {
+    public Node getNode() {
         return peer;
     }
 
@@ -92,7 +96,7 @@ public class BlockEvent extends BlockInfo {
             return true; //peer always returns Block type events;
         }
 
-        return event != null && event.getEventCase() == PeerEvents.Event.EventCase.BLOCK;
+        return event != null && event.getEventCase() == EventsPackage.Event.EventCase.BLOCK;
     }
 
     TransactionEvent getTransactionEvent(int index) throws InvalidProtocolBufferException {
@@ -106,7 +110,7 @@ public class BlockEvent extends BlockInfo {
             super(transactionEnvelopeInfo.getTransactionDeserializer());
         }
 
-        TransactionEvent(PeerEvents.FilteredTransaction filteredTransaction) {
+        TransactionEvent(EventsPackage.FilteredTransaction filteredTransaction) {
             super(filteredTransaction);
         }
 
@@ -126,7 +130,7 @@ public class BlockEvent extends BlockInfo {
          * The event hub that received this event.
          *
          * @return May return null if peer eventing service detected the event.
-         * @deprecated use new peer eventing services {@link #getPeer()}
+         * @deprecated use new peer eventing services {@link #getNode()}
          */
 
         public EventHub getEventHub() {
@@ -140,9 +144,9 @@ public class BlockEvent extends BlockInfo {
          * @return May return null if deprecated eventhubs are still being used, otherwise return the peer.
          */
 
-        public Peer getPeer() {
+        public Node getNode() {
 
-            return BlockEvent.this.getPeer();
+            return BlockEvent.this.getNode();
         }
     }
 

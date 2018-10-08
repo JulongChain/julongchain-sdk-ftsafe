@@ -19,11 +19,9 @@ import java.util.Properties;
 
 /**
  * Container for methods to set SDK environment before running unit+integration tests
- *
+ *　modified by wangzhe 已与fabric无关，所以去掉fabric属性覆盖相关的常量和方法
  */
 public class TestConfigHelper {
-
-    public static final String CONFIG_OVERRIDES = "FABRICSDKOVERRIDES";
 
     /**
      * clearConfig "resets" Config so that the Config testcases can run without interference from other test suites.
@@ -82,30 +80,4 @@ public class TestConfigHelper {
         sdkProperties.clear();
 
     }
-
-    /**
-     * customizeConfig() sets up the properties listed by env var CONFIG_OVERRIDES The value of the env var is
-     * <i>property1=value1,property2=value2</i> and so on where each <i>property</i> is a property from the SDK's config
-     * file.
-     *
-     * @throws NoSuchFieldException
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     * @throws IllegalAccessException
-     */
-    public void customizeConfig()
-            throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-        String fabricSdkConfig = System.getenv(CONFIG_OVERRIDES);
-        if (fabricSdkConfig != null && fabricSdkConfig.length() > 0) {
-            String[] configs = fabricSdkConfig.split(",");
-            String[] configKeyValue;
-            for (String config : configs) {
-                configKeyValue = config.split("=");
-                if (configKeyValue != null && configKeyValue.length == 2) {
-                    System.setProperty(configKeyValue[0], configKeyValue[1]);
-                }
-            }
-        }
-    }
-
 }

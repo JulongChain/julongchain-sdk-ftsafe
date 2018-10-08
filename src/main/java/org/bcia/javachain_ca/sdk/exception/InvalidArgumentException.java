@@ -15,7 +15,12 @@
 package org.bcia.javachain_ca.sdk.exception;
 
 /*
-Exception that is thrown from Chaincode
+ * Exception that is thrown from SmartContract
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 public class InvalidArgumentException extends BaseException {
     private static final long serialVersionUID = 7318479874248138781L;

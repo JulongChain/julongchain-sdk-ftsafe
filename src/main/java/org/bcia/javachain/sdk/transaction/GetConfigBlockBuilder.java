@@ -25,7 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bcia.javachain.sdk.exception.ProposalException;
 
-public class GetConfigBlockBuilder extends CSCCProposalBuilder {
+public class GetConfigBlockBuilder extends CSSCProposalBuilder {
     private static final Log logger = LogFactory.getLog(GetConfigBlockBuilder.class);
     List<ByteString> argList = new ArrayList<>();
 

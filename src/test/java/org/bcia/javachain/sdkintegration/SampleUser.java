@@ -130,7 +130,7 @@ public class SampleUser implements User, Serializable {
      * Save the state of this user to the key value store.
      */
     void saveState() {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        /*ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
             ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(this);
@@ -139,14 +139,14 @@ public class SampleUser implements User, Serializable {
             bos.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     /**
      * Restore the state of this user from the key value store (if found).  If not found, do nothing.
      */
     SampleUser restoreState() {
-        String memberStr = keyValStore.getValue(keyValStoreName);
+        /*String memberStr = keyValStore.getValue(keyValStoreName);
         if (null != memberStr) {
             // The user was found in the key value store, so restore the
             // state.
@@ -169,7 +169,7 @@ public class SampleUser implements User, Serializable {
             } catch (Exception e) {
                 throw new RuntimeException(String.format("Could not restore state of member %s", this.name), e);
             }
-        }
+        }*/
         return null;
     }
 

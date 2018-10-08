@@ -38,8 +38,8 @@ import org.bcia.javachain.sdk.exception.InvalidArgumentException;
 import org.bcia.javachain.sdk.helper.Config;
 import org.bcia.javachain.sdk.transaction.ProtoUtils;
 import org.bcia.javachain.sdk.transaction.TransactionContext;
-import org.bcia.javachain.protos.peer.EventsGrpc;
-import org.bcia.javachain.protos.peer.PeerEvents;
+import org.bcia.julongchain.protos.node.EventsGrpc;
+import org.bcia.julongchain.protos.node.EventsPackage;
 
 import static java.lang.String.format;
 import static org.bcia.javachain.sdk.helper.Utils.checkGrpcUrl;
@@ -47,7 +47,12 @@ import static org.bcia.javachain.sdk.helper.Utils.checkGrpcUrl;
 /**
  * Class to manage fabric events.
  * <p>
- * Feeds Channel event queues with events
+ * Feeds Group event queues with events
+ * 
+ * modified for Node,SmartContract,Consenter,
+ * Group,TransactionPackage,TransactionResponsePackage,
+ * EventsPackage,ProposalPackage,ProposalResponsePackage
+ * by wangzhe in ftsafe 2018-07-02
  */
 
 public class EventHub implements Serializable {
@@ -61,17 +66,17 @@ public class EventHub implements Serializable {
     private final String url;
     private final String name;
     private final Properties properties;
-    private transient ManagedChannel managedChannel;
+    private transient ManagedChannel managedGroup;
     private transient boolean connected = false;
     private transient EventsGrpc.EventsStub events;
-    private transient StreamObserver<PeerEvents.SignedEvent> sender;
+    private transient StreamObserver<EventsPackage.SignedEvent> sender;
     /**
      * Event queue for all events from eventhubs in the channel
      */
-    private transient Channel.ChannelEventQue eventQue;
+    private transient Group.GroupEventQue eventQue;
     private transient long connectedTime = 0L; // 0 := never connected
     private transient boolean shutdown = false;
-    private Channel channel;
+    private Group channel;
     private transient TransactionContext transactionContext;
     private transient byte[] clientTLSCertificateDigest;
     private transient long reconnectCount;
@@ -170,7 +175,7 @@ public class EventHub implements Serializable {
         return properties == null ? null : (Properties) properties.clone();
     }
 
-    private transient StreamObserver<PeerEvents.Event> eventStream = null; // Saved here to avoid potential garbage collection
+    private transient StreamObserver<EventsPackage.Event> eventStream = null; // Saved here to avoid potential garbage collection
 
     synchronized boolean connect(final TransactionContext transactionContext) throws EventHubException {
         return connect(transactionContext, false);
@@ -190,21 +195,21 @@ public class EventHub implements Serializable {
         lastConnectedAttempt = System.currentTimeMillis();
 
         Endpoint endpoint = new Endpoint(url, properties);
-        managedChannel = endpoint.getChannelBuilder().build();
+        managedGroup = endpoint.getGroupBuilder().build();
 
         clientTLSCertificateDigest = endpoint.getClientTLSCertificateDigest();
 
-        events = EventsGrpc.newStub(managedChannel);
+        events = EventsGrpc.newStub(managedGroup);
 
         final ArrayList<Throwable> threw = new ArrayList<>();
 
-        final StreamObserver<PeerEvents.Event> eventStreamLocal = new StreamObserver<PeerEvents.Event>() {
+        final StreamObserver<EventsPackage.Event> eventStreamLocal = new StreamObserver<EventsPackage.Event>() {
             @Override
-            public void onNext(PeerEvents.Event event) {
+            public void onNext(EventsPackage.Event event) {
 
                 logger.debug(format("EventHub %s got  event type: %s", EventHub.this.name, event.getEventCase().name()));
 
-                if (event.getEventCase() == PeerEvents.Event.EventCase.BLOCK) {
+                if (event.getEventCase() == EventsPackage.Event.EventCase.BLOCK) {
                     try {
 
                         BlockEvent blockEvent = new BlockEvent(EventHub.this, event);
@@ -216,7 +221,7 @@ public class EventHub implements Serializable {
                         logger.error(eventHubException.getMessage());
                         threw.add(eventHubException);
                     }
-                } else if (event.getEventCase() == PeerEvents.Event.EventCase.REGISTER) {
+                } else if (event.getEventCase() == EventsPackage.Event.EventCase.REGISTER) {
 
                     if (reconnectCount > 1) {
                         logger.info(format("Eventhub %s has reconnecting after %d attempts", name, reconnectCount));
@@ -242,16 +247,16 @@ public class EventHub implements Serializable {
                     return;
                 }
 
-                final ManagedChannel lmanagedChannel = managedChannel;
+                final ManagedChannel lmanagedGroup = managedGroup;
 
-                final boolean isTerminated = lmanagedChannel == null ? true : lmanagedChannel.isTerminated();
-                final boolean isChannelShutdown = lmanagedChannel == null ? true : lmanagedChannel.isShutdown();
+                final boolean isTerminated = lmanagedGroup == null ? true : lmanagedGroup.isTerminated();
+                final boolean isGroupShutdown = lmanagedGroup == null ? true : lmanagedGroup.isShutdown();
 
                 if (reconnectCount % 50 == 1) {
-                    logger.warn(format("%s terminated is %b shutdown is %b, retry count %d  has error %s.", EventHub.this.toString(), isTerminated, isChannelShutdown,
+                    logger.warn(format("%s terminated is %b shutdown is %b, retry count %d  has error %s.", EventHub.this.toString(), isTerminated, isGroupShutdown,
                             reconnectCount, t.getMessage()));
                 } else {
-                    logger.trace(format("%s terminated is %b shutdown is %b, retry count %d  has error %s.", EventHub.this.toString(), isTerminated, isChannelShutdown,
+                    logger.trace(format("%s terminated is %b shutdown is %b, retry count %d  has error %s.", EventHub.this.toString(), isTerminated, isGroupShutdown,
                             reconnectCount, t.getMessage()));
                 }
 
@@ -321,11 +326,11 @@ public class EventHub implements Serializable {
 
     private void reconnect() throws EventHubException {
 
-        final ManagedChannel lmanagedChannel = managedChannel;
+        final ManagedChannel lmanagedGroup = managedGroup;
 
-        if (lmanagedChannel != null) {
-            managedChannel = null;
-            lmanagedChannel.shutdownNow();
+        if (lmanagedGroup != null) {
+            managedGroup = null;
+            lmanagedGroup.shutdownNow();
         }
 
         EventHubDisconnected ldisconnectedHandler = disconnectedHandler;
@@ -341,9 +346,9 @@ public class EventHub implements Serializable {
 
         this.transactionContext = transactionContext;
 
-        PeerEvents.Register register = PeerEvents.Register.newBuilder()
-                .addEvents(PeerEvents.Interest.newBuilder().setEventType(PeerEvents.EventType.BLOCK).build()).build();
-        PeerEvents.Event.Builder blockEventBuilder = PeerEvents.Event.newBuilder().setRegister(register)
+        EventsPackage.Register register = EventsPackage.Register.newBuilder()
+                .addEvents(EventsPackage.Interest.newBuilder().setEventType(EventsPackage.EventType.BLOCK).build()).build();
+        EventsPackage.Event.Builder blockEventBuilder = EventsPackage.Event.newBuilder().setRegister(register)
                 .setCreator(transactionContext.getIdentity().toByteString())
                 .setTimestamp(ProtoUtils.getCurrentFabricTimestamp());
 
@@ -355,7 +360,7 @@ public class EventHub implements Serializable {
 
         ByteString blockEventByteString = blockEventBuilder.build().toByteString();
 
-        PeerEvents.SignedEvent signedBlockEvent = PeerEvents.SignedEvent.newBuilder()
+        EventsPackage.SignedEvent signedBlockEvent = EventsPackage.SignedEvent.newBuilder()
                 .setEventBytes(blockEventByteString)
                 .setSignature(transactionContext.signByteString(blockEventByteString.toByteArray()))
                 .build();
@@ -376,7 +381,7 @@ public class EventHub implements Serializable {
      *
      * @param eventQue
      */
-    void setEventQue(Channel.ChannelEventQue eventQue) {
+    void setEventQue(Group.GroupEventQue eventQue) {
         this.eventQue = eventQue;
     }
 
@@ -393,16 +398,16 @@ public class EventHub implements Serializable {
         disconnectedHandler = null;
         channel = null;
         eventStream = null;
-        final ManagedChannel lmanagedChannel = managedChannel;
-        managedChannel = null;
-        if (lmanagedChannel != null) {
-            lmanagedChannel.shutdownNow();
+        final ManagedChannel lmanagedGroup = managedGroup;
+        managedGroup = null;
+        if (lmanagedGroup != null) {
+            lmanagedGroup.shutdownNow();
         }
     }
 
-    void setChannel(Channel channel) throws InvalidArgumentException {
+    void setGroup(Group channel) throws InvalidArgumentException {
         if (channel == null) {
-            throw new InvalidArgumentException("setChannel Channel can not be null");
+            throw new InvalidArgumentException("setGroup Group can not be null");
         }
 
         if (null != this.channel) {
@@ -445,7 +450,7 @@ public class EventHub implements Serializable {
         @Override
         public synchronized void disconnected(final EventHub eventHub) {
             if (reconnectCount == 1) {
-                logger.warn(format("Channel %s detected disconnect on event hub %s (%s)", channel.getName(), eventHub.toString(), url));
+                logger.warn(format("Group %s detected disconnect on event hub %s (%s)", channel.getName(), eventHub.toString(), url));
             }
 
             executorService.execute(() -> {

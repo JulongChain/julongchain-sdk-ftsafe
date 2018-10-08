@@ -20,12 +20,19 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static java.lang.String.format;
 
 import java.security.KeyPair;
 
 import static org.junit.Assert.*;
 
 public class EnrollmentRequestTest {
+
+    private static final Logger log = LoggerFactory.getLogger(EnrollmentRequestTest.class);
+
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
@@ -103,7 +110,7 @@ public class EnrollmentRequestTest {
             testEnrollReq.setLabel(label);
             testEnrollReq.setKeyPair(null);
             testEnrollReq.setCAName(caName);
-
+            log.info(format("<<%s>>", testEnrollReq.toJson()));
             assertTrue(testEnrollReq.toJson().contains(csr));
 
         } catch (Exception e) {

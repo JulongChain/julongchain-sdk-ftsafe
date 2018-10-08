@@ -19,9 +19,9 @@ package org.bcia.javachain.sdk;
 import java.util.Iterator;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.bcia.javachain.protos.ledger.rwset.Rwset.NsReadWriteSet;
-import org.bcia.javachain.protos.ledger.rwset.Rwset.TxReadWriteSet;
-import org.bcia.javachain.protos.ledger.rwset.kvrwset.KvRwset;
+import org.bcia.julongchain.protos.ledger.rwset.Rwset.NsReadWriteSet;
+import org.bcia.julongchain.protos.ledger.rwset.Rwset.TxReadWriteSet;
+import org.bcia.julongchain.protos.ledger.rwset.kvrwset.KvRwset;
 
 public class TxReadWriteSetInfo {
     private final TxReadWriteSet txReadWriteSet;

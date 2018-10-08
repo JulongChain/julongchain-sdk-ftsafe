@@ -14,7 +14,8 @@
 
 package org.bcia.javachain.sdk;
 
-import java.security.PrivateKey;
+import org.bcia.javachain.sdk.security.csp.intfs.IKey;
+import org.bcia.javachain.sdk.security.msp.IIdentity;
 
 /**
  * Interface which is the contract between the Certificate Authority provider and the SDK.
@@ -26,13 +27,13 @@ public interface Enrollment {
      *
      * @return private key.
      */
-    PrivateKey getKey();
+    IKey getKey();
 
     /**
      * Get the user's signed certificate.
      *
      * @return a certificate.
      */
-    String getCert();
+    byte[] getCert();
 
 }

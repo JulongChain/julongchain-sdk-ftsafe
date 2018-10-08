@@ -14,24 +14,10 @@
 
 package org.bcia.javachain_ca.sdk;
 
-import org.bcia.javachain.sdk.exception.CryptoException;
-import org.bcia.javachain.sdk.security.CryptoPrimitives;
-import org.bcia.javachain.sdkintegration.SampleStore;
-import org.bcia.javachain.sdkintegration.SampleUser;
-import org.bcia.javachain_ca.sdk.HFCAClient;
-import org.bcia.javachain_ca.sdk.HFCAIdentity;
-import org.bcia.javachain_ca.sdk.exception.EnrollmentException;
-import org.bcia.javachain_ca.sdk.exception.IdentityException;
-import org.bcia.javachain_ca.sdk.exception.InvalidArgumentException;
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-
-import java.io.File;
-import java.net.MalformedURLException;
 
 public class HFCAIdentityTest {
 
-    @Rule
+    /*@Rule
     public ExpectedException thrown = ExpectedException.none();
 
     private static final String TEST_ADMIN_NAME = "admin";
@@ -151,5 +137,5 @@ public class HFCAIdentityTest {
 
         HFCAIdentity ident = client.newHFCAIdentity("testuser1");
         ident.delete(admin);
-    }
+    }*/
 }
