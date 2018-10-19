@@ -201,7 +201,6 @@ public class SM4 {
         byte[] result = unpadding(plainData);
         return result;
     }
-
     private byte[] proccessDataCBC(byte[] data, byte[] key, byte[] iv, int type) throws JavaChainException{
         //分包处理(每包长度为Constants.SM4_PACKAGE_LEN)
         byte[] result = new byte[data.length];

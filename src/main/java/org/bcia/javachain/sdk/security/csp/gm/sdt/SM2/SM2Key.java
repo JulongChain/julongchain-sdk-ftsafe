@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.bcia.javachain.sdk.security.csp.gm.sdt.SM2;
 
 import org.bcia.javachain.sdk.security.csp.gm.sdt.SM3.SM3;
@@ -46,13 +47,11 @@ public class SM2Key implements IKey {
 
     @Override
     public byte[] ski() {
-
         try {
             return sm3.hash(sm2KeyPair.getPrivateKey());
         } catch (Exception e) {
             return null;
         }
-
     }
 
     @Override

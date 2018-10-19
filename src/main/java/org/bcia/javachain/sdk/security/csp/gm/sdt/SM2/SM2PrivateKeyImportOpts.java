@@ -18,7 +18,7 @@ package org.bcia.javachain.sdk.security.csp.gm.sdt.SM2;
 import org.bcia.javachain.sdk.security.csp.intfs.opts.IKeyImportOpts;
 
 /**
- * SM2 私钥导入
+ * SM2
  *
  * @author tengxiumin
  * @date 2018/05/17

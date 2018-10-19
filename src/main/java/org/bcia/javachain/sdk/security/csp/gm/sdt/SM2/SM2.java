@@ -97,7 +97,6 @@ public class SM2 {
         return result;
     }
 
-
     /**
      * 验证签名值
      *
